@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>임예창의 사역공간 | Master Control Tower</title>
-    <!-- 버건디 용광로 파비콘 설정 -->
+    <!-- 파비콘 설정 -->
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap');
         
         :root {
-            --bg-color: #f2f2f7;
-            --card-bg: rgba(255, 255, 255, 0.88); 
-            --primary: #5c181f; /* 깊고 어두운 다크 버건디 */
-            --primary-light: #fcf2f2;
-            --border-color: rgba(0, 0, 0, 0.08);
-            --text-main: #1d1d1f;
-            --text-sub: #6e6e73;
+            --bg-color: #0b0914; /* 코스믹 다크 나이트 */
+            --card-bg: rgba(20, 18, 35, 0.75); /* 영롱한 우주 유리알 질감 */
+            --primary: #ff4d88; /* 네온 핑크-오렌지 코스믹 포인트 */
+            --primary-light: rgba(255, 77, 136, 0.12);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
         }
 
         body {
@@ -27,59 +27,34 @@
             letter-spacing: -0.025em;
             margin: 0;
             padding-bottom: 140px;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(131, 56, 236, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 110, 0.12) 0%, transparent 40%);
         }
 
         .glass-card {
             background: var(--card-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--border-color);
             border-radius: 24px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .glass-card:hover {
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.07);
+            border-color: rgba(255, 77, 136, 0.4);
+            box-shadow: 0 20px 45px rgba(255, 77, 136, 0.15);
         }
 
-        /* 화려하게 살아 움직이는 용광로 불꽃 애니메이션 배너 */
+        /* 🌌 코스믹 용광로 GIF 배경이 적용되는 히어로 배너 */
         .furnace-hero {
-            background: linear-gradient(135deg, #421015 0%, #5c181f 50%, #2b080b 100%);
-            box-shadow: 0 20px 50px rgba(92, 24, 31, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            background: linear-gradient(135deg, rgba(15, 10, 30, 0.8), rgba(30, 10, 45, 0.8)), url('fire-bg.gif');
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 20px 50px rgba(131, 56, 236, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             position: relative;
             overflow: hidden;
-        }
-        .furnace-hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(255, 110, 40, 0.35) 0%, rgba(255, 40, 0, 0) 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: flame-wave 3s ease-in-out infinite alternate;
-        }
-        .furnace-hero::after {
-            content: '';
-            position: absolute;
-            bottom: -60%;
-            left: 20%;
-            width: 350px;
-            height: 350px;
-            background: radial-gradient(circle, rgba(255, 180, 50, 0.25) 0%, rgba(255, 80, 0, 0) 75%);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: spark-flash 2s ease-in-out infinite alternate;
-        }
-        @keyframes flame-wave {
-            0% { transform: scale(0.85) translate(0, 0); opacity: 0.6; }
-            100% { transform: scale(1.25) translate(-20px, 15px); opacity: 1; }
-        }
-        @keyframes spark-flash {
-            0% { transform: scale(1); opacity: 0.4; filter: brightness(1); }
-            100% { transform: scale(1.35); opacity: 0.95; filter: brightness(1.4); }
+            border: 1px solid rgba(255, 77, 136, 0.3);
         }
 
         .page-view { 
@@ -96,33 +71,33 @@
 
         body.admin-active [contenteditable="true"] {
             border: 1.5px dashed var(--primary);
-            background: rgba(92, 24, 31, 0.03);
+            background: rgba(255, 77, 136, 0.08);
             border-radius: 6px;
             padding: 2px 6px;
             outline: none;
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
     </style>
 </head>
 <body class="selection:bg-[var(--primary)] selection:text-white">
 
     <!-- Top Command Utility Bar -->
-    <header class="bg-white/85 backdrop-blur-2xl border-b border-[var(--border-color)] px-4 md:px-10 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-2xs">
+    <header class="bg-[#0b0914]/85 backdrop-blur-2xl border-b border-[var(--border-color)] px-4 md:px-10 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-lg">
         <div class="flex items-center gap-3 md:gap-6">
-            <span class="text-[10px] md:text-xs font-extrabold tracking-widest uppercase text-[var(--primary)] bg-[var(--primary-light)] px-3.5 py-1.5 rounded-full">Command Center</span>
-            <div class="h-4 w-[1px] bg-gray-300 hidden md:block"></div>
+            <span class="text-[10px] md:text-xs font-extrabold tracking-widest uppercase text-white bg-gradient-to-r from-purple-600 to-pink-600 px-3.5 py-1.5 rounded-full shadow-md">Cosmic Center</span>
+            <div class="h-4 w-[1px] bg-white/20 hidden md:block"></div>
             <span class="text-xs font-semibold text-[var(--text-sub)]">예수를 닮아가는 남편, 아빠, 목사 '임예창'</span>
         </div>
         <div class="flex items-center gap-2 md:gap-4 text-xs">
-            <div class="hidden sm:flex items-center gap-1.5 bg-white/60 px-3.5 py-1.5 rounded-full border border-gray-200 shadow-2xs">
+            <div class="hidden sm:flex items-center gap-1.5 bg-white/5 px-3.5 py-1.5 rounded-full border border-white/10 shadow-2xs">
                 <span class="text-[11px] font-bold text-[var(--text-sub)] mr-1">테마:</span>
-                <button onclick="setTheme('#5c181f', '#fcf2f2')" class="w-4 h-4 rounded-full bg-[#5c181f] cursor-pointer hover:scale-125 transition-transform" title="다크 버건디"></button>
-                <button onclick="setTheme('#801311', '#faedee')" class="w-4 h-4 rounded-full bg-[#801311] cursor-pointer hover:scale-125 transition-transform" title="클래식 레드"></button>
-                <button onclick="setTheme('#3a0d12', '#f7ebee')" class="w-4 h-4 rounded-full bg-[#3a0d12] cursor-pointer hover:scale-125 transition-transform" title="딥 다크와인"></button>
+                <button onclick="setTheme('#ff4d88', 'rgba(255, 77, 136, 0.12)')" class="w-4 h-4 rounded-full bg-[#ff4d88] cursor-pointer hover:scale-125 transition-transform" title="코스믹 핑크"></button>
+                <button onclick="setTheme('#00f0ff', 'rgba(0, 240, 255, 0.12)')" class="w-4 h-4 rounded-full bg-[#00f0ff] cursor-pointer hover:scale-125 transition-transform" title="네온 블루"></button>
+                <button onclick="setTheme('#ffb703', 'rgba(255, 183, 3, 0.12)')" class="w-4 h-4 rounded-full bg-[#ffb703] cursor-pointer hover:scale-125 transition-transform" title="골드 앰버"></button>
             </div>
-            <button onclick="toggleAdminMode()" id="admin-mode-btn" class="px-4 py-1.5 rounded-full border border-gray-300 text-gray-700 font-semibold hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all shadow-2xs text-xs">관리자 모드 닫힘</button>
+            <button onclick="toggleAdminMode()" id="admin-mode-btn" class="px-4 py-1.5 rounded-full border border-white/20 text-gray-300 font-semibold hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all shadow-2xs text-xs">관리자 모드 닫힘</button>
         </div>
     </header>
 
@@ -131,69 +106,69 @@
 
         <!-- ================= [1] 홈 화면 ================= -->
         <section id="view-home" class="page-view active space-y-6 md:space-y-8">
-            <!-- 메인 히어로 배너 (움직이는 불꽃 애니메이션 + 임예창의 사역공간) -->
-            <div class="furnace-hero text-white p-6 sm:p-8 md:p-12 rounded-[28px] md:rounded-[32px] flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 border border-white/20">
+            <!-- 메인 히어로 배너 (코스믹 GIF 배경 적용) -->
+            <div class="furnace-hero text-white p-6 sm:p-8 md:p-12 rounded-[28px] md:rounded-[32px] flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <div class="space-y-3 z-10 w-full lg:max-w-3xl">
-                    <span class="text-xs font-mono tracking-widest uppercase text-amber-200 bg-black/30 px-3.5 py-1 rounded-full backdrop-blur-md inline-block border border-amber-500/30">Spiritual Furnace Control Tower</span>
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-snug break-keep" contenteditable="false" data-editable="true">임예창의 사역공간</h1>
-                    <p class="text-xs sm:text-sm md:text-base text-white/95 font-light italic tracking-wide break-keep" contenteditable="false" data-editable="true">"하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라"</p>
+                    <span class="text-xs font-mono tracking-widest uppercase text-pink-300 bg-black/40 px-3.5 py-1 rounded-full backdrop-blur-md inline-block border border-pink-500/30">Cosmic Spiritual Furnace</span>
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-snug break-keep drop-shadow-lg" contenteditable="false" data-editable="true">임예창의 사역공간</h1>
+                    <p class="text-xs sm:text-sm md:text-base text-white/95 font-light italic tracking-wide break-keep drop-shadow" contenteditable="false" data-editable="true">"하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라"</p>
                 </div>
                 <!-- 시계 -->
-                <div class="bg-black/30 backdrop-blur-2xl px-6 py-5 rounded-2xl border border-white/25 text-right z-10 w-full lg:w-auto lg:min-w-[280px] shadow-2xl shrink-0">
-                    <span id="hero-clock" class="text-4xl sm:text-5xl font-mono font-black text-amber-100 block tracking-tighter drop-shadow-md">00:00:00</span>
+                <div class="bg-black/50 backdrop-blur-2xl px-6 py-5 rounded-2xl border border-white/20 text-right z-10 w-full lg:w-auto lg:min-w-[280px] shadow-2xl shrink-0">
+                    <span id="hero-clock" class="text-4xl sm:text-5xl font-mono font-black text-pink-200 block tracking-tighter drop-shadow-md">00:00:00</span>
                     <span id="hero-date" class="text-xs text-white/85 block mt-2 font-medium">2026년 8월 26일 (수)</span>
-                    <span id="hero-weather" class="text-xs text-amber-300 font-bold block mt-2 bg-amber-950/50 px-3 py-1 rounded-full text-center border border-amber-500/30">용광로 스파크 점화 중 / 서울 24°C</span>
+                    <span id="hero-weather" class="text-xs text-cyan-300 font-bold block mt-2 bg-black/50 px-3 py-1 rounded-full text-center border border-cyan-500/30">코스믹 용광로 점화 완료 / 서울 24°C</span>
                 </div>
             </div>
 
             <!-- 오늘의 한마디 -->
-            <div class="glass-card p-5 md:p-6 bg-gradient-to-r from-white/95 via-[var(--primary-light)] to-white/95 border-l-4 border-l-[var(--primary)] space-y-3">
+            <div class="glass-card p-5 md:p-6 bg-gradient-to-r from-[var(--card-bg)] via-[var(--primary-light)] to-[var(--card-bg)] border-l-4 border-l-[var(--primary)] space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="text-[10px] md:text-[11px] font-mono font-bold text-[var(--primary)] uppercase tracking-wider"><b>오늘의 한마디</b></span>
-                    <button onclick="useQuoteForStudy()" class="px-3 py-1 bg-[var(--primary)] text-white text-[11px] font-bold rounded-lg shadow-xs hover:bg-black transition-all">✨ 생각의 서재에 노트 쓰기</button>
+                    <button onclick="useQuoteForStudy()" class="px-3 py-1 bg-[var(--primary)] text-white text-[11px] font-bold rounded-lg shadow-xs hover:opacity-80 transition-all">✨ 생각의 서재에 노트 쓰기</button>
                 </div>
                 <div>
-                    <h3 id="theologian-quote" class="text-base md:text-lg font-bold text-[#1d1d1f] mb-1">"주님을 향해 우리의 마음을 열기 전, 그분은 이미 우리 안에 거처를 예비하셨다."</h3>
+                    <h3 id="theologian-quote" class="text-base md:text-lg font-bold text-white mb-1">"주님을 향해 우리의 마음을 열기 전, 그분은 이미 우리 안에 거처를 예비하셨다."</h3>
                     <p id="theologian-author" class="text-[11px] md:text-xs text-[var(--text-sub)]">— 히포의 어거스틴</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                 <div class="lg:col-span-2 space-y-6">
-                    <!-- 주간 캘린더 그리드 (월~일 가로형) -->
+                    <!-- 주간 캘린더 그리드 (무조건 가로 한 줄 고정) -->
                     <div class="glass-card p-5 md:p-6 space-y-4">
                         <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]"><b>주간 일정표</b></h3>
                             <span class="text-xs text-[var(--text-sub)] font-mono">7:30 PM 기준</span>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-xs" id="weekly-grid-container">
-                            <div class="bg-white/80 p-3 rounded-xl border border-gray-200 space-y-2 shadow-2xs">
-                                <span class="font-bold text-[var(--primary)] block text-center border-b pb-1">월</span>
-                                <div class="space-y-1 text-[11px] text-gray-700"><div class="bg-gray-50 p-1.5 rounded"><b>7:30 PM</b> 기획국 회의</div></div>
+                        <div class="grid grid-cols-7 gap-1.5 text-xs text-center" id="weekly-grid-container">
+                            <div class="bg-white/5 p-2 rounded-xl border border-white/10 space-y-1">
+                                <span class="font-bold text-[var(--primary)] block border-b border-white/10 pb-1">월</span>
+                                <div class="text-[10px] text-gray-300 truncate"><b>7:30</b> 회의</div>
                             </div>
-                            <div class="bg-white/80 p-3 rounded-xl border border-gray-200 space-y-2 shadow-2xs">
-                                <span class="font-bold text-[var(--primary)] block text-center border-b pb-1">화</span>
-                                <div class="space-y-1 text-[11px] text-gray-700"><div class="bg-gray-50 p-1.5 rounded"><b>7:30 PM</b> 청년부 1on1</div></div>
+                            <div class="bg-white/5 p-2 rounded-xl border border-white/10 space-y-1">
+                                <span class="font-bold text-[var(--primary)] block border-b border-white/10 pb-1">화</span>
+                                <div class="text-[10px] text-gray-300 truncate"><b>7:30</b> 1on1</div>
                             </div>
-                            <div class="bg-white/80 p-3 rounded-xl border border-gray-200 space-y-2 shadow-2xs">
-                                <span class="font-bold text-[var(--primary)] block text-center border-b pb-1">수</span>
-                                <div class="space-y-1 text-[11px] text-gray-700"><div class="bg-gray-50 p-1.5 rounded"><b>7:30 PM</b> 수요예배 준비</div></div>
+                            <div class="bg-white/5 p-2 rounded-xl border border-white/10 space-y-1">
+                                <span class="font-bold text-[var(--primary)] block border-b border-white/10 pb-1">수</span>
+                                <div class="text-[10px] text-gray-300 truncate"><b>7:30</b> 수요예배</div>
                             </div>
-                            <div class="bg-white/80 p-3 rounded-xl border border-gray-200 space-y-2 shadow-2xs">
-                                <span class="font-bold text-[var(--primary)] block text-center border-b pb-1">목</span>
-                                <div class="space-y-1 text-[11px] text-gray-700"><div class="bg-gray-50 p-1.5 rounded"><b>7:30 PM</b> 교구 리더모임</div></div>
+                            <div class="bg-white/5 p-2 rounded-xl border border-white/10 space-y-1">
+                                <span class="font-bold text-[var(--primary)] block border-b border-white/10 pb-1">목</span>
+                                <div class="text-[10px] text-gray-300 truncate"><b>7:30</b> 리더모임</div>
                             </div>
-                            <div class="bg-white/80 p-3 rounded-xl border border-gray-200 space-y-2 shadow-2xs">
-                                <span class="font-bold text-[var(--primary)] block text-center border-b pb-1">금</span>
-                                <div class="space-y-1 text-[11px] text-gray-700"><div class="bg-gray-50 p-1.5 rounded"><b>7:30 PM</b> 청년금요기도회</div></div>
+                            <div class="bg-white/5 p-2 rounded-xl border border-white/10 space-y-1">
+                                <span class="font-bold text-[var(--primary)] block border-b border-white/10 pb-1">금</span>
+                                <div class="text-[10px] text-gray-300 truncate"><b>7:30</b> 금요기도</div>
                             </div>
-                            <div class="bg-white/80 p-3 rounded-xl border border-gray-200 space-y-2 shadow-2xs">
-                                <span class="font-bold text-[var(--primary)] block text-center border-b pb-1">토</span>
-                                <div class="space-y-1 text-[11px] text-gray-700"><div class="bg-gray-50 p-1.5 rounded"><b>2:00 PM</b> 심방 및 사역</div></div>
+                            <div class="bg-white/5 p-2 rounded-xl border border-white/10 space-y-1">
+                                <span class="font-bold text-[var(--primary)] block border-b border-white/10 pb-1">토</span>
+                                <div class="text-[10px] text-gray-300 truncate"><b>2:00</b> 심방</div>
                             </div>
-                            <div class="bg-white/80 p-3 rounded-xl border border-gray-200 space-y-2 shadow-2xs">
-                                <span class="font-bold text-[var(--primary)] block text-center border-b pb-1">일</span>
-                                <div class="space-y-1 text-[11px] text-gray-700"><div class="bg-gray-50 p-1.5 rounded"><b>11:00 AM</b> 주일예배</div></div>
+                            <div class="bg-white/5 p-2 rounded-xl border border-white/10 space-y-1">
+                                <span class="font-bold text-[var(--primary)] block border-b border-white/10 pb-1">일</span>
+                                <div class="text-[10px] text-gray-300 truncate"><b>11:00</b> 주일예배</div>
                             </div>
                         </div>
                     </div>
@@ -202,32 +177,32 @@
                     <div class="glass-card p-5 md:p-6 space-y-4">
                         <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]"><b>뉴스 플래시</b> ➔</h3>
-                            <a href="https://news.naver.com" target="_blank" class="text-xs text-[var(--text-sub)] hover:text-black font-semibold">네이버 뉴스 홈 ↗</a>
+                            <a href="https://news.naver.com" target="_blank" class="text-xs text-[var(--text-sub)] hover:text-white font-semibold">네이버 뉴스 홈 ↗</a>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-white/80 hover:bg-[var(--primary-light)] rounded-2xl border border-gray-100 block transition-all shadow-2xs">
+                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 block transition-all">
                                 <span class="font-bold text-[var(--primary)] block mb-1">시대 이슈 01</span>
-                                <p class="font-semibold text-gray-800 line-clamp-2">"<b>취업·주거 불안</b> 속에서 2030 청년들이 찾는 새로운 <b>대안적 공동체</b>"</p>
+                                <p class="font-semibold text-gray-200 line-clamp-2">"<b>취업·주거 불안</b> 속에서 2030 청년들이 찾는 새로운 <b>대안적 공동체</b>"</p>
                             </a>
-                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-white/80 hover:bg-[var(--primary-light)] rounded-2xl border border-gray-100 block transition-all shadow-2xs">
+                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 block transition-all">
                                 <span class="font-bold text-[var(--primary)] block mb-1">시대 이슈 02</span>
-                                <p class="font-semibold text-gray-800 line-clamp-2">"관계의 피로감을 넘어선 <b>소모임 열풍</b>... 텍스트와 <b>깊은 대화</b>의 부상"</p>
+                                <p class="font-semibold text-gray-200 line-clamp-2">"관계의 피로감을 넘어선 <b>소모임 열풍</b>... 텍스트와 <b>깊은 대화</b>의 부상"</p>
                             </a>
-                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-white/80 hover:bg-[var(--primary-light)] rounded-2xl border border-gray-100 block transition-all shadow-2xs">
+                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 block transition-all">
                                 <span class="font-bold text-[var(--primary)] block mb-1">시대 이슈 03</span>
-                                <p class="font-semibold text-gray-800 line-clamp-2">"생성형 AI 시대, 목회자와 청년 리더들이 주목하는 <b>지식 아카이빙</b>"</p>
+                                <p class="font-semibold text-gray-200 line-clamp-2">"생성형 AI 시대, 목회자와 청년 리더들이 주목하는 <b>지식 아카이빙</b>"</p>
                             </a>
-                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-white/80 hover:bg-[var(--primary-light)] rounded-2xl border border-gray-100 block transition-all shadow-2xs">
+                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 block transition-all">
                                 <span class="font-bold text-[var(--primary)] block mb-1">시대 이슈 04</span>
-                                <p class="font-semibold text-gray-800 line-clamp-2">"번아웃을 호소하는 청년 세대, 일상 속 <b>회복 탄력성</b>을 높이는 심리 방안"</p>
+                                <p class="font-semibold text-gray-200 line-clamp-2">"번아웃을 호소하는 청년 세대, 일상 속 <b>회복 탄력성</b>을 높이는 심리 방안"</p>
                             </a>
-                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-[var(--primary-light)] hover:bg-white rounded-2xl border border-[var(--primary)]/20 block transition-all shadow-2xs">
+                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-[var(--primary-light)] hover:bg-white/10 rounded-2xl border border-[var(--primary)]/30 block transition-all">
                                 <span class="font-bold text-[var(--primary)] block mb-1">청년 목회 Focus</span>
-                                <p class="font-semibold text-gray-800 line-clamp-2">"답을 제시하는 설교에서 <b>질문을 함께 품는 목양</b>으로 전환하는 교회들"</p>
+                                <p class="font-semibold text-gray-200 line-clamp-2">"답을 제시하는 설교에서 <b>질문을 함께 품는 목양</b>으로 전환하는 교회들"</p>
                             </a>
-                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-[var(--primary-light)] hover:bg-white rounded-2xl border border-[var(--primary)]/20 block transition-all shadow-2xs">
+                            <a href="https://news.naver.com" target="_blank" class="p-3.5 bg-[var(--primary-light)] hover:bg-white/10 rounded-2xl border border-[var(--primary)]/30 block transition-all">
                                 <span class="font-bold text-[var(--primary)] block mb-1">청년 공동체 Focus</span>
-                                <p class="font-semibold text-gray-800 line-clamp-2">"고립을 넘어 연대로... 청년부 소그룹 사역의 <b>새로운 패러다임</b>과 사례"</p>
+                                <p class="font-semibold text-gray-200 line-clamp-2">"고립을 넘어 연대로... 청년부 소그룹 사역의 <b>새로운 패러다임</b>과 사례"</p>
                             </a>
                         </div>
                     </div>
@@ -238,23 +213,23 @@
                     <div>
                         <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3 mb-4">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]"><b>Gemini Live Assistant</b></h3>
-                            <span class="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-mono">READY</span>
+                            <span class="text-[10px] text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded font-mono border border-emerald-500/30">READY</span>
                         </div>
-                        <div id="ai-chat-box" class="h-72 md:h-80 bg-white/70 rounded-2xl p-3.5 overflow-y-auto space-y-3 text-xs border border-gray-200 mb-4 shadow-inner">
-                            <div class="bg-white p-3 rounded-xl border border-gray-200 text-gray-800 shadow-2xs">
+                        <div id="ai-chat-box" class="h-72 md:h-80 bg-black/40 rounded-2xl p-3.5 overflow-y-auto space-y-3 text-xs border border-white/10 mb-4 shadow-inner">
+                            <div class="bg-white/10 p-3 rounded-xl border border-white/10 text-gray-200 shadow-2xs">
                                 목사님 반갑습니다. 아래 버튼을 누르시면 즉시 사역 맞춤형 실무 초안이 산출됩니다.
                             </div>
                         </div>
                     </div>
                     <div class="space-y-2">
                         <div class="flex gap-1.5 overflow-x-auto pb-1 text-[11px]">
-                            <button onclick="askAi('설교 대지 3가지 뽑아줘')" class="px-3 py-1.5 bg-white hover:bg-[var(--primary-light)] hover:text-[var(--primary)] rounded-full border border-gray-200 whitespace-nowrap font-medium shadow-2xs">설교 대지 추출</button>
-                            <button onclick="askAi('소그룹 아이스브레이킹 질문 3가지')" class="px-3 py-1.5 bg-white hover:bg-[var(--primary-light)] hover:text-[var(--primary)] rounded-full border border-gray-200 whitespace-nowrap font-medium shadow-2xs">소그룹 질문</button>
-                            <button onclick="askAi('금요기도회 찬양 멘트 짜줘')" class="px-3 py-1.5 bg-white hover:bg-[var(--primary-light)] hover:text-[var(--primary)] rounded-full border border-gray-200 whitespace-nowrap font-medium shadow-2xs">기도회 멘트</button>
+                            <button onclick="askAi('설교 대지 3가지 뽑아줘')" class="px-3 py-1.5 bg-white/10 hover:bg-[var(--primary)] hover:text-white rounded-full border border-white/10 whitespace-nowrap font-medium transition-all">설교 대지 추출</button>
+                            <button onclick="askAi('소그룹 아이스브레이킹 질문 3가지')" class="px-3 py-1.5 bg-white/10 hover:bg-[var(--primary)] hover:text-white rounded-full border border-white/10 whitespace-nowrap font-medium transition-all">소그룹 질문</button>
+                            <button onclick="askAi('금요기도회 찬양 멘트 짜줘')" class="px-3 py-1.5 bg-white/10 hover:bg-[var(--primary)] hover:text-white rounded-full border border-white/10 whitespace-nowrap font-medium transition-all">기도회 멘트</button>
                         </div>
                         <div class="flex gap-2">
-                            <input type="text" id="ai-user-input" placeholder="실무 지시사항 입력..." class="flex-1 p-3 text-xs bg-white border border-gray-200 rounded-xl outline-none focus:border-[var(--primary)] shadow-2xs" onkeypress="if(event.key==='Enter') triggerAi()">
-                            <button onclick="triggerAi()" class="px-4 py-3 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:bg-black transition-all shadow-xs">전송</button>
+                            <input type="text" id="ai-user-input" placeholder="실무 지시사항 입력..." class="flex-1 p-3 text-xs bg-black/40 border border-white/20 text-white rounded-xl outline-none focus:border-[var(--primary)] shadow-2xs" onkeypress="if(event.key==='Enter') triggerAi()">
+                            <button onclick="triggerAi()" class="px-4 py-3 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:opacity-80 transition-all shadow-xs">전송</button>
                         </div>
                     </div>
                 </div>
@@ -267,39 +242,38 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
                         <span id="today-date-badge" class="text-xs uppercase font-bold tracking-widest text-[var(--primary)] bg-[var(--primary-light)] px-3 py-1 rounded-full inline-block mb-1">2026년 8월 26일 (수)</span>
-                        <h2 class="text-xl md:text-2xl font-light"><b>사역 체크리스트 및 투두 관리</b></h2>
+                        <h2 class="text-xl md:text-2xl font-light text-white"><b>사역 체크리스트 및 투두 관리</b></h2>
                     </div>
-                    <button onclick="addTodoTask()" class="px-4 py-2 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:bg-black transition-all shadow-xs">+ 새 사역 항목 추가</button>
+                    <button onclick="addTodoTask()" class="px-4 py-2 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:opacity-80 transition-all shadow-xs">+ 새 사역 항목 추가</button>
                 </div>
 
                 <div id="todo-checklist-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div class="p-4 bg-white/85 rounded-2xl border border-gray-200 flex items-center justify-between shadow-2xs todo-item">
+                    <div class="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between shadow-2xs todo-item">
                         <label class="flex items-center gap-3 cursor-pointer flex-1 mr-2 overflow-hidden">
                             <input type="checkbox" checked onchange="updateProgress()" class="todo-checkbox accent-[var(--primary)] w-4 h-4 shrink-0">
-                            <span class="font-semibold line-through text-gray-400 truncate" contenteditable="false" data-editable="true">[7:30 PM] 기획국 회계 정산 검토 (유진 간사)</span>
+                            <span class="font-semibold line-through text-gray-500 truncate" contenteditable="false" data-editable="true">[7:30 PM] 기획국 회계 정산 검토 (유진 간사)</span>
                         </label>
                         <div class="flex items-center gap-2 shrink-0">
-                            <span class="text-[11px] text-emerald-600 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full">완료</span>
-                            <button onclick="editTodoItem(this)" class="text-xs text-gray-500 hover:text-[var(--primary)] px-1">수정</button>
-                            <button onclick="deleteTodoItem(this)" class="text-xs text-red-500 hover:text-red-700 px-1">삭제</button>
+                            <span class="text-[11px] text-emerald-400 font-bold bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-500/30">완료</span>
+                            <button onclick="editTodoItem(this)" class="text-xs text-gray-400 hover:text-white px-1">수정</button>
+                            <button onclick="deleteTodoItem(this)" class="text-xs text-red-400 hover:text-red-300 px-1">삭제</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 캘린더 영역 -->
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
                         <span class="text-xs uppercase font-bold tracking-widest text-[var(--primary)]">Calendar Grid</span>
-                        <h2 class="text-xl md:text-2xl font-light mt-1"><b>임예창 목사님 구글 캘린더 연동 일정</b></h2>
+                        <h2 class="text-xl md:text-2xl font-light mt-1 text-white"><b>임예창 목사님 구글 캘린더 연동 일정</b></h2>
                     </div>
-                    <button onclick="syncGoogleCalendar()" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:text-[var(--primary)] hover:border-[var(--primary)] text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center gap-1.5">
+                    <button onclick="syncGoogleCalendar()" class="px-4 py-2 bg-white/10 border border-white/20 text-gray-200 hover:text-[var(--primary)] hover:border-[var(--primary)] text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center gap-1.5">
                         🔄 구글 캘린더 동기화
                     </button>
                 </div>
 
-                <iframe id="google-calendar-iframe" class="w-full h-[500px] md:h-[600px] rounded-2xl border border-gray-200 bg-white shadow-inner text-xs" src="https://calendar.google.com/calendar/embed?src=imyooeun0107%40gmail.com&ctz=Asia%2FSeoul&mode=MONTH"></iframe>
+                <iframe id="google-calendar-iframe" class="w-full h-[500px] md:h-[600px] rounded-2xl border border-white/10 bg-black/40 shadow-inner text-xs" src="https://calendar.google.com/calendar/embed?src=imyooeun0107%40gmail.com&ctz=Asia%2FSeoul&mode=MONTH"></iframe>
             </div>
         </section>
 
@@ -309,40 +283,40 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
                         <span class="text-xs uppercase font-bold tracking-widest text-[var(--primary)]">Control Hub</span>
-                        <h2 class="text-xl md:text-2xl font-light mt-1"><b>사역진행상황</b></h2>
+                        <h2 class="text-xl md:text-2xl font-light mt-1 text-white"><b>사역진행상황</b></h2>
                     </div>
                     <div class="flex items-center gap-3">
-                        <span id="dashboard-total-badge" class="text-sm font-mono font-bold bg-[var(--primary-light)] text-[var(--primary)] px-4 py-1.5 rounded-full">전체 진척도: 50%</span>
+                        <span id="dashboard-total-badge" class="text-sm font-mono font-bold bg-[var(--primary-light)] text-[var(--primary)] px-4 py-1.5 rounded-full border border-[var(--primary)]/30">전체 진척도: 50%</span>
                         <button onclick="addNewProject()" class="px-4 py-2 bg-[var(--primary)] text-white text-xs font-bold rounded-xl shadow-xs">+ 새 프로젝트 추가</button>
                     </div>
                 </div>
 
-                <div class="space-y-2 bg-white/80 p-5 rounded-2xl border border-gray-200 shadow-2xs">
-                    <div class="flex justify-between text-xs font-bold text-gray-600">
+                <div class="space-y-2 bg-white/5 p-5 rounded-2xl border border-white/10 shadow-2xs">
+                    <div class="flex justify-between text-xs font-bold text-gray-300">
                         <span>모든 사역 영역 달성률 종합</span>
                         <span id="dashboard-total-ratio">완료율 연동 중</span>
                     </div>
-                    <div class="w-full bg-gray-200 h-3.5 rounded-full overflow-hidden p-0.5 border border-gray-200">
-                        <div id="dashboard-bar-fill" class="bg-[var(--primary)] h-full rounded-full transition-all duration-500" style="width: 50%;"></div>
+                    <div class="w-full bg-black/50 h-3.5 rounded-full overflow-hidden p-0.5 border border-white/10">
+                        <div id="dashboard-bar-fill" class="bg-gradient-to-r from-purple-500 to-[var(--primary)] h-full rounded-full transition-all duration-500" style="width: 50%;"></div>
                     </div>
                 </div>
 
                 <div id="project-grid-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                    <div class="glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-[#5c181f] project-card" data-id="1">
+                    <div class="glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-[var(--primary)] project-card" data-id="1">
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
-                                <span class="text-[10px] font-mono text-[#5c181f] font-bold uppercase tracking-wider bg-white px-2.5 py-1 rounded-full border border-gray-200">Project 01</span>
-                                <span class="project-pct text-xs font-mono font-bold text-[#5c181f] bg-[#fcf2f2] px-2.5 py-0.5 rounded-full">100%</span>
+                                <span class="text-[10px] font-mono text-[var(--primary)] font-bold uppercase tracking-wider bg-white/10 px-2.5 py-1 rounded-full border border-white/10">Project 01</span>
+                                <span class="project-pct text-xs font-mono font-bold text-[var(--primary)] bg-[var(--primary-light)] px-2.5 py-0.5 rounded-full">100%</span>
                             </div>
-                            <h4 class="font-bold text-base" contenteditable="false" data-editable="true">「순간의 말」 워크숍 기획</h4>
+                            <h4 class="font-bold text-base text-white" contenteditable="false" data-editable="true">「순간의 말」 워크숍 기획</h4>
                             <div class="project-task-list space-y-2 text-xs pt-1">
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked onchange="updateProjectProgress()" class="project-cb accent-[#5c181f] w-3.5 h-3.5">
-                                    <span class="font-medium text-gray-700" contenteditable="false" data-editable="true">레이아웃 템플릿 완성</span>
+                                    <input type="checkbox" checked onchange="updateProjectProgress()" class="project-cb accent-[var(--primary)] w-3.5 h-3.5">
+                                    <span class="font-medium text-gray-300" contenteditable="false" data-editable="true">레이아웃 템플릿 완성</span>
                                 </label>
                             </div>
                         </div>
-                        <button onclick="addProjectTask(this)" class="w-full py-2 bg-white border border-gray-200 text-xs font-bold rounded-xl hover:bg-[#5c181f] hover:text-white transition-all shadow-2xs">+ 세부 과업 추가</button>
+                        <button onclick="addProjectTask(this)" class="w-full py-2 bg-white/5 border border-white/10 text-xs font-bold rounded-xl text-gray-200 hover:bg-[var(--primary)] hover:text-white transition-all shadow-2xs">+ 세부 과업 추가</button>
                     </div>
                 </div>
             </div>
@@ -354,25 +328,25 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
                         <span class="text-xs uppercase font-bold tracking-widest text-[var(--primary)]">Minutes & Notes</span>
-                        <h2 class="text-xl md:text-2xl font-light mt-1"><b>회의록 아카이브 및 오늘의 메모</b></h2>
+                        <h2 class="text-xl md:text-2xl font-light mt-1 text-white"><b>회의록 아카이브 및 오늘의 메모</b></h2>
                     </div>
                 </div>
 
-                <div class="p-6 bg-[var(--primary-light)] border border-[var(--primary)]/20 rounded-2xl space-y-3">
+                <div class="p-6 bg-[var(--primary-light)] border border-[var(--primary)]/30 rounded-2xl space-y-3">
                     <span class="text-xs font-bold text-[var(--primary)] uppercase tracking-wider block"><b>오늘의 메모 & 단상 기록</b></span>
-                    <textarea id="today-memo-input" rows="3" placeholder="문득 떠오른 묵상, 설교 아이디어, 청년부 피드백을 기록하세요..." class="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[var(--primary)] shadow-2xs"></textarea>
+                    <textarea id="today-memo-input" rows="3" placeholder="문득 떠오른 묵상, 설교 아이디어, 청년부 피드백을 기록하세요..." class="w-full p-4 bg-black/40 border border-white/20 text-white rounded-xl text-sm outline-none focus:border-[var(--primary)] shadow-2xs"></textarea>
                     <div class="flex justify-end">
-                        <button onclick="saveTodayMemo()" class="px-5 py-2.5 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:bg-black transition-all shadow-xs">메모 아카이브에 박제하기</button>
+                        <button onclick="saveTodayMemo()" class="px-5 py-2.5 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:opacity-80 transition-all shadow-xs">메모 아카이브에 박제하기</button>
                     </div>
                 </div>
 
                 <div id="memo-archive-list" class="space-y-3 text-sm">
-                    <div class="p-4 bg-white/90 border border-gray-200 rounded-2xl shadow-2xs memo-card">
+                    <div class="p-4 bg-white/5 border border-white/10 rounded-2xl shadow-2xs memo-card">
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-[10px] font-mono text-[var(--primary)] font-bold bg-[var(--primary-light)] px-2.5 py-0.5 rounded-full">퀵메모</span>
-                            <span class="text-[10px] text-gray-400">2026.08.26</span>
+                            <span class="text-[10px] font-mono text-[var(--primary)] font-bold bg-[var(--primary-light)] px-2.5 py-0.5 rounded-full border border-[var(--primary)]/30">퀵메모</span>
+                            <span class="text-[10px] text-gray-500">2026.08.26</span>
                         </div>
-                        <p class="text-xs text-gray-800 font-medium">청년부 소그룹 리더 모임 때 다룰 공감과 실존적 대화 주제 미리 정리해둘 것.</p>
+                        <p class="text-xs text-gray-200 font-medium">청년부 소그룹 리더 모임 때 다룰 공감과 실존적 대화 주제 미리 정리해둘 것.</p>
                     </div>
                 </div>
             </div>
@@ -384,16 +358,16 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
                         <span class="text-xs uppercase font-bold tracking-widest text-[var(--primary)]">Ministry Link</span>
-                        <h2 class="text-xl md:text-2xl font-light mt-1"><b>사역 링크</b></h2>
+                        <h2 class="text-xl md:text-2xl font-light mt-1 text-white"><b>사역 링크</b></h2>
                     </div>
                 </div>
 
-                <div class="p-6 bg-white/85 border border-dashed border-gray-300 rounded-2xl space-y-3">
+                <div class="p-6 bg-white/5 border border-dashed border-white/20 rounded-2xl space-y-3">
                     <span class="text-xs font-bold text-[var(--primary)] uppercase tracking-wider block"><b>새로운 사역 링크 및 리소스 카드 추가</b></span>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <input type="text" id="new-link-title" placeholder="링크/리소스 제목" class="p-3 text-xs bg-white border border-gray-200 rounded-xl outline-none">
-                        <input type="text" id="new-link-tags" placeholder="태그 (예: 마스터시트 행정)" class="p-3 text-xs bg-white border border-gray-200 rounded-xl outline-none">
-                        <input type="url" id="new-link-url" placeholder="https:// 주소 입력" class="p-3 text-xs bg-white border border-gray-200 rounded-xl outline-none">
+                        <input type="text" id="new-link-title" placeholder="링크/리소스 제목" class="p-3 text-xs bg-black/40 border border-white/20 text-white rounded-xl outline-none">
+                        <input type="text" id="new-link-tags" placeholder="태그 (예: 마스터시트 행정)" class="p-3 text-xs bg-black/40 border border-white/20 text-white rounded-xl outline-none">
+                        <input type="url" id="new-link-url" placeholder="https:// 주소 입력" class="p-3 text-xs bg-black/40 border border-white/20 text-white rounded-xl outline-none">
                     </div>
                     <div class="flex justify-end">
                         <button onclick="addNewLinkCard()" class="px-5 py-2.5 bg-[var(--primary)] text-white text-xs font-bold rounded-xl shadow-xs">사역 링크 카드 자동저장</button>
@@ -404,65 +378,70 @@
                     <div class="glass-card p-6 flex flex-col justify-between space-y-4 hover:border-[var(--primary)] transition-all">
                         <div class="space-y-2">
                             <div class="flex justify-between items-center">
-                                <span class="text-[10px] font-mono bg-white px-3 py-1 rounded-full border border-gray-200 text-[var(--primary)] font-bold">마스터시트 행정</span>
-                                <span class="w-2 h-2 rounded-full bg-[var(--primary)]"></span>
+                                <span class="text-[10px] font-mono bg-white/10 px-3 py-1 rounded-full border border-white/10 text-[var(--primary)] font-bold">마스터시트 행정</span>
+                                <span class="w-2 h-2 rounded-full bg-[var(--primary)] shadow-[0_0_8px_var(--primary)]"></span>
                             </div>
-                            <h4 class="font-bold text-base text-[#1d1d1f]" contenteditable="false" data-editable="true">마스터 사역 스프레드시트</h4>
+                            <h4 class="font-bold text-base text-white" contenteditable="false" data-editable="true">마스터 사역 스프레드시트</h4>
                             <p class="text-xs text-[var(--text-sub)]" contenteditable="false" data-editable="true">청년부 전체 일정, 예산, 행정 데이터를 총괄하는 핵심 툴</p>
                         </div>
-                        <a href="https://docs.google.com/spreadsheets" target="_blank" class="w-full py-3 bg-white text-[var(--primary)] text-xs font-bold text-center rounded-xl border border-gray-200 hover:bg-[var(--primary)] hover:text-white transition-all block shadow-2xs">스프레드시트 열기 ↗</a>
+                        <a href="https://docs.google.com/spreadsheets" target="_blank" class="w-full py-3 bg-white/10 text-white text-xs font-bold text-center rounded-xl border border-white/10 hover:bg-[var(--primary)] transition-all block shadow-2xs">스프레드시트 열기 ↗</a>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ================= [6] 생각의 서재 화면 ================= -->
+        <!-- ================= [6] 생각의 서재 화면 (잘잘법 복구 완료) ================= -->
         <section id="view-assets" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
                         <span class="text-xs uppercase font-bold tracking-widest text-[var(--primary)]">Pastoral Study</span>
-                        <h2 class="text-xl md:text-2xl font-light mt-1"><b>생각의 서재</b></h2>
+                        <h2 class="text-xl md:text-2xl font-light mt-1 text-white"><b>생각의 서재</b></h2>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <a href="https://www.millie.co.kr" target="_blank" class="glass-card p-4 flex items-center gap-3 hover:border-[var(--primary)] transition-all group">
-                        <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0">BK</div>
-                        <div><span class="text-[9px] font-mono text-[var(--text-sub)] uppercase">E-Book</span><h4 class="font-bold text-xs text-[#1d1d1f]">밀리의 서재</h4></div>
+                <!-- 필수 리서치 툴 카드 (유튜브 잘잘법 포함 6개 완벽 복구) -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                    <a href="https://www.millie.co.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all group">
+                        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">BK</div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">E-Book</span><h4 class="font-bold text-xs text-white truncate">밀리의 서재</h4></div>
                     </a>
-                    <a href="https://www.dbpia.co.kr" target="_blank" class="glass-card p-4 flex items-center gap-3 hover:border-[var(--primary)] transition-all group">
-                        <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">DB</div>
-                        <div><span class="text-[9px] font-mono text-[var(--text-sub)] uppercase">Paper</span><h4 class="font-bold text-xs text-[#1d1d1f]">DBpia 논문</h4></div>
+                    <a href="https://www.youtube.com" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all group">
+                        <div class="w-8 h-8 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center font-bold text-xs shrink-0">YT</div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Channel</span><h4 class="font-bold text-xs text-white truncate">잘잘법</h4></div>
                     </a>
-                    <a href="https://www.riss.kr" target="_blank" class="glass-card p-4 flex items-center gap-3 hover:border-[var(--primary)] transition-all group">
-                        <div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-sm shrink-0">RS</div>
-                        <div><span class="text-[9px] font-mono text-[var(--text-sub)] uppercase">Research</span><h4 class="font-bold text-xs text-[#1d1d1f]">RISS 학술정보</h4></div>
+                    <a href="https://www.dbpia.co.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all group">
+                        <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">DB</div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Paper</span><h4 class="font-bold text-xs text-white truncate">DBpia 논문</h4></div>
                     </a>
-                    <a href="https://lilys.ai" target="_blank" class="glass-card p-4 flex items-center gap-3 hover:border-[var(--primary)] transition-all group">
-                        <div class="w-10 h-10 rounded-2xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center font-bold text-sm shrink-0">AI</div>
-                        <div><span class="text-[9px] font-mono text-[var(--text-sub)] uppercase">Summarizer</span><h4 class="font-bold text-xs text-[#1d1d1f]">릴리스 AI</h4></div>
+                    <a href="https://www.riss.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all group">
+                        <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs shrink-0">RS</div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Research</span><h4 class="font-bold text-xs text-white truncate">RISS 학술정보</h4></div>
                     </a>
-                    <a href="https://www.duplus.co.kr" target="_blank" class="glass-card p-4 flex items-center gap-3 hover:border-[var(--primary)] transition-all group">
-                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-sm shrink-0">+</div>
-                        <div><span class="text-[9px] font-mono text-[var(--text-sub)] uppercase">Tool</span><h4 class="font-bold text-xs text-[#1d1d1f]">두플러스</h4></div>
+                    <a href="https://lilys.ai" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all group">
+                        <div class="w-8 h-8 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center font-bold text-xs shrink-0">AI</div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Summarizer</span><h4 class="font-bold text-xs text-white truncate">릴리스 AI</h4></div>
+                    </a>
+                    <a href="https://www.duplus.co.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all group">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">+</div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Tool</span><h4 class="font-bold text-xs text-white truncate">두플러스</h4></div>
                     </a>
                 </div>
 
-                <div class="p-6 bg-[var(--primary-light)] border border-[var(--primary)]/20 rounded-2xl space-y-3 mt-6">
+                <div class="p-6 bg-[var(--primary-light)] border border-[var(--primary)]/30 rounded-2xl space-y-3 mt-6">
                     <span class="text-xs font-bold text-[var(--primary)] uppercase tracking-wider block"><b>새로운 생각의 조각 및 묵상 기록하기</b></span>
-                    <input type="text" id="thought-title" placeholder="출처 및 태그 (예: 독서묵상 팀켈러)" class="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs outline-none shadow-2xs">
-                    <textarea id="thought-content" rows="3" placeholder="기억하고 싶은 문장이나 깨달은 생각을 적어주세요..." class="w-full p-3.5 bg-white border border-gray-200 rounded-xl text-xs outline-none leading-relaxed shadow-2xs"></textarea>
+                    <input type="text" id="thought-title" placeholder="출처 및 태그 (예: 독서묵상 팀켈러)" class="w-full p-3.5 bg-black/40 border border-white/25 text-white rounded-xl text-xs outline-none shadow-2xs">
+                    <textarea id="thought-content" rows="3" placeholder="기억하고 싶은 문장이나 깨달은 생각을 적어주세요..." class="w-full p-3.5 bg-black/40 border border-white/25 text-white rounded-xl text-xs outline-none leading-relaxed shadow-2xs"></textarea>
                     <div class="flex justify-end">
-                        <button onclick="addThoughtCard()" class="px-5 py-2.5 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:bg-black transition-all shadow-xs">생각의 서재에 카드 박제</button>
+                        <button onclick="addThoughtCard()" class="px-5 py-2.5 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:opacity-80 transition-all shadow-xs">생각의 서재에 카드 박제</button>
                     </div>
                 </div>
 
                 <div id="thought-card-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                     <div class="glass-card p-6 space-y-3 thought-item">
-                        <span class="text-[10px] font-mono text-[var(--primary)] font-bold uppercase tracking-wider bg-[var(--primary-light)] px-3 py-1 rounded-full">묵상기록</span>
-                        <h4 class="font-bold text-base text-[#1d1d1f]" contenteditable="false" data-editable="true">"고립 속에서 신음하는 세대에게 교회가 건네야 할 단 하나의 언어는 완벽한 정답이 아니라 깊은 실존적 공감이다."</h4>
-                        <p class="text-xs text-[var(--text-sub)]">— 생각의 서재 아카이브 연동됨</p>
+                        <span class="text-[10px] font-mono text-[var(--primary)] font-bold uppercase tracking-wider bg-[var(--primary-light)] px-3 py-1 rounded-full border border-[var(--primary)]/30">묵상기록</span>
+                        <h4 class="font-bold text-base text-white" contenteditable="false" data-editable="true">"고립 속에서 신음하는 세대에게 교회가 건네야 할 단 하나의 언어는 완벽한 정답이 아니라 깊은 실존적 공감이다."</h4>
+                        <p class="text-xs text-[var(--text-sub)]">— 생각의 서재 아카이브</p>
                     </div>
                 </div>
             </div>
@@ -471,13 +450,13 @@
     </main>
 
     <!-- 하단 고정 네비게이션 바 -->
-    <nav class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-2xl border border-white/50 px-3 py-2.5 rounded-full flex gap-1.5 shadow-2xl z-50 max-w-[95vw] overflow-x-auto">
+    <nav class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 bg-[#141223]/90 backdrop-blur-2xl border border-white/15 px-3 py-2.5 rounded-full flex gap-1.5 shadow-2xl z-50 max-w-[95vw] overflow-x-auto">
         <button onclick="switchView('home', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold bg-[var(--primary)] text-white transition-all whitespace-nowrap shadow-xs">홈</button>
-        <button onclick="switchView('calendar', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-600 hover:text-[var(--primary)] hover:bg-black/5 transition-all whitespace-nowrap">일정</button>
-        <button onclick="switchView('dashboard', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-600 hover:text-[var(--primary)] hover:bg-black/5 transition-all whitespace-nowrap">사역진행상황</button>
-        <button onclick="switchView('meetings', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-600 hover:text-[var(--primary)] hover:bg-black/5 transition-all whitespace-nowrap">회의록</button>
-        <button onclick="switchView('workspace', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-600 hover:text-[var(--primary)] hover:bg-black/5 transition-all whitespace-nowrap">사역링크</button>
-        <button onclick="switchView('assets', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-600 hover:text-[var(--primary)] hover:bg-black/5 transition-all whitespace-nowrap">생각의서재</button>
+        <button onclick="switchView('calendar', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all whitespace-nowrap">일정</button>
+        <button onclick="switchView('dashboard', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all whitespace-nowrap">사역진행상황</button>
+        <button onclick="switchView('meetings', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all whitespace-nowrap">회의록</button>
+        <button onclick="switchView('workspace', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all whitespace-nowrap">사역링크</button>
+        <button onclick="switchView('assets', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all whitespace-nowrap">생각의서재</button>
     </nav>
 
     <!-- JavaScript Interactive Engine -->
@@ -537,8 +516,8 @@
             const card = document.createElement('div');
             card.className = "glass-card p-6 space-y-3 thought-item";
             card.innerHTML = `
-                <span class="text-[10px] font-mono text-[var(--primary)] font-bold uppercase tracking-wider bg-[var(--primary-light)] px-3 py-1 rounded-full">오늘의한마디묵상</span>
-                <h4 class="font-bold text-base text-[#1d1d1f]" contenteditable="${isAdmin}" data-editable="true">"${currentActiveQuote.quote}"</h4>
+                <span class="text-[10px] font-mono text-[var(--primary)] font-bold uppercase tracking-wider bg-[var(--primary-light)] px-3 py-1 rounded-full border border-[var(--primary)]/30">오늘의한마디묵상</span>
+                <h4 class="font-bold text-base text-white" contenteditable="${isAdmin}" data-editable="true">"${currentActiveQuote.quote}"</h4>
                 <p class="text-xs text-[var(--text-sub)]">— ${currentActiveQuote.author}</p>
             `;
             grid.prepend(card);
@@ -549,7 +528,7 @@
         function switchView(viewId, evt) {
             document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(t => {
-                t.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-600 hover:text-[var(--primary)] hover:bg-black/5 transition-all whitespace-nowrap";
+                t.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all whitespace-nowrap";
             });
             document.getElementById('view-' + viewId).classList.add('active');
             evt.currentTarget.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-bold bg-[var(--primary)] text-white transition-all whitespace-nowrap shadow-xs";
@@ -569,7 +548,7 @@
             } else {
                 document.body.classList.remove('admin-active');
                 btn.innerText = "관리자 모드 닫힘";
-                btn.className = "px-3.5 py-1.5 rounded-full border border-gray-300 text-gray-700 font-semibold hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all shadow-2xs text-xs";
+                btn.className = "px-3.5 py-1.5 rounded-full border border-white/20 text-gray-300 font-semibold hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all shadow-2xs text-xs";
                 editables.forEach(el => el.setAttribute('contenteditable', 'false'));
                 alert('수정된 내용이 안전하게 저장되었습니다.');
             }
@@ -581,12 +560,12 @@
                 const span = cb.nextElementSibling;
                 const badge = cb.closest('.todo-item').querySelector('span:nth-of-type(1)');
                 if(cb.checked) {
-                    span.className = "font-semibold line-through text-gray-400 truncate";
-                    badge.className = "text-[11px] text-emerald-600 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full";
+                    span.className = "font-semibold line-through text-gray-500 truncate";
+                    badge.className = "text-[11px] text-emerald-400 font-bold bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-500/30";
                     badge.innerText = "완료";
                 } else {
-                    span.className = "font-semibold text-gray-800 truncate";
-                    badge.className = "text-[11px] text-[var(--primary)] font-bold bg-[var(--primary-light)] px-2.5 py-0.5 rounded-full";
+                    span.className = "font-semibold text-gray-200 truncate";
+                    badge.className = "text-[11px] text-[var(--primary)] font-bold bg-[var(--primary-light)] px-2.5 py-0.5 rounded-full border border-[var(--primary)]/30";
                     badge.innerText = "진행";
                 }
             });
@@ -596,16 +575,16 @@
             if(!task) return;
             const container = document.getElementById('todo-checklist-container');
             const div = document.createElement('div');
-            div.className = "p-4 bg-white/85 rounded-2xl border border-gray-200 flex items-center justify-between shadow-2xs todo-item";
+            div.className = "p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between shadow-2xs todo-item";
             div.innerHTML = `
                 <label class="flex items-center gap-3 cursor-pointer flex-1 mr-2 overflow-hidden">
                     <input type="checkbox" onchange="updateProgress()" class="todo-checkbox accent-[var(--primary)] w-4 h-4 shrink-0">
-                    <span class="font-semibold text-gray-800 truncate" contenteditable="${isAdmin}" data-editable="true">${task}</span>
+                    <span class="font-semibold text-gray-200 truncate" contenteditable="${isAdmin}" data-editable="true">${task}</span>
                 </label>
                 <div class="flex items-center gap-2 shrink-0">
-                    <span class="text-[11px] text-[var(--primary)] font-bold bg-[var(--primary-light)] px-2.5 py-0.5 rounded-full">진행</span>
-                    <button onclick="editTodoItem(this)" class="text-xs text-gray-500 hover:text-[var(--primary)] px-1">수정</button>
-                    <button onclick="deleteTodoItem(this)" class="text-xs text-red-500 hover:text-red-700 px-1">삭제</button>
+                    <span class="text-[11px] text-[var(--primary)] font-bold bg-[var(--primary-light)] px-2.5 py-0.5 rounded-full border border-[var(--primary)]/30">진행</span>
+                    <button onclick="editTodoItem(this)" class="text-xs text-gray-400 hover:text-white px-1">수정</button>
+                    <button onclick="deleteTodoItem(this)" class="text-xs text-red-400 hover:text-red-300 px-1">삭제</button>
                 </div>
             `;
             container.appendChild(div);
@@ -639,7 +618,7 @@
             label.className = "flex items-center gap-2 cursor-pointer";
             label.innerHTML = `
                 <input type="checkbox" onchange="updateProjectProgress()" class="project-cb accent-[var(--primary)] w-3.5 h-3.5">
-                <span class="font-medium text-gray-700" contenteditable="${isAdmin}" data-editable="true">${task}</span>
+                <span class="font-medium text-gray-300" contenteditable="${isAdmin}" data-editable="true">${task}</span>
             `;
             listDiv.appendChild(label);
             updateProjectProgress();
@@ -649,22 +628,22 @@
             if(!name) return;
             const grid = document.getElementById('project-grid-container');
             const card = document.createElement('div');
-            card.className = "glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-blue-600 project-card";
+            card.className = "glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-cyan-500 project-card";
             card.innerHTML = `
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-mono text-blue-700 font-bold uppercase tracking-wider bg-white px-2.5 py-1 rounded-full border border-gray-200">Project</span>
-                        <span class="project-pct text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full">0%</span>
+                        <span class="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider bg-white/10 px-2.5 py-1 rounded-full border border-white/10">Project</span>
+                        <span class="project-pct text-xs font-mono font-bold text-cyan-400 bg-cyan-950/50 px-2.5 py-0.5 rounded-full border border-cyan-500/30">0%</span>
                     </div>
-                    <h4 class="font-bold text-base" contenteditable="${isAdmin}" data-editable="true">${name}</h4>
+                    <h4 class="font-bold text-base text-white" contenteditable="${isAdmin}" data-editable="true">${name}</h4>
                     <div class="project-task-list space-y-2 text-xs pt-1">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" onchange="updateProjectProgress()" class="project-cb accent-blue-600 w-3.5 h-3.5">
-                            <span class="font-medium text-gray-700" contenteditable="${isAdmin}" data-editable="true">첫 번째 과업 등록</span>
+                            <input type="checkbox" onchange="updateProjectProgress()" class="project-cb accent-cyan-500 w-3.5 h-3.5">
+                            <span class="font-medium text-gray-300" contenteditable="${isAdmin}" data-editable="true">첫 번째 과업 등록</span>
                         </label>
                     </div>
                 </div>
-                <button onclick="addProjectTask(this)" class="w-full py-2 bg-white border border-gray-200 text-xs font-bold rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-2xs">+ 세부 과업 추가</button>
+                <button onclick="addProjectTask(this)" class="w-full py-2 bg-white/5 border border-white/10 text-xs font-bold rounded-xl text-gray-200 hover:bg-cyan-500 hover:text-white transition-all shadow-2xs">+ 세부 과업 추가</button>
             `;
             grid.appendChild(card);
             updateProjectProgress();
@@ -675,14 +654,14 @@
             if(!text) return;
             const list = document.getElementById('memo-archive-list');
             const card = document.createElement('div');
-            card.className = "p-4 bg-white/90 border border-gray-200 rounded-2xl shadow-2xs memo-card";
+            card.className = "p-4 bg-white/5 border border-white/10 rounded-2xl shadow-2xs memo-card";
             const today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
             card.innerHTML = `
                 <div class="flex justify-between items-center mb-1">
-                    <span class="text-[10px] font-mono text-[var(--primary)] font-bold bg-[var(--primary-light)] px-2.5 py-0.5 rounded-full">퀵메모</span>
-                    <span class="text-[10px] text-gray-400">${today}</span>
+                    <span class="text-[10px] font-mono text-[var(--primary)] font-bold bg-[var(--primary-light)] px-2.5 py-0.5 rounded-full border border-[var(--primary)]/30">퀵메모</span>
+                    <span class="text-[10px] text-gray-500">${today}</span>
                 </div>
-                <p class="text-xs text-gray-800 font-medium" contenteditable="${isAdmin}" data-editable="true">${text}</p>
+                <p class="text-xs text-gray-200 font-medium" contenteditable="${isAdmin}" data-editable="true">${text}</p>
             `;
             list.prepend(card);
             document.getElementById('today-memo-input').value = '';
@@ -701,13 +680,13 @@
             card.innerHTML = `
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-mono bg-white px-3 py-1 rounded-full border border-gray-200 text-[var(--primary)] font-bold">${tags || '사역링크'}</span>
-                        <span class="w-2 h-2 rounded-full bg-[var(--primary)]"></span>
+                        <span class="text-[10px] font-mono bg-white/10 px-3 py-1 rounded-full border border-white/10 text-[var(--primary)] font-bold">${tags || '사역링크'}</span>
+                        <span class="w-2 h-2 rounded-full bg-[var(--primary)] shadow-[0_0_8px_var(--primary)]"></span>
                     </div>
-                    <h4 class="font-bold text-base text-[#1d1d1f]" contenteditable="${isAdmin}" data-editable="true">${title}</h4>
+                    <h4 class="font-bold text-base text-white" contenteditable="${isAdmin}" data-editable="true">${title}</h4>
                     <p class="text-xs text-[var(--text-sub)]" contenteditable="${isAdmin}" data-editable="true">목사님이 직접 등록한 맞춤형 실무 사역 링크</p>
                 </div>
-                <a href="${url}" target="_blank" class="w-full py-3 bg-white text-[var(--primary)] text-xs font-bold text-center rounded-xl border border-gray-200 hover:bg-[var(--primary)] hover:text-white transition-all block shadow-2xs">링크 열기 ↗</a>
+                <a href="${url}" target="_blank" class="w-full py-3 bg-white/10 text-white text-xs font-bold text-center rounded-xl border border-white/10 hover:bg-[var(--primary)] transition-all block shadow-2xs">링크 열기 ↗</a>
             `;
             grid.prepend(card);
             document.getElementById('new-link-title').value = '';
@@ -725,8 +704,8 @@
             const card = document.createElement('div');
             card.className = "glass-card p-6 space-y-3 thought-item";
             card.innerHTML = `
-                <span class="text-[10px] font-mono text-[var(--primary)] font-bold uppercase tracking-wider bg-[var(--primary-light)] px-3 py-1 rounded-full" contenteditable="${isAdmin}" data-editable="true">${title}</span>
-                <h4 class="font-bold text-base text-[#1d1d1f]" contenteditable="${isAdmin}" data-editable="true">"${content}"</h4>
+                <span class="text-[10px] font-mono text-[var(--primary)] font-bold uppercase tracking-wider bg-[var(--primary-light)] px-3 py-1 rounded-full border border-[var(--primary)]/30" contenteditable="${isAdmin}" data-editable="true">${title}</span>
+                <h4 class="font-bold text-base text-white" contenteditable="${isAdmin}" data-editable="true">"${content}"</h4>
                 <p class="text-xs text-[var(--text-sub)]">— 생각의 서재 아카이브</p>
             `;
             grid.prepend(card);
@@ -767,7 +746,7 @@
             if(!text) return;
             const box = document.getElementById('ai-chat-box');
             const userDiv = document.createElement('div');
-            userDiv.className = "bg-[var(--primary-light)] text-[var(--primary)] p-3 rounded-xl border border-[var(--primary)]/20 font-medium ml-4 shadow-2xs";
+            userDiv.className = "bg-[var(--primary-light)] text-[var(--primary)] p-3 rounded-xl border border-[var(--primary)]/30 font-medium ml-4 shadow-2xs";
             userDiv.innerText = text;
             box.appendChild(userDiv);
             input.value = '';
@@ -775,8 +754,8 @@
 
             setTimeout(() => {
                 const aiDiv = document.createElement('div');
-                aiDiv.className = "bg-white p-3 rounded-xl border border-gray-200 text-gray-800 mr-4 leading-relaxed shadow-2xs";
-                aiDiv.innerHTML = `<strong>[제미나이 AI 실무 비서]</strong><br>목사님, 요청하신 "${text}"에 대한 맞춤형 초안입니다:<br><br><em>1. 청년부 실존 맥락에 맞춘 깊이 있는 공감 포인트 정립<br>2. 현장 적용을 위한 소그룹 질문 세트 구성 완료<br>3. 용광로 영성의 뜨거운 온도를 담은 멘트 조율 완료</em>`;
+                aiDiv.className = "bg-white/10 p-3 rounded-xl border border-white/10 text-gray-200 mr-4 leading-relaxed shadow-2xs";
+                aiDiv.innerHTML = `<strong>[제미나이 AI 실무 비서]</strong><br>목사님, 요청하신 "${text}"에 대한 맞춤형 초안입니다:<br><br><em>1. 코스믹 용광로 영성 맥락에 맞춘 깊이 있는 공감 포인트 정립<br>2. 현장 적용을 위한 소그룹 질문 세트 구성 완료<br>3. 네온 불꽃의 뜨거운 온도를 담은 멘트 조율 완료</em>`;
                 box.appendChild(aiDiv);
                 box.scrollTop = box.scrollHeight;
             }, 700);
