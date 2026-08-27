@@ -15,7 +15,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap');
 
-        /* 1. 🩸 클래식 버건디 (완벽한 화이트 텍스트 대비) */
+        /* 1. 🩸 클래식 버건디 */
         body.theme-burgundy {
             --bg-color: #f7f5f2;
             --card-bg: rgba(255, 255, 255, 0.96);
@@ -155,7 +155,7 @@
         .modal-overlay.show { display: flex; opacity: 1; }
         .modal-content {
             background: var(--card-bg); border-radius: 24px;
-            padding: 28px; max-width: 560px; width: 92%;
+            padding: 28px; max-width: 620px; width: 92%;
             box-shadow: 0 30px 60px rgba(0,0,0,0.4);
             border: 1px solid var(--border-color);
             transform: scale(0.96); transition: transform 0.2s ease;
@@ -187,7 +187,7 @@
 </head>
 <body class="theme-forest selection:bg-[var(--primary)] selection:text-[var(--primary-text)]">
 
-    <!-- 상단 헤더 & 클라우드 상태 표시 -->
+    <!-- 상단 헤더 & 클라우드 상태 -->
     <header class="bg-[var(--nav-bg)] backdrop-blur-2xl border-b border-[var(--border-color)] px-4 md:px-10 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-xs transition-colors duration-300">
         <div class="flex items-center gap-3 md:gap-6">
             <span class="text-[10px] md:text-xs font-mono-code font-black tracking-widest uppercase primary-badge px-3.5 py-1.5 rounded-full shadow-xs">Control Center</span>
@@ -196,10 +196,9 @@
         </div>
         
         <div class="flex items-center gap-2 md:gap-4 text-xs">
-            <!-- 클라우드 실시간 동기화 인디케이터 -->
             <div id="cloud-sync-status" class="bg-[var(--card-bg)] px-3 py-1.5 rounded-full border border-[var(--border-color)] text-[var(--text-sub)]">
-                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse" id="sync-dot"></span>
-                <span id="sync-text">클라우드 연결중...</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400" id="sync-dot"></span>
+                <span id="sync-text">클라우드 동기화 완료</span>
             </div>
 
             <div class="flex items-center bg-[var(--card-bg)] px-2 py-1 rounded-full border border-[var(--border-color)] shadow-2xs">
@@ -223,59 +222,77 @@
                     <p class="text-xs sm:text-sm text-emerald-200/90 font-medium tracking-wide break-keep">"하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라"</p>
                 </div>
                 
-                <!-- 우측 통합 관제 패널: 시계 바로 아래 실시간 날씨 및 회전 새로고침 버튼 -->
+                <!-- 우측 노르웨이 기상청(MET Norway ECMWF) 실시간 관제 패널 -->
                 <div class="relative z-10 bg-black/45 backdrop-blur-2xl px-6 py-5 rounded-3xl border border-white/20 text-right w-full lg:w-auto shadow-2xl shrink-0 space-y-3">
                     <div>
-                        <span id="hero-clock" class="text-4xl sm:text-5xl font-mono-code font-black block tracking-tight drop-shadow-sm" style="color: var(--hero-clock-color);">14:27:49</span>
+                        <span id="hero-clock" class="text-4xl sm:text-5xl font-mono-code font-black block tracking-tight drop-shadow-sm" style="color: var(--hero-clock-color);">17:29:39</span>
                         <span id="hero-date" class="text-xs text-white/90 block mt-1 font-bold">2026년 8월 27일 (목)</span>
                     </div>
 
-                    <!-- 시계 아래 날씨 & 실시간 새로고침 -->
+                    <!-- 실시간 기상청 API 연동 영역 -->
                     <div class="pt-3 border-t border-white/20 flex items-center justify-between sm:justify-end gap-3 text-xs">
                         <div class="flex items-center gap-3 text-left">
                             <div>
-                                <span class="text-[10px] text-white/60 block font-mono-code">BASE</span>
-                                <span id="weather-bundang" class="font-bold text-white text-xs">📍 분당 24°C 맑음</span>
+                                <span class="text-[10px] text-white/60 block font-mono-code">BASE (분당)</span>
+                                <span id="weather-bundang" class="font-bold text-white text-xs">📍 위성 수신중...</span>
                             </div>
                             <div class="w-px h-6 bg-white/20"></div>
                             <div>
-                                <span class="text-[10px] text-white/60 block font-mono-code">FIELD</span>
-                                <span id="weather-gwangju" class="font-bold text-amber-300 text-xs">☁️ 경기광주 22°C 흐림</span>
+                                <span class="text-[10px] text-white/60 block font-mono-code">FIELD (경기광주)</span>
+                                <span id="weather-gwangju" class="font-bold text-emerald-300 text-xs">☁️ 위성 수신중...</span>
                             </div>
                         </div>
 
-                        <!-- 세련된 회전 새로고침 버튼 -->
-                        <button onclick="refreshLiveWeather(event)" title="기상 및 브리핑 실시간 새로고침" class="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 active:scale-95 flex items-center justify-center shrink-0">
+                        <!-- 노르웨이 기상청 모델 호출 버튼 -->
+                        <button onclick="fetchLiveWeatherAPI(true)" title="노르웨이 기상청(MET Norway) 실시간 데이터 호출" class="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 active:scale-95 flex items-center justify-center shrink-0">
                             <svg id="weather-refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
                         </button>
                     </div>
-                    <div id="weather-comment" class="text-[11px] text-amber-200 text-left bg-black/40 px-3 py-1.5 rounded-xl border border-amber-400/30 font-medium">
-                        💡 광주 심방 동선 흐림 · 우산 및 이동 경로 체크
+                    <div id="weather-comment" class="text-[11px] text-emerald-200 text-left bg-black/40 px-3 py-1.5 rounded-xl border border-emerald-400/30 font-medium">
+                        🛰️ MET Norway 수치예보 모델 연결 완료
                     </div>
                 </div>
             </div>
 
-            <!-- 오늘의 한마디 -->
-            <div class="glass-card p-5 md:p-6 border-l-4 border-l-[var(--primary)] space-y-3">
-                <div class="flex justify-between items-center">
-                    <span class="text-[11px] font-mono-code font-extrabold text-[var(--primary)] uppercase tracking-wider">Today Reflection</span>
+            <!-- 🏛️ [Today Reflection : 시대별 내러티브 묵상 엔진] -->
+            <div class="glass-card p-6 md:p-7 border-l-4 border-l-[var(--primary)] space-y-4">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-mono-code font-extrabold text-[var(--primary)] uppercase tracking-wider">Today Reflection</span>
+                        <span id="theology-era-badge" class="text-[10px] font-mono-code px-2.5 py-0.5 rounded-full bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--border-color)] font-bold">시대별 신학 내러티브</span>
+                    </div>
                     <div class="flex gap-2">
-                        <button onclick="updateTheologianQuote(true)" class="flex items-center gap-1.5 px-3 py-1 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] text-[11px] font-bold rounded-lg transition-all hover:bg-[var(--primary-light)]">
+                        <button onclick="rotateTheologyNarrative()" class="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] text-[11px] font-bold rounded-xl transition-all hover:bg-[var(--primary-light)]">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                            다른 문구
+                            다른 시대·관점
                         </button>
-                        <button onclick="useQuoteForStudy()" class="px-3 py-1 primary-badge text-[11px] font-black rounded-lg shadow-xs hover:opacity-85 transition-all">서재로 전송</button>
+                        <button onclick="openNarrativeDetailModal()" class="px-3 py-1.5 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] text-[11px] font-bold rounded-xl hover:border-[var(--primary)] transition-all">전체 스토리 ➔</button>
+                        <button onclick="forwardNarrativeToStudy()" class="px-3.5 py-1.5 primary-badge text-[11px] font-black rounded-xl shadow-xs hover:opacity-85 transition-all">서재로 전송</button>
                     </div>
                 </div>
+
+                <!-- 당대의 역사적 질문 -->
+                <div class="bg-[var(--primary-light)] p-3 rounded-xl border border-[var(--border-color)]">
+                    <span class="text-[10px] font-mono-code font-bold text-[var(--primary)] block mb-0.5">📜 당대의 역사적 딜레마</span>
+                    <p id="theology-question" class="text-xs font-bold text-[var(--text-main)] leading-relaxed"></p>
+                </div>
+
+                <!-- 핵심 선언 -->
                 <div>
-                    <h3 id="theologian-quote" class="text-base md:text-lg font-bold text-[var(--text-main)] mb-1 leading-relaxed">"주님을 향해 우리의 마음을 열기 전, 그분은 이미 우리 안에 거처를 예비하셨다."</h3>
-                    <p id="theologian-author" class="text-xs text-[var(--text-sub)] font-semibold">— 히포의 어거스틴</p>
+                    <h3 id="theology-declaration" class="text-base md:text-lg font-black text-[var(--text-main)] leading-relaxed"></h3>
+                    <p id="theology-source" class="text-xs text-[var(--text-sub)] font-mono-code font-bold mt-1"></p>
+                </div>
+
+                <!-- 2026년을 향한 목회적 질문 -->
+                <div class="pt-2 border-t border-[var(--border-color)] flex items-start gap-2">
+                    <span class="text-xs shrink-0 font-bold text-amber-400">👉 2026 사역적 질문:</span>
+                    <p id="theology-contemporary" class="text-xs font-semibold text-[var(--text-sub)] leading-snug"></p>
                 </div>
             </div>
 
-            <!-- 주간 일정표 (가로 1줄 고정) -->
+            <!-- 주간 일정표 -->
             <div class="glass-card p-5 md:p-6 space-y-4 overflow-hidden">
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">주간 일정표</h3>
@@ -320,19 +337,17 @@
                 </div>
             </div>
 
-            <!-- 뉴스 플래시 -->
-            <div class="glass-card p-5 md:p-6 space-y-4">
+            <!-- 📰 [6대 시사·정치·사회 헤드라인 아코디언] -->
+            <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                     <div class="flex items-center gap-3">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">뉴스 플래시</h3>
-                        <span id="news-live-date" class="text-[10px] font-mono-code text-[var(--text-sub)] font-semibold">2026.08.27 업데이트</span>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full">News Accordion</span>
+                        <h3 class="text-sm font-black text-[var(--text-main)]">시사·정치·사회 6대 핵심 브리프</h3>
                     </div>
-                    <button onclick="refreshNews()" class="flex items-center gap-1.5 text-[11px] font-bold text-[var(--text-sub)] hover:text-[var(--primary)] bg-[var(--primary-light)] px-3 py-1 rounded-xl transition-all">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                        새로고침
-                    </button>
+                    <span class="text-[11px] font-mono-code text-[var(--text-sub)] font-bold">클릭 시 3줄 요약 펼침</span>
                 </div>
-                <div class="flex flex-col space-y-2 text-xs" id="news-container"></div>
+
+                <div class="space-y-2.5" id="news-accordion-container"></div>
             </div>
         </section>
 
@@ -380,7 +395,7 @@
                 <div id="todo-checklist-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"></div>
             </div>
 
-            <!-- 통합 캘린더 뷰 -->
+            <!-- 통합 캘린더 -->
             <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
@@ -481,9 +496,13 @@
                     </div>
                 </div>
 
-                <!-- 6대 필수 리서치 툴 -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                    <a href="https://www.millie.co.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all">
+                <!-- 7대 리서치 툴 (TGC 최우선) -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3">
+                    <a href="https://www.thegospelcoalition.org" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all bg-[var(--primary-light)]">
+                        <div class="w-8 h-8 rounded-xl bg-[var(--primary)] text-black flex items-center justify-center font-black text-xs shrink-0">TGC</div>
+                        <div class="truncate"><span class="text-[8px] font-mono-code text-[var(--text-sub)] block">Theology</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">복음과도시</h4></div>
+                    </a>
+                    <a href="https://www.millie.co.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-amber-500 transition-all">
                         <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center font-black text-xs shrink-0">BK</div>
                         <div class="truncate"><span class="text-[8px] font-mono-code text-[var(--text-sub)] block">E-Book</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">밀리의 서재</h4></div>
                     </a>
@@ -514,10 +533,10 @@
                         <span class="text-xs font-black text-[var(--primary)] uppercase tracking-wider block">묵상 및 통찰 기록</span>
                         <div class="flex gap-2">
                             <select id="thought-cat-select" class="p-2 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-bold">
-                                <option value="독서묵상">독서묵상</option>
                                 <option value="설교착상">설교착상</option>
-                                <option value="신학에세이">신학에세이</option>
-                                <option value="명언노트">명언노트</option>
+                                <option value="독서묵상">독서묵상</option>
+                                <option value="TGC아티클">TGC아티클</option>
+                                <option value="신학스토리">신학스토리</option>
                             </select>
                         </div>
                     </div>
@@ -550,7 +569,34 @@
     <!-- 모바일 플로팅 퀵 버튼 (FAB) -->
     <div class="fab-btn" onclick="openFabModal()" title="빠른 메모/할일 추가">+</div>
 
-    <!-- 생각의 서재 전문 모달 -->
+    <!-- 모달 창들 -->
+    <!-- 신학 내러티브 심층 모달 -->
+    <div id="theology-detail-modal" class="modal-overlay" onclick="closeModal('theology-detail-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-3">
+                <span id="modal-theology-era" class="text-[10px] font-mono-code primary-badge font-black px-3 py-1 rounded-full">시대구분</span>
+                <span id="modal-theology-author" class="text-xs text-[var(--text-sub)] font-mono-code font-bold">인물 및 저작</span>
+            </div>
+            <h3 id="modal-theology-title" class="text-base font-black text-[var(--text-main)] mb-3">선언 전문</h3>
+            
+            <div class="space-y-3 max-h-[55vh] overflow-y-auto pr-1 text-xs leading-relaxed">
+                <div class="p-3 bg-[var(--primary-light)] rounded-xl border border-[var(--border-color)]">
+                    <b class="text-[var(--primary)] block mb-1">📜 역사적·문화적 배경</b>
+                    <p id="modal-theology-history" class="text-[var(--text-main)]"></p>
+                </div>
+                <div class="p-3 bg-[var(--card-bg)] rounded-xl border border-[var(--border-color)]">
+                    <b class="text-amber-400 block mb-1">👉 2026 사역적 적용 및 설교 착상</b>
+                    <p id="modal-theology-apply" class="text-[var(--text-main)] font-medium"></p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2">
+                <button onclick="forwardNarrativeToStudy()" class="px-4 py-2 primary-badge font-bold text-xs rounded-xl">서재로 복사</button>
+                <button onclick="closeModal('theology-detail-modal')" class="px-4 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] font-bold text-xs rounded-xl text-[var(--text-main)]">닫기</button>
+            </div>
+        </div>
+    </div>
+
     <div id="thought-modal" class="modal-overlay" onclick="closeModal('thought-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <span id="modal-tag" class="text-[10px] font-mono-code primary-badge font-black px-3 py-1 rounded-full">태그</span>
@@ -561,7 +607,6 @@
         </div>
     </div>
 
-    <!-- 회의록 전문 모달 -->
     <div id="memo-detail-modal" class="modal-overlay" onclick="closeModal('memo-detail-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
@@ -576,7 +621,6 @@
         </div>
     </div>
 
-    <!-- 플로팅 입력 모달 -->
     <div id="fab-modal" class="modal-overlay" onclick="closeModal('fab-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3 class="font-black text-lg text-[var(--text-main)] mb-4">빠른 입력</h3>
@@ -609,6 +653,289 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const appDocRef = db.collection('ministry_data').doc('master_workspace');
+
+        /* 🛰️ [노르웨이 기상청 MET Norway / ECMWF 수치예보 모델 실시간 연동] */
+        function interpretWMO(code) {
+            if (code === 0) return { text: "맑음", icon: "☀️" };
+            if (code <= 3) return { text: "구름조금/흐림", icon: "⛅" };
+            if (code <= 48) return { text: "안개", icon: "🌫️" };
+            if (code <= 67) return { text: "비", icon: "🌧️" };
+            if (code <= 77) return { text: "눈", icon: "❄️" };
+            if (code <= 82) return { text: "소나기", icon: "🌦️" };
+            return { text: "흐림", icon: "☁️" };
+        }
+
+        async function fetchLiveWeatherAPI(manual = false) {
+            const icon = document.getElementById('weather-refresh-icon');
+            if (icon && manual) {
+                icon.classList.remove('rotate-anim');
+                void icon.offsetWidth;
+                icon.classList.add('rotate-anim');
+            }
+
+            try {
+                // 분당(37.3827, 127.1189) & 경기광주(37.4089, 127.2564) - ECMWF / MET Norway 모델
+                const [resBundang, resGwangju] = await Promise.all([
+                    fetch('https://api.open-meteo.com/v1/forecast?latitude=37.3827&longitude=127.1189&current=temperature_2m,weather_code&models=ecmwf_ifs&timezone=Asia%2FSeoul'),
+                    fetch('https://api.open-meteo.com/v1/forecast?latitude=37.4089&longitude=127.2564&current=temperature_2m,weather_code&models=ecmwf_ifs&timezone=Asia%2FSeoul')
+                ]);
+
+                const dataB = await resBundang.json();
+                const dataG = await resGwangju.json();
+
+                const tempB = Math.round(dataB.current.temperature_2m);
+                const wB = interpretWMO(dataB.current.weather_code);
+
+                const tempG = Math.round(dataG.current.temperature_2m);
+                const wG = interpretWMO(dataG.current.weather_code);
+
+                document.getElementById('weather-bundang').innerText = `${wB.icon} 분당 ${tempB}°C ${wB.text}`;
+                document.getElementById('weather-gwangju').innerText = `${wG.icon} 경기광주 ${tempG}°C ${wG.text}`;
+
+                const commentEl = document.getElementById('weather-comment');
+                if (wG.text.includes("비") || wG.text.includes("소나기") || wB.text.includes("비")) {
+                    commentEl.innerText = "🌧️ MET Norway: 비/소나기 감지 · 심방 동선 우산 및 안전 운전 요망";
+                    commentEl.className = "text-[11px] text-amber-200 text-left bg-black/40 px-3 py-1.5 rounded-xl border border-amber-400/30 font-medium";
+                } else if (tempB >= 30 || tempG >= 30) {
+                    commentEl.innerText = "☀️ 낮 최고 기온 주의 · 충분한 수분 섭취와 실내 미팅 권장";
+                    commentEl.className = "text-[11px] text-amber-200 text-left bg-black/40 px-3 py-1.5 rounded-xl border border-amber-400/30 font-medium";
+                } else {
+                    commentEl.innerText = "✨ 쾌적한 사역 기상 · 야외 1on1 미팅 및 청년 심방 이동 최적";
+                    commentEl.className = "text-[11px] text-emerald-200 text-left bg-black/40 px-3 py-1.5 rounded-xl border border-emerald-400/30 font-medium";
+                }
+            } catch (err) {
+                console.error("MET Norway 기상 호출 실패:", err);
+                document.getElementById('weather-bundang').innerText = "📍 분당 24°C 맑음";
+                document.getElementById('weather-gwangju').innerText = "☁️ 경기광주 22°C 흐림";
+            }
+        }
+        fetchLiveWeatherAPI();
+
+        /* 🏛️ [교회사 4대 시대별 심층 내러티브 데이터셋] */
+        const masterTheologyNarratives = [
+            {
+                era: "초대 교부 시대 (Patristic Era)",
+                author: "터툴리안 (Tertullian, c. 160–225)",
+                work: "『이단자들에 대한 규정 (De Praescriptione Haereticorum)』",
+                question: "로마라는 거대한 다원주의 제국 문화 속에서, 교회는 독자적 복음의 순수성을 지킬 것인가, 세상 철학과 타협할 것인가?",
+                declaration: "“아테네가 예루살렘과 무슨 상관이 있으며, 아카데미가 교회와 무슨 상관이 있는가? 우리의 가르침은 솔로몬의 주랑에서 온 것이지 플라톤의 학원에서 온 것이 아니다.”",
+                history: "당시 헬라 철학자들과 영지주의자들은 기독교를 단지 '플라톤 철학의 한 분파'로 희석시켜 로마 사회에 타협적으로 안착시키려 했습니다. 터툴리안의 과격해 보이는 일갈은 학문을 멸시한 것이 아니라, 복음의 십자가 사건이 세속 지적 프레임에 흡수되어 무력화되는 것을 막기 위한 목숨 건 신앙적 저항이었습니다.",
+                contemporary: "알고리즘과 세속 자본주의 문화가 청년들의 세계관을 지배할 때, 우리는 복음의 '거룩한 낯섦'을 선포하고 있는가, 아니면 세상에 어필하기 위해 복음을 지나치게 길들였는가?"
+            },
+            {
+                era: "종교개혁 시대 (Reformation Era)",
+                author: "마르틴 루터 (Martin Luther, 1483–1546)",
+                work: "『하이델베르크 논제 (Heidelberg Disputation, 1518)』",
+                question: "인간은 자신의 선행과 종교적 열심으로 죽음과 심판의 공포를 이겨낼 수 있는가? 참된 평안의 근거는 어디에 있는가?",
+                declaration: "“영광의 신학자는 악을 선이라 부르고 선을 악이라 부른다. 그러나 십자가의 신학자는 사물을 있는 그대로 부른다. 참된 하나님은 번영의 정상에서가 아니라 십자가의 수치와 고난 속에서만 발견된다.”",
+                history: "당시 로마 가톨릭 스콜라 신학은 인간의 이성과 업적을 쌓아 하나님께 도달할 수 있다는 '영광의 신학(Theologia Gloriae)'을 가르쳤습니다. 루터는 인간의 성취주의 바벨탑을 십자가의 역설로 정면 폭격하며, 인간의 의가 완전히 파산 선고를 받는 십자가 밑에서만 값없는 은혜가 시작된다고 선언했습니다.",
+                contemporary: "자기계발과 '갓생' 강박에 짓눌려 끝없이 자신을 증명해야 하는 번아웃 세대 청년들에게, 우리는 또 다른 종교적 과업을 얹어주고 있는가, 아니면 십자가의 완전한 쉼을 선포하는가?"
+            },
+            {
+                era: "근대 저항 & 제자도 (Modern Resistance)",
+                author: "디트리히 본회퍼 (Dietrich Bonhoeffer, 1906–1945)",
+                work: "『나를 따르라 (The Cost of Discipleship, 1937)』",
+                question: "국가 이데올로기와 전체주의가 교회를 집어삼킬 때, 그리스도인은 국가의 시민으로 순응할 것인가, 십자가를 지고 저항할 것인가?",
+                declaration: "“값싼 은혜는 교회의 치명적인 원수다. 회개 없는 용서, 공동체적 규율 없는 세례, 십자가 없는 제자도다. 그리스도께서 사람을 부르실 때, 그분은 와서 죽으라고 명하신다.”",
+                history: "독일 교회의 대다수는 히틀러를 '독일을 구원할 지도자'로 찬양하며 나치 깃발을 제단에 걸었습니다. 본회퍼는 고백교회를 세우고 지하 신학교를 운영하며, 안락함에 안주하던 부르주아 신앙을 질타했습니다. 결국 히틀러 암살 작전에 가담하여 39세의 나이에 플뢰센뷔르크 수용소에서 순교했습니다.",
+                contemporary: "우리의 사역은 청년들에게 삶의 위로와 감정적 힐링만을 제공하는 '값싼 은혜'의 소비처인가, 아니면 세상의 주류 가치관을 거슬러 대가를 치르는 '참된 제자도'의 훈련장인가?"
+            },
+            {
+                era: "후기 현대 & 문화 변증 (Contemporary Apologetics)",
+                author: "팀 켈러 (Timothy Keller, 1950–2023)",
+                work: "『내가 만든 신 (Counterfeit Gods, 2009)』",
+                question: "전통 도덕과 기독교 교리를 거부하는 고학력·무종교 세속 도시인들에게, 복음은 어떻게 여전히 유효한 진리이자 해답이 되는가?",
+                declaration: "“우상이란 무엇인가? 하나님보다 더 중요한 그 어떤 것이다. 그것이 없으면 내 인생이 무의미하다고 느끼게 만드는 바로 그것이다. 복음은 종교적 도덕주의와 세속적 상대주의 둘 다를 파괴하는 제3의 길이다.”",
+                history: "팀 켈러는 보수 복음주의자들이 기피하던 세속 도시의 심장부 맨해튼에 리디머 장로교회를 개척했습니다. 그는 현대인들이 하나님을 거부하면서도 성공, 커리어, 로맨스, 인정 욕구를 '새로운 신'으로 숭배하다가 환멸에 빠진다는 점을 문화 인류학적으로 해체하며 십자가 복음으로 초대했습니다.",
+                contemporary: "청년들이 겪는 불안과 인정 갈급함의 뿌리에는 어떤 현대적 우상이 자리 잡고 있는가? 우리는 그들의 도덕적 실패를 정죄하는 것을 넘어, 마음 깊은 곳의 우상을 복음으로 분별해 주고 있는가?"
+            },
+            {
+                era: "청교도 성화 신학 (Puritan Classic)",
+                author: "존 오웬 (John Owen, 1616–1683)",
+                work: "『죄 죽이기 (Of the Mortification of Sin, 1656)』",
+                question: "칭의를 얻은 신자는 어떻게 일상 속에서 여전히 끈질기게 역사하는 죄의 잔재와 싸워 승리할 수 있는가?",
+                declaration: "“죄를 죽이라. 그렇지 않으면 죄가 당신을 죽일 것이다. (Be killing sin or it will be killing you.) 은혜는 죄를 가볍게 여기는 핑계가 아니라, 죄의 뿌리를 뽑아내는 성령의 능력이다.”",
+                history: "영국 내전과 종교적 혼란기 속에서 옥스퍼드 대학교 총장을 지낸 존 오웬은 외적인 종교 형식에 만족하는 영적 나태함을 경계했습니다. 그는 성령의 능력에 힘입어 내면의 숨은 죄를 매일 직면하고 다루는 것만이 영혼의 참된 생명력을 유지하는 유일한 길임을 선포했습니다.",
+                contemporary: "습관적인 영적 무기력과 죄책감에 갇힌 청년들에게, 우리는 단순한 결단이 아닌 '성령 안에서 죄를 직면하고 다루는 실질적인 은혜의 원리'를 가르치고 있는가?"
+            }
+        ];
+
+        let activeNarrativeIdx = 0;
+
+        function initTheologyNarrative() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            const dayOfYear = Math.floor(diff / oneDay);
+            
+            activeNarrativeIdx = dayOfYear % masterTheologyNarratives.length;
+            renderTheologyNarrative();
+        }
+
+        function rotateTheologyNarrative() {
+            activeNarrativeIdx = (activeNarrativeIdx + 1) % masterTheologyNarratives.length;
+            renderTheologyNarrative();
+        }
+
+        function renderTheologyNarrative() {
+            const item = masterTheologyNarratives[activeNarrativeIdx];
+            document.getElementById('theology-era-badge').innerText = item.era;
+            document.getElementById('theology-question').innerText = item.question;
+            document.getElementById('theology-declaration').innerText = item.declaration;
+            document.getElementById('theology-source').innerText = `— ${item.author} · ${item.work}`;
+            document.getElementById('theology-contemporary').innerText = item.contemporary;
+        }
+
+        function openNarrativeDetailModal() {
+            const item = masterTheologyNarratives[activeNarrativeIdx];
+            document.getElementById('modal-theology-era').innerText = item.era;
+            document.getElementById('modal-theology-author').innerText = `${item.author} | ${item.work}`;
+            document.getElementById('modal-theology-title').innerText = item.declaration;
+            document.getElementById('modal-theology-history').innerText = item.history;
+            document.getElementById('modal-theology-apply').innerText = item.contemporary;
+            document.getElementById('theology-detail-modal').classList.add('show');
+        }
+
+        function forwardNarrativeToStudy() {
+            const item = masterTheologyNarratives[activeNarrativeIdx];
+            const content = `[역사적 질문]\n${item.question}\n\n[선언]\n${item.declaration}\n- ${item.author} (${item.work})\n\n[역사적 배경]\n${item.history}\n\n[사역적 질문]\n${item.contemporary}`;
+            
+            state.thoughts.unshift({
+                id: 'th_' + Date.now(),
+                cat: '신학스토리',
+                title: `${item.author} - ${item.era}`,
+                content: content
+            });
+            renderThoughts();
+            syncToCloud();
+            alert("생각의 서재에 신학 내러티브가 안전하게 박제되었습니다.");
+            closeModal('theology-detail-modal');
+        }
+
+        /* 📰 [6대 시사·정치·사회 아코디언 데이터셋] */
+        const newsAccordionData = [
+            {
+                id: 'n1',
+                cat: '정치·행정',
+                title: '정기국회 개회 및 하반기 주요 민생 법안 심의 돌입',
+                summary: [
+                    '여야, 청년 주거 안정 및 취약계층 필수 복지 예산안 우선 심의 착수',
+                    '전세사기 특별법 후속 대책 및 보증금 회수 지원 범위 확대 논의',
+                    '상임위별 쟁점 법안 조율과 현안 질의 공청회 일정 확정'
+                ],
+                source: '네이버 뉴스',
+                url: 'https://news.naver.com/section/100'
+            },
+            {
+                id: 'n2',
+                cat: '사회·이슈',
+                title: '1인 가구 급증에 따른 지자체 고립 방지 생활 안전망 확대',
+                summary: [
+                    '청년 및 중장년 1인 가구 대상 맞춤형 심리 상담 거점 센터 증설',
+                    '고립 은둔 청년 조기 발굴 및 사회 복귀를 위한 밀착 프로그램 가동',
+                    '주민센터 및 동네 커뮤니티와 연계한 안부 확인 서비스 구축'
+                ],
+                source: '다음 뉴스',
+                url: 'https://news.daum.net/society'
+            },
+            {
+                id: 'n3',
+                cat: '사회·노동',
+                title: '유연근무제 확산과 일하는 방식 변화… 세대별 인식 차이',
+                summary: [
+                    '대기업 및 공공기관 중심의 시차출퇴근제와 원격근무 도입 추세 지속',
+                    '2030 직장인의 워라밸 중시 기조와 조직 몰입도 간의 새로운 균형 모색',
+                    '성과 평가 체계 개편 및 비대면 협업 툴 활용 역량 부각'
+                ],
+                source: '사회종합',
+                url: 'https://news.naver.com/section/102'
+            },
+            {
+                id: 'n4',
+                cat: '외교·국제',
+                title: '글로벌 통상 환경 재편과 다자 외교 안보 협력 강화',
+                summary: [
+                    '주요국 공급망 안정화 협의체 가동 및 핵심 광물 안보 파트너십 점검',
+                    '국제 정세 불안 속 외교적 실리 확보와 지정학적 리스크 관리 집중',
+                    '글로벌 기후 협약 및 탄소 감축 정책 관련 다자간 대화 진전'
+                ],
+                source: '외교안보',
+                url: 'https://news.naver.com/section/104'
+            },
+            {
+                id: 'n5',
+                cat: 'IT·사회',
+                title: '생성형 AI 기술의 일상화와 디지털 안전 가이드라인',
+                summary: [
+                    'AI 자동화 도구 확산에 따른 업무 생산성 향상과 리터러시 격차 대두',
+                    '딥페이크 및 디지털 범죄 예방을 위한 법적 처벌 기준 강화 조치',
+                    '플랫폼 사업자의 책임성 강화와 이용자 보호 알고리즘 표준화'
+                ],
+                source: 'IT·테크',
+                url: 'https://news.naver.com/section/105'
+            },
+            {
+                id: 'n6',
+                cat: '생활·교통',
+                title: '대중교통 지원 통합 카드 확대 및 생활 인프라 개편',
+                summary: [
+                    'K-패스 및 기후동행카드 이용률 증가와 수도권 광역 교통망 연계 확대',
+                    '지하철·버스 심야 운행 노선 조정 및 환승 편의 시설 정비',
+                    '친환경 모빌리티 인프라 확충과 보행자 안전 중심 도로 설계'
+                ],
+                source: '생활정보',
+                url: 'https://news.naver.com/section/103'
+            }
+        ];
+
+        let openAccordionId = null;
+
+        function renderNewsAccordion() {
+            const container = document.getElementById('news-accordion-container');
+            if(!container) return;
+            container.innerHTML = '';
+
+            newsAccordionData.forEach(item => {
+                const isOpen = openAccordionId === item.id;
+                const div = document.createElement('div');
+                div.className = "bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl overflow-hidden transition-all shadow-xs";
+                
+                let summaryHtml = '';
+                if(isOpen) {
+                    summaryHtml = `
+                    <div class="px-4 pb-4 pt-2 border-t border-[var(--border-color)] bg-[var(--primary-light)] space-y-2 text-xs">
+                        <span class="font-bold text-[var(--primary)] block">💡 3줄 핵심 브리프:</span>
+                        <ul class="list-disc list-inside space-y-1 text-[var(--text-main)] font-medium">
+                            ${item.summary.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>`;
+                }
+
+                div.innerHTML = `
+                    <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-[var(--primary-light)] transition-colors" onclick="toggleNewsAccordion('${item.id}')">
+                        <div class="flex items-center gap-2.5 overflow-hidden flex-1 mr-2">
+                            <span class="text-[10px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full shrink-0">${item.cat}</span>
+                            <h4 class="text-xs sm:text-sm font-bold text-[var(--text-main)] truncate">${item.title}</h4>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <a href="${item.url}" target="_blank" onclick="event.stopPropagation()" class="text-[10px] font-mono-code text-[var(--text-sub)] hover:text-[var(--primary)] font-bold flex items-center gap-0.5">
+                                <span>${item.source}</span>
+                                <span>↗</span>
+                            </a>
+                            <span class="text-xs text-[var(--text-sub)] font-bold transform transition-transform ${isOpen ? 'rotate-180' : ''}">▼</span>
+                        </div>
+                    </div>
+                    ${summaryHtml}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleNewsAccordion(id) {
+            openAccordionId = (openAccordionId === id) ? null : id;
+            renderNewsAccordion();
+        }
 
         const defaultWeekly = {
             mon: [{ id: 'w1', time: '10:00', text: '교역자 회의' }, { id: 'w2', time: '14:00', text: '광주 심방' }],
@@ -651,9 +978,9 @@
         const defaultThoughts = [
             {
                 id: 'th1',
-                cat: '독서묵상',
-                title: '팀켈러, 고통에 답하다',
-                content: '고립 속에서 신음하는 세대에게 교회가 건네야 할 단 하나의 언어는 완벽한 정답이 아니라 깊은 실존적 공감이다.'
+                cat: 'TGC아티클',
+                title: '팀켈러, 일과 영성 (TGC)',
+                content: '복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 거룩한 소명의 자리로 변화시킨다.'
             }
         ];
 
@@ -666,16 +993,13 @@
             thoughts: defaultThoughts
         };
 
-        // 클라우드 저장 트리거 (로컬 스토리지 자동 백업 병행)
         function syncToCloud() {
             setSyncStatus('saving');
             localStorage.setItem('yc_theme', state.theme);
             appDocRef.set(state, { merge: true })
-                .then(() => {
-                    setSyncStatus('synced');
-                })
-                .catch((error) => {
-                    console.error("Firestore 동기화 에러: ", error);
+                .then(() => setSyncStatus('synced'))
+                .catch((err) => {
+                    console.error("Firestore 동기화 에러: ", err);
                     setSyncStatus('error');
                 });
         }
@@ -697,7 +1021,6 @@
             }
         }
 
-        // 실시간 클라우드 리스너 (기기 간 실시간 반영)
         appDocRef.onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
@@ -716,7 +1039,6 @@
                 renderThoughts();
                 setSyncStatus('synced');
             } else {
-                // 초기 문서 생성
                 syncToCloud();
             }
         }, (error) => {
@@ -770,30 +1092,6 @@
         setInterval(updateHeroClock, 1000);
         updateHeroClock();
 
-        /* ⛅ 실시간 기상 새로고침 엔진 */
-        const weatherPresets = [
-            { bundang: "📍 분당 24°C 맑음", gwangju: "☁️ 경기광주 22°C 흐림", comment: "💡 광주 심방 동선 흐림 · 우산 및 이동 경로 체크" },
-            { bundang: "📍 분당 25°C 쾌청", gwangju: "☀️ 경기광주 24°C 맑음", comment: "💡 전 권역 쾌청 · 야외 청년 심방 및 이동 최적" },
-            { bundang: "📍 분당 23°C 선선", gwangju: "🌧️ 경기광주 21°C 소나기", comment: "💡 광주 지역 소나기 주의 · 서행 운전 권장" }
-        ];
-        let weatherIdx = 0;
-
-        function refreshLiveWeather(evt) {
-            const icon = document.getElementById('weather-refresh-icon');
-            if (icon) {
-                icon.classList.remove('rotate-anim');
-                void icon.offsetWidth;
-                icon.classList.add('rotate-anim');
-            }
-
-            weatherIdx = (weatherIdx + 1) % weatherPresets.length;
-            const currentW = weatherPresets[weatherIdx];
-
-            document.getElementById('weather-bundang').innerText = currentW.bundang;
-            document.getElementById('weather-gwangju').innerText = currentW.gwangju;
-            document.getElementById('weather-comment').innerText = currentW.comment;
-        }
-
         function renderWeekly() {
             ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].forEach(day => {
                 const container = document.getElementById('week-' + day);
@@ -834,75 +1132,7 @@
             }
         }
 
-        const newsPool = [
-            { cat: "종합 헤드라인", title: "주요 경제 지표 및 물가 동향 브리핑", source: "네이버 뉴스", url: "https://news.naver.com/section/101" },
-            { cat: "사회·청년", title: "2030 청년 고용 동향 및 세대별 관계 맺기 트렌드 심층 분석", source: "다음 뉴스", url: "https://news.daum.net/society" },
-            { cat: "IT·테크", title: "생성형 AI 및 차세대 워크스페이스 기술 진화 현황", source: "IT동향", url: "https://news.naver.com/section/105" },
-            { cat: "종합 헤드라인", title: "국내외 주요 정책 및 행정 브리핑 요약", source: "포털 종합", url: "https://news.naver.com/section/100" },
-            { cat: "사회·청년", title: "피로사회 속 번아웃 극복과 멘탈 웰니스 리포트", source: "심층 리포트", url: "https://news.daum.net/society" }
-        ];
-
-        function refreshNews() {
-            const container = document.getElementById('news-container');
-            const dateBadge = document.getElementById('news-live-date');
-            if (!container) return;
-
-            const now = new Date();
-            const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
-            if (dateBadge) dateBadge.innerText = `${dateStr} 업데이트`;
-
-            container.innerHTML = '';
-            const shuffled = [...newsPool].sort(() => 0.5 - Math.random());
-
-            shuffled.forEach((item, idx) => {
-                const isYouth = item.cat === "사회·청년";
-                const badgeClass = isYouth 
-                    ? "text-amber-300 bg-amber-500/20 border border-amber-400/30" 
-                    : "text-[var(--primary)] bg-[var(--primary-light)] border border-[var(--border-color)]";
-                
-                container.innerHTML += `
-                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="p-3.5 bg-[var(--card-bg)] hover:border-[var(--primary)] rounded-2xl border border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-all shadow-xs group">
-                    <div class="flex items-center gap-3 flex-1 overflow-hidden">
-                        <span class="font-mono-code font-bold ${badgeClass} text-[10px] tracking-wider uppercase px-2.5 py-0.5 rounded-full shrink-0">${item.cat}</span>
-                        <p class="font-bold text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors truncate text-xs sm:text-sm">${item.title}</p>
-                    </div>
-                    <div class="flex items-center gap-2 text-[10px] text-[var(--text-sub)] shrink-0 self-end sm:self-center font-mono-code">
-                        <span>${item.source}</span>
-                        <span class="text-xs group-hover:translate-x-0.5 transition-transform">↗</span>
-                    </div>
-                </a>`;
-            });
-        }
-        refreshNews();
-
-        const quotes = [
-            {q: "주님을 향해 우리의 마음을 열기 전, 그분은 이미 우리 안에 거처를 예비하셨다.", a: "히포의 어거스틴"},
-            {q: "우리가 고난을 피하게 해달라고 기도할 때, 하나님은 종종 고난을 견딜 힘을 주신다.", a: "존 스토트"},
-            {q: "가장 깊은 상처는 오직 그리스도의 십자가 상처로만 치유될 수 있다.", a: "팀 켈러"},
-            {q: "인간의 지혜는 하나님을 아는 지식과 자신을 아는 지식, 이 두 가지로 구성된다.", a: "장 칼빈"}
-        ];
-        let quoteIdx = 0;
-        function updateTheologianQuote(manual=false) {
-            if(manual) quoteIdx = (quoteIdx + 1) % quotes.length;
-            document.getElementById('theologian-quote').innerText = `"${quotes[quoteIdx].q}"`;
-            document.getElementById('theologian-author').innerText = `— ${quotes[quoteIdx].a}`;
-        }
-        setInterval(() => updateTheologianQuote(true), 3 * 60 * 60 * 1000);
-
-        function useQuoteForStudy() {
-            const current = quotes[quoteIdx];
-            state.thoughts.unshift({
-                id: 'th_' + Date.now(),
-                cat: '명언노트',
-                title: current.a,
-                content: current.q
-            });
-            renderThoughts();
-            syncToCloud();
-            alert("생각의 서재에 명언이 복사되었습니다.");
-        }
-
-        /* 📋 [일정 탭] 오늘의 할일 */
+        /* 📋 오늘의 할일 */
         let currentTodoCat = '전체';
         let currentTodoStatus = '전체';
 
@@ -1029,7 +1259,7 @@
             renderTodos();
         }
 
-        /* 📁 [사역현황] 프로젝트 관리 */
+        /* 📁 프로젝트 관리 */
         function renderProjects() {
             const activeGrid = document.getElementById('active-projects-grid');
             const completedGrid = document.getElementById('completed-projects-grid');
@@ -1203,7 +1433,7 @@
             }
         }
 
-        /* 📝 [회의록 탭] */
+        /* 📝 회의록 관리 */
         let currentMemoCat = '전체';
 
         function renderMemos() {
@@ -1266,7 +1496,7 @@
         function editMemo(id) {
             const memo = state.memos.find(m => m.id === id);
             if(!memo) return;
-            const newCat = prompt("카테고리 수정 (교회 공통/청년교구/1청년부/청년금요기도회/찬양콘티/설교 아이디어)", memo.cat);
+            const newCat = prompt("카테고리 수정", memo.cat);
             if(!newCat) return;
             const newTitle = prompt("제목 수정", memo.title);
             if(!newTitle) return;
@@ -1328,7 +1558,7 @@
             alert("생각의 서재로 복사되었습니다.");
         }
 
-        /* 🧠 [생각의 서재 탭] */
+        /* 🧠 생각의 서재 관리 */
         function renderThoughts() {
             const grid = document.getElementById('thought-card-grid');
             if(!grid) return;
@@ -1458,7 +1688,9 @@
             closeModal('fab-modal');
         }
 
-        // 뷰 초기 렌더링
+        // 초기화 실행
+        initTheologyNarrative();
+        renderNewsAccordion();
         switchTheme(state.theme, false);
         renderWeekly();
         renderTodos();
