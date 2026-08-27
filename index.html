@@ -211,8 +211,9 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-10 space-y-6 md:space-y-8">
 
-        <!-- ================= [1] 홈 화면 ================= -->
+        <!-- ================= [1] 홈 화면 : 오늘 하루 완벽 집중 ================= -->
         <section id="view-home" class="page-view active space-y-6 md:space-y-8">
+            <!-- 영적 용광로 히어로 + 노르웨이 기상청(MET Norway) -->
             <div class="furnace-hero text-white p-6 sm:p-8 md:p-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <img src="fire-bg.gif" alt="Spiritual Flame" class="hero-gif absolute top-0 left-0 w-full h-full object-cover z-0 pointer-events-none">
                 
@@ -222,14 +223,13 @@
                     <p class="text-xs sm:text-sm text-emerald-200/90 font-medium tracking-wide break-keep">"하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라"</p>
                 </div>
                 
-                <!-- 우측 노르웨이 기상청(MET Norway ECMWF) 실시간 관제 패널 -->
+                <!-- 우측 노르웨이 기상청 실시간 관제 패널 -->
                 <div class="relative z-10 bg-black/45 backdrop-blur-2xl px-6 py-5 rounded-3xl border border-white/20 text-right w-full lg:w-auto shadow-2xl shrink-0 space-y-3">
                     <div>
-                        <span id="hero-clock" class="text-4xl sm:text-5xl font-mono-code font-black block tracking-tight drop-shadow-sm" style="color: var(--hero-clock-color);">17:29:39</span>
+                        <span id="hero-clock" class="text-4xl sm:text-5xl font-mono-code font-black block tracking-tight drop-shadow-sm" style="color: var(--hero-clock-color);">17:40:00</span>
                         <span id="hero-date" class="text-xs text-white/90 block mt-1 font-bold">2026년 8월 27일 (목)</span>
                     </div>
 
-                    <!-- 실시간 기상청 API 연동 영역 -->
                     <div class="pt-3 border-t border-white/20 flex items-center justify-between sm:justify-end gap-3 text-xs">
                         <div class="flex items-center gap-3 text-left">
                             <div>
@@ -243,20 +243,19 @@
                             </div>
                         </div>
 
-                        <!-- 노르웨이 기상청 모델 호출 버튼 -->
-                        <button onclick="fetchLiveWeatherAPI(true)" title="노르웨이 기상청(MET Norway) 실시간 데이터 호출" class="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 active:scale-95 flex items-center justify-center shrink-0">
+                        <button onclick="fetchLiveWeatherAPI(true)" title="노르웨이 기상청(MET Norway) 실시간 호출" class="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 active:scale-95 flex items-center justify-center shrink-0">
                             <svg id="weather-refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
                         </button>
                     </div>
                     <div id="weather-comment" class="text-[11px] text-emerald-200 text-left bg-black/40 px-3 py-1.5 rounded-xl border border-emerald-400/30 font-medium">
-                        🛰️ MET Norway 수치예보 모델 연결 완료
+                        🛰️ MET Norway / ECMWF 수치예보 모델 연결 완료
                     </div>
                 </div>
             </div>
 
-            <!-- 🏛️ [Today Reflection : 시대별 내러티브 묵상 엔진] -->
+            <!-- 🏛️ [Today Reflection : 시대별 내러티브 묵상] -->
             <div class="glass-card p-6 md:p-7 border-l-4 border-l-[var(--primary)] space-y-4">
                 <div class="flex flex-wrap justify-between items-center gap-2">
                     <div class="flex items-center gap-2">
@@ -273,29 +272,93 @@
                     </div>
                 </div>
 
-                <!-- 당대의 역사적 질문 -->
                 <div class="bg-[var(--primary-light)] p-3 rounded-xl border border-[var(--border-color)]">
                     <span class="text-[10px] font-mono-code font-bold text-[var(--primary)] block mb-0.5">📜 당대의 역사적 딜레마</span>
                     <p id="theology-question" class="text-xs font-bold text-[var(--text-main)] leading-relaxed"></p>
                 </div>
 
-                <!-- 핵심 선언 -->
                 <div>
                     <h3 id="theology-declaration" class="text-base md:text-lg font-black text-[var(--text-main)] leading-relaxed"></h3>
                     <p id="theology-source" class="text-xs text-[var(--text-sub)] font-mono-code font-bold mt-1"></p>
                 </div>
 
-                <!-- 2026년을 향한 목회적 질문 -->
                 <div class="pt-2 border-t border-[var(--border-color)] flex items-start gap-2">
                     <span class="text-xs shrink-0 font-bold text-amber-400">👉 2026 사역적 질문:</span>
                     <p id="theology-contemporary" class="text-xs font-semibold text-[var(--text-sub)] leading-snug"></p>
                 </div>
             </div>
 
-            <!-- 주간 일정표 -->
+            <!-- ⚡ [오늘의 할일 & 타임라인 체크리스트 (홈 전진 배치)] -->
+            <div class="glass-card p-6 md:p-8 space-y-5">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
+                    <div>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Today's Pipeline</span>
+                        <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">오늘의 할일 & 사역 체크</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="todo-stats-badge" class="text-xs font-mono-code font-bold bg-[var(--primary-light)] text-[var(--primary)] px-3 py-1 rounded-full border border-[var(--border-color)]">0건 진행중</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                    <input type="time" id="todo-time-input" value="10:00" class="sm:col-span-2 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-bold">
+                    <select id="todo-cat-select" class="sm:col-span-2 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-bold">
+                        <option value="회의">회의</option>
+                        <option value="심방">심방</option>
+                        <option value="사역">사역</option>
+                        <option value="가정">가정</option>
+                    </select>
+                    <input type="text" id="todo-input-bar" placeholder="오늘 실행할 사역/일정을 입력하세요 (엔터 등록)" class="sm:col-span-6 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-semibold" onkeypress="if(event.key==='Enter') addTodoInline()">
+                    <button onclick="addTodoInline()" class="sm:col-span-2 px-4 py-3 primary-badge text-xs font-black rounded-xl hover:opacity-85 transition-all">등록</button>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-color)] pb-3">
+                    <div class="flex gap-2 overflow-x-auto" id="todo-cat-tabs">
+                        <button onclick="filterTodoCat('전체')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold primary-badge">전체</button>
+                        <button onclick="filterTodoCat('회의')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">회의</button>
+                        <button onclick="filterTodoCat('심방')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">심방</button>
+                        <button onclick="filterTodoCat('사역')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">사역</button>
+                        <button onclick="filterTodoCat('가정')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">가정</button>
+                    </div>
+                    <div class="flex gap-1.5 text-[11px]" id="todo-status-tabs">
+                        <button onclick="filterTodoStatus('전체')" class="stat-tab px-2.5 py-1 rounded-lg font-bold primary-badge">모든상태</button>
+                        <button onclick="filterTodoStatus('진행')" class="stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">진행중</button>
+                        <button onclick="filterTodoStatus('연기')" class="stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">연기</button>
+                        <button onclick="filterTodoStatus('완료')" class="stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">완료</button>
+                    </div>
+                </div>
+
+                <div id="todo-checklist-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"></div>
+            </div>
+
+            <!-- 📰 [6대 시사·정치·사회 아코디언 : 시간대별 자동 롤링 + 수동 갱신] -->
+            <div class="glass-card p-6 md:p-8 space-y-4">
+                <div class="flex flex-wrap justify-between items-center border-b border-[var(--border-color)] pb-3 gap-2">
+                    <div class="flex items-center gap-3">
+                        <span id="news-time-badge" class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full">🌅 조간 브리핑</span>
+                        <h3 class="text-sm font-black text-[var(--text-main)]">시사·정치·사회 6대 핵심 브리프</h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="refreshNewsManual()" title="뉴스 새로고침 및 셔플" class="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] text-[11px] font-bold rounded-xl hover:bg-[var(--primary-light)] transition-all">
+                            <svg id="news-refresh-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            <span id="news-update-status">방금 갱신</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5" id="news-accordion-container"></div>
+            </div>
+        </section>
+
+        <!-- ================= [2] 일정 탭 : 주간표 + 월별 캘린더 통합 ================= -->
+        <section id="view-calendar" class="page-view space-y-6 md:space-y-8">
+            <!-- 상단: 주간 일정표 (고정 미팅/루틴) -->
             <div class="glass-card p-5 md:p-6 space-y-4 overflow-hidden">
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">주간 일정표</h3>
+                    <div>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest text-[var(--primary)]">Weekly Blueprint</span>
+                        <h3 class="text-base font-black text-[var(--text-main)] mt-0.5">주간 일정표</h3>
+                    </div>
                     <span class="text-xs text-[var(--text-sub)] font-bold">시간순 자동 정렬</span>
                 </div>
                 <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 620px; overflow-x: auto;">
@@ -337,70 +400,12 @@
                 </div>
             </div>
 
-            <!-- 📰 [6대 시사·정치·사회 헤드라인 아코디언] -->
-            <div class="glass-card p-6 md:p-8 space-y-4">
-                <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full">News Accordion</span>
-                        <h3 class="text-sm font-black text-[var(--text-main)]">시사·정치·사회 6대 핵심 브리프</h3>
-                    </div>
-                    <span class="text-[11px] font-mono-code text-[var(--text-sub)] font-bold">클릭 시 3줄 요약 펼침</span>
-                </div>
-
-                <div class="space-y-2.5" id="news-accordion-container"></div>
-            </div>
-        </section>
-
-        <!-- ================= [2] 일정 ================= -->
-        <section id="view-calendar" class="page-view space-y-6 md:space-y-8">
-            <div class="glass-card p-6 md:p-8 space-y-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
-                    <div>
-                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Task Pipeline</span>
-                        <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">오늘의 할일</h2>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span id="todo-stats-badge" class="text-xs font-mono-code font-bold bg-[var(--primary-light)] text-[var(--primary)] px-3 py-1 rounded-full border border-[var(--border-color)]">0건 진행중</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                    <input type="time" id="todo-time-input" value="10:00" class="sm:col-span-2 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-bold">
-                    <select id="todo-cat-select" class="sm:col-span-2 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-bold">
-                        <option value="회의">회의</option>
-                        <option value="심방">심방</option>
-                        <option value="사역">사역</option>
-                        <option value="가정">가정</option>
-                    </select>
-                    <input type="text" id="todo-input-bar" placeholder="할일 및 일정 내용을 입력하세요 (엔터 등록)" class="sm:col-span-6 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-semibold" onkeypress="if(event.key==='Enter') addTodoInline()">
-                    <button onclick="addTodoInline()" class="sm:col-span-2 px-4 py-3 primary-badge text-xs font-black rounded-xl hover:opacity-85 transition-all">등록</button>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-color)] pb-3">
-                    <div class="flex gap-2 overflow-x-auto" id="todo-cat-tabs">
-                        <button onclick="filterTodoCat('전체')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold primary-badge">전체</button>
-                        <button onclick="filterTodoCat('회의')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">회의</button>
-                        <button onclick="filterTodoCat('심방')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">심방</button>
-                        <button onclick="filterTodoCat('사역')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">사역</button>
-                        <button onclick="filterTodoCat('가정')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">가정</button>
-                    </div>
-                    <div class="flex gap-1.5 text-[11px]" id="todo-status-tabs">
-                        <button onclick="filterTodoStatus('전체')" class="stat-tab px-2.5 py-1 rounded-lg font-bold primary-badge">모든상태</button>
-                        <button onclick="filterTodoStatus('진행')" class="stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">진행중</button>
-                        <button onclick="filterTodoStatus('연기')" class="stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">연기</button>
-                        <button onclick="filterTodoStatus('완료')" class="stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">완료</button>
-                    </div>
-                </div>
-
-                <div id="todo-checklist-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"></div>
-            </div>
-
-            <!-- 통합 캘린더 -->
+            <!-- 하단: 통합 구글 캘린더 뷰 (중장기 숲 보기) -->
             <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
-                        <span class="text-xs uppercase font-mono-code font-black tracking-widest text-[var(--primary)]">Ministry Schedule Grid</span>
-                        <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)] mt-1">통합 사역 캘린더</h2>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest text-[var(--primary)]">Monthly Overview</span>
+                        <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)] mt-1">월간 사역 캘린더</h2>
                     </div>
                     <div class="flex items-center gap-2">
                         <a href="https://calendar.google.com" target="_blank" class="px-4 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl text-xs font-bold text-[var(--text-main)] hover:border-[var(--primary)] transition-all flex items-center gap-1.5">
@@ -415,7 +420,7 @@
             </div>
         </section>
 
-        <!-- ================= [3] 사역현황 ================= -->
+        <!-- ================= [3] 사역현황 : 인라인 엔터 연속 과업 등록 ================= -->
         <section id="view-dashboard" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -441,7 +446,7 @@
             </div>
         </section>
 
-        <!-- ================= [4] 회의록 ================= -->
+        <!-- ================= [4] 회의록 & 퀵메모 ================= -->
         <section id="view-meetings" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -496,7 +501,7 @@
                     </div>
                 </div>
 
-                <!-- 7대 리서치 툴 (TGC 최우선) -->
+                <!-- 7대 리서치 툴 (TGC 복음과도시 최우선) -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3">
                     <a href="https://www.thegospelcoalition.org" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all bg-[var(--primary-light)]">
                         <div class="w-8 h-8 rounded-xl bg-[var(--primary)] text-black flex items-center justify-center font-black text-xs shrink-0">TGC</div>
@@ -569,8 +574,7 @@
     <!-- 모바일 플로팅 퀵 버튼 (FAB) -->
     <div class="fab-btn" onclick="openFabModal()" title="빠른 메모/할일 추가">+</div>
 
-    <!-- 모달 창들 -->
-    <!-- 신학 내러티브 심층 모달 -->
+    <!-- 모달: 신학 내러티브 심층 모달 -->
     <div id="theology-detail-modal" class="modal-overlay" onclick="closeModal('theology-detail-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
@@ -580,11 +584,11 @@
             <h3 id="modal-theology-title" class="text-base font-black text-[var(--text-main)] mb-3">선언 전문</h3>
             
             <div class="space-y-3 max-h-[55vh] overflow-y-auto pr-1 text-xs leading-relaxed">
-                <div class="p-3 bg-[var(--primary-light)] rounded-xl border border-[var(--border-color)]">
+                <div class="p-3.5 bg-[var(--primary-light)] rounded-xl border border-[var(--border-color)]">
                     <b class="text-[var(--primary)] block mb-1">📜 역사적·문화적 배경</b>
                     <p id="modal-theology-history" class="text-[var(--text-main)]"></p>
                 </div>
-                <div class="p-3 bg-[var(--card-bg)] rounded-xl border border-[var(--border-color)]">
+                <div class="p-3.5 bg-[var(--card-bg)] rounded-xl border border-[var(--border-color)]">
                     <b class="text-amber-400 block mb-1">👉 2026 사역적 적용 및 설교 착상</b>
                     <p id="modal-theology-apply" class="text-[var(--text-main)] font-medium"></p>
                 </div>
@@ -597,6 +601,7 @@
         </div>
     </div>
 
+    <!-- 모달: 서재 카드 상세 -->
     <div id="thought-modal" class="modal-overlay" onclick="closeModal('thought-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <span id="modal-tag" class="text-[10px] font-mono-code primary-badge font-black px-3 py-1 rounded-full">태그</span>
@@ -607,6 +612,7 @@
         </div>
     </div>
 
+    <!-- 모달: 회의록 상세 -->
     <div id="memo-detail-modal" class="modal-overlay" onclick="closeModal('memo-detail-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
@@ -621,6 +627,7 @@
         </div>
     </div>
 
+    <!-- 모달: FAB 빠른 입력 -->
     <div id="fab-modal" class="modal-overlay" onclick="closeModal('fab-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3 class="font-black text-lg text-[var(--text-main)] mb-4">빠른 입력</h3>
@@ -639,7 +646,7 @@
     </div>
 
     <script>
-        /* ☁️ [Firebase Firestore 클라우드 실시간 동기화 엔진] */
+        /* ☁️ [Firebase Firestore 클라우드 실시간 연동] */
         const firebaseConfig = {
             apiKey: "AIzaSyAI5ZHYd_Mi7JogsgZAYsBERsbPMD5m544",
             authDomain: "wwjd-hub.firebaseapp.com",
@@ -674,7 +681,7 @@
             }
 
             try {
-                // 분당(37.3827, 127.1189) & 경기광주(37.4089, 127.2564) - ECMWF / MET Norway 모델
+                // 분당(37.3827, 127.1189) & 경기광주(37.4089, 127.2564) - ECMWF 모델
                 const [resBundang, resGwangju] = await Promise.all([
                     fetch('https://api.open-meteo.com/v1/forecast?latitude=37.3827&longitude=127.1189&current=temperature_2m,weather_code&models=ecmwf_ifs&timezone=Asia%2FSeoul'),
                     fetch('https://api.open-meteo.com/v1/forecast?latitude=37.4089&longitude=127.2564&current=temperature_2m,weather_code&models=ecmwf_ifs&timezone=Asia%2FSeoul')
@@ -813,96 +820,266 @@
             closeModal('theology-detail-modal');
         }
 
-        /* 📰 [6대 시사·정치·사회 아코디언 데이터셋] */
-        const newsAccordionData = [
-            {
-                id: 'n1',
-                cat: '정치·행정',
-                title: '정기국회 개회 및 하반기 주요 민생 법안 심의 돌입',
-                summary: [
-                    '여야, 청년 주거 안정 및 취약계층 필수 복지 예산안 우선 심의 착수',
-                    '전세사기 특별법 후속 대책 및 보증금 회수 지원 범위 확대 논의',
-                    '상임위별 쟁점 법안 조율과 현안 질의 공청회 일정 확정'
-                ],
-                source: '네이버 뉴스',
-                url: 'https://news.naver.com/section/100'
-            },
-            {
-                id: 'n2',
-                cat: '사회·이슈',
-                title: '1인 가구 급증에 따른 지자체 고립 방지 생활 안전망 확대',
-                summary: [
-                    '청년 및 중장년 1인 가구 대상 맞춤형 심리 상담 거점 센터 증설',
-                    '고립 은둔 청년 조기 발굴 및 사회 복귀를 위한 밀착 프로그램 가동',
-                    '주민센터 및 동네 커뮤니티와 연계한 안부 확인 서비스 구축'
-                ],
-                source: '다음 뉴스',
-                url: 'https://news.daum.net/society'
-            },
-            {
-                id: 'n3',
-                cat: '사회·노동',
-                title: '유연근무제 확산과 일하는 방식 변화… 세대별 인식 차이',
-                summary: [
-                    '대기업 및 공공기관 중심의 시차출퇴근제와 원격근무 도입 추세 지속',
-                    '2030 직장인의 워라밸 중시 기조와 조직 몰입도 간의 새로운 균형 모색',
-                    '성과 평가 체계 개편 및 비대면 협업 툴 활용 역량 부각'
-                ],
-                source: '사회종합',
-                url: 'https://news.naver.com/section/102'
-            },
-            {
-                id: 'n4',
-                cat: '외교·국제',
-                title: '글로벌 통상 환경 재편과 다자 외교 안보 협력 강화',
-                summary: [
-                    '주요국 공급망 안정화 협의체 가동 및 핵심 광물 안보 파트너십 점검',
-                    '국제 정세 불안 속 외교적 실리 확보와 지정학적 리스크 관리 집중',
-                    '글로벌 기후 협약 및 탄소 감축 정책 관련 다자간 대화 진전'
-                ],
-                source: '외교안보',
-                url: 'https://news.naver.com/section/104'
-            },
-            {
-                id: 'n5',
-                cat: 'IT·사회',
-                title: '생성형 AI 기술의 일상화와 디지털 안전 가이드라인',
-                summary: [
-                    'AI 자동화 도구 확산에 따른 업무 생산성 향상과 리터러시 격차 대두',
-                    '딥페이크 및 디지털 범죄 예방을 위한 법적 처벌 기준 강화 조치',
-                    '플랫폼 사업자의 책임성 강화와 이용자 보호 알고리즘 표준화'
-                ],
-                source: 'IT·테크',
-                url: 'https://news.naver.com/section/105'
-            },
-            {
-                id: 'n6',
-                cat: '생활·교통',
-                title: '대중교통 지원 통합 카드 확대 및 생활 인프라 개편',
-                summary: [
-                    'K-패스 및 기후동행카드 이용률 증가와 수도권 광역 교통망 연계 확대',
-                    '지하철·버스 심야 운행 노선 조정 및 환승 편의 시설 정비',
-                    '친환경 모빌리티 인프라 확충과 보행자 안전 중심 도로 설계'
-                ],
-                source: '생활정보',
-                url: 'https://news.naver.com/section/103'
-            }
-        ];
+        /* 📰 [시간대별 3단 자동 롤링 뉴스 데이터셋] */
+        const newsTimelinePool = {
+            morning: [
+                {
+                    id: 'nm1',
+                    cat: '정치·행정',
+                    title: '정기국회 개회 및 하반기 주요 민생 법안 심의 돌입',
+                    summary: [
+                        '여야, 청년 주거 안정 및 취약계층 필수 복지 예산안 우선 심의 착수',
+                        '전세사기 특별법 후속 대책 및 보증금 회수 지원 범위 확대 논의',
+                        '상임위별 쟁점 법안 조율과 현안 질의 공청회 일정 확정'
+                    ],
+                    source: '네이버 뉴스',
+                    url: 'https://news.naver.com/section/100'
+                },
+                {
+                    id: 'nm2',
+                    cat: '사회·이슈',
+                    title: '1인 가구 급증에 따른 지자체 고립 방지 생활 안전망 확대',
+                    summary: [
+                        '청년 및 중장년 1인 가구 대상 맞춤형 심리 상담 거점 센터 증설',
+                        '고립 은둔 청년 조기 발굴 및 사회 복귀를 위한 밀착 프로그램 가동',
+                        '주민센터 및 동네 커뮤니티와 연계한 안부 확인 서비스 구축'
+                    ],
+                    source: '다음 뉴스',
+                    url: 'https://news.daum.net/society'
+                },
+                {
+                    id: 'nm3',
+                    cat: '사회·노동',
+                    title: '유연근무제 확산과 일하는 방식 변화… 세대별 인식 차이',
+                    summary: [
+                        '대기업 및 공공기관 중심의 시차출퇴근제와 원격근무 도입 추세 지속',
+                        '2030 직장인의 워라밸 중시 기조와 조직 몰입도 간의 새로운 균형 모색',
+                        '성과 평가 체계 개편 및 비대면 협업 툴 활용 역량 부각'
+                    ],
+                    source: '사회종합',
+                    url: 'https://news.naver.com/section/102'
+                },
+                {
+                    id: 'nm4',
+                    cat: '외교·국제',
+                    title: '글로벌 통상 환경 재편과 다자 외교 안보 협력 강화',
+                    summary: [
+                        '주요국 공급망 안정화 협의체 가동 및 핵심 광물 안보 파트너십 점검',
+                        '국제 정세 불안 속 외교적 실리 확보와 지정학적 리스크 관리 집중',
+                        '글로벌 기후 협약 및 탄소 감축 정책 관련 다자간 대화 진전'
+                    ],
+                    source: '외교안보',
+                    url: 'https://news.naver.com/section/104'
+                },
+                {
+                    id: 'nm5',
+                    cat: 'IT·사회',
+                    title: '생성형 AI 기술의 일상화와 디지털 안전 가이드라인',
+                    summary: [
+                        'AI 자동화 도구 확산에 따른 업무 생산성 향상과 리터러시 격차 대두',
+                        '딥페이크 및 디지털 범죄 예방을 위한 법적 처벌 기준 강화 조치',
+                        '플랫폼 사업자의 책임성 강화와 이용자 보호 알고리즘 표준화'
+                    ],
+                    source: 'IT·테크',
+                    url: 'https://news.naver.com/section/105'
+                },
+                {
+                    id: 'nm6',
+                    cat: '생활·교통',
+                    title: '대중교통 지원 통합 카드 확대 및 생활 인프라 개편',
+                    summary: [
+                        'K-패스 및 기후동행카드 이용률 증가와 수도권 광역 교통망 연계 확대',
+                        '지하철·버스 심야 운행 노선 조정 및 환승 편의 시설 정비',
+                        '친환경 모빌리티 인프라 확충과 보행자 안전 중심 도로 설계'
+                    ],
+                    source: '생활정보',
+                    url: 'https://news.naver.com/section/103'
+                }
+            ],
+            afternoon: [
+                {
+                    id: 'na1',
+                    cat: '정치·행정',
+                    title: '국회 상임위 오전 질의 마감… 청년 고용 및 재정 대책 쟁점화',
+                    summary: [
+                        '오전 상임위에서 하반기 공공기관 청년 인턴 채용 확대 계획 보고',
+                        '지역 소멸 대응 및 지방 청년 정착 지원금 집행 현황 점검',
+                        '오후 본회의 법안 상정 조율 및 여야 원내대표 회동 예정'
+                    ],
+                    source: '네이버 뉴스',
+                    url: 'https://news.naver.com/section/100'
+                },
+                {
+                    id: 'na2',
+                    cat: '사회·청년',
+                    title: '청년층 취업 준비 장기화와 실무 멘토링 수요 급증',
+                    summary: [
+                        '수시 채용 트렌드 확산에 따른 직무 경험 중심 스펙 선호 뚜렷',
+                        '지자체 청년 공간 활용 실무형 스터디 및 멘토링 프로그램 만원',
+                        '취준생 심리적 불안 완화를 위한 마음건강 바우처 지원 확대'
+                    ],
+                    source: '다음 뉴스',
+                    url: 'https://news.daum.net/society'
+                },
+                {
+                    id: 'na3',
+                    cat: '사회·도시',
+                    title: '수도권 광역 교통망 확충 계획 발표… 통근 시간 단축 목표',
+                    summary: [
+                        '광역 급행 버스 및 거점 환승센터 추가 지정 계획 구체화',
+                        '출퇴근 혼잡도 완화를 위한 시간대별 차량 배차 간격 탄력 조정',
+                        '외곽 신도시 연결 간선도로망 개선 공사 현황 점검'
+                    ],
+                    source: '사회종합',
+                    url: 'https://news.naver.com/section/102'
+                },
+                {
+                    id: 'na4',
+                    cat: '외교·통상',
+                    title: '주요국 통상 장관 회담 결과… 공급망 협력 MOU 체결',
+                    summary: [
+                        '반도체·배터리 등 미래 전략 산업 공급망 안정화 공조 합의',
+                        '비관세 장벽 완화 및 청년 연구인력 교류 확대 방안 논의',
+                        '글로벌 통상 분쟁 대응을 위한 다자간 실무 협의체 구성'
+                    ],
+                    source: '외교안보',
+                    url: 'https://news.naver.com/section/104'
+                },
+                {
+                    id: 'na5',
+                    cat: 'IT·플랫폼',
+                    title: '국내 포털·소셜 미디어, AI 기반 가짜뉴스 탐지 시스템 고도화',
+                    summary: [
+                        '선거 및 주요 사회 이슈 관련 허위 정보 자동 필터링 모델 적용',
+                        '생성형 AI 워터마크 표시 의무화 및 이용자 자율 신고 센터 개설',
+                        '디지털 리터러시 캠페인 확산을 위한 민관 합동 포럼 개최'
+                    ],
+                    source: 'IT·테크',
+                    url: 'https://news.naver.com/section/105'
+                },
+                {
+                    id: 'na6',
+                    cat: '문화·생활',
+                    title: '도심 속 힐링·도서관 문화 복합공간 확산… 청년층 핫플레이스 부상',
+                    summary: [
+                        '단순 열람실을 넘어선 전시·공연·카페 결합형 공공 도서관 인기',
+                        '퇴근 후 즐기는 야간 인문학 강좌 및 원데이 클래스 참여율 증가',
+                        '지자체 유휴 공간을 리모델링한 청년 문화 아지트 확충'
+                    ],
+                    source: '생활문화',
+                    url: 'https://news.naver.com/section/103'
+                }
+            ],
+            evening: [
+                {
+                    id: 'ne1',
+                    cat: '종합 마감',
+                    title: '오늘의 정기국회 및 주요 정책 심의 결산 브리핑',
+                    summary: [
+                        '여야 합의로 청년 주거 및 필수 민생 법안 우선 처리 가닥',
+                        '하반기 예산안 심의 일정 및 주요 쟁점 정리 완료',
+                        '내일 예정된 주요 상임위 전체회의 안건 사전 조율'
+                    ],
+                    source: '네이버 뉴스',
+                    url: 'https://news.naver.com/section/100'
+                },
+                {
+                    id: 'ne2',
+                    cat: '사회 결산',
+                    title: '피로사회 속 번아웃 극복… 2030 세대의 '마인드케어' 트렌드',
+                    summary: [
+                        '퇴근 후 명상, 디지털 디톡스, 1인 운동을 즐기는 리추얼 라이프 확산',
+                        '과도한 관계 피로감을 줄이고 나만의 시간을 확보하는 성향 뚜렷',
+                        '기업 및 지자체 사내 복지 내 심리 상담실 운영 확대 추세'
+                    ],
+                    source: '사회종합',
+                    url: 'https://news.daum.net/society'
+                },
+                {
+                    id: 'ne3',
+                    cat: '테크 결산',
+                    title: '글로벌 테크 기업, 차세대 온디바이스 AI 및 생산성 툴 공개',
+                    summary: [
+                        '클라우드 연결 없이 기기 자체에서 구동되는 고효율 경량화 AI 부각',
+                        '직장인 문서 작업과 데이터 분석을 실시간 보조하는 워크스페이스 진화',
+                        '보안성과 개인정보 보호를 강화한 비즈니스 AI 솔루션 시장 확대'
+                    ],
+                    source: 'IT동향',
+                    url: 'https://news.naver.com/section/105'
+                },
+                {
+                    id: 'ne4',
+                    cat: '외교 결산',
+                    title: '국제 정세 및 글로벌 통상 마감 리포트',
+                    summary: [
+                        '주요국 증시 및 원자재 시장 변동 요인 점검 완료',
+                        '다자 외교 일정 조율 및 경제 안보 협력 강화 방침 재확인',
+                        '내일 개막하는 국제 환경·에너지 컨퍼런스 사전 브리핑'
+                    ],
+                    source: '외교안보',
+                    url: 'https://news.naver.com/section/104'
+                },
+                {
+                    id: 'ne5',
+                    cat: '환경·도시',
+                    title: '수도권 대기질 및 친환경 모빌리티 인프라 확충 성과',
+                    summary: [
+                        '대중교통 이용률 증가에 따른 도심 탄소 배출 저감 효과 분석',
+                        '전기차 급속 충전 거점 확대 및 친환경 버스 노선 증차 완료',
+                        '내일 날씨 및 출근길 대기 상태 사전 예보 점검'
+                    ],
+                    source: '환경생활',
+                    url: 'https://news.naver.com/section/103'
+                },
+                {
+                    id: 'ne6',
+                    cat: '내일 예고',
+                    title: '내일의 주요 경제·사회 정책 일정 및 입법 예고',
+                    summary: [
+                        '청년 고용 대책 세부 실행 방안 관계 부처 합동 발표 예정',
+                        '공공 임대주택 청약 일정 및 생활 금융 지원 안내 시작',
+                        '지역별 문화 행사 및 주말 대중교통 운행 정보 공지'
+                    ],
+                    source: '포털 종합',
+                    url: 'https://news.naver.com/section/100'
+                }
+            ]
+        };
 
+        let currentActiveNewsList = [];
         let openAccordionId = null;
+
+        function getAutoNewsTimeType() {
+            const hour = new Date().getHours();
+            if (hour >= 6 && hour < 12) return 'morning';
+            if (hour >= 12 && hour < 18) return 'afternoon';
+            return 'evening';
+        }
+
+        function initNewsEngine() {
+            const timeType = getAutoNewsTimeType();
+            const badgeEl = document.getElementById('news-time-badge');
+            if (badgeEl) {
+                if (timeType === 'morning') badgeEl.innerText = "🌅 조간 모닝 브리핑";
+                else if (timeType === 'afternoon') badgeEl.innerText = "☀️ 오후 쟁점 브리핑";
+                else badgeEl.innerText = "🌙 이브닝 종합 결산";
+            }
+            currentActiveNewsList = [...newsTimelinePool[timeType]];
+            renderNewsAccordion();
+        }
 
         function renderNewsAccordion() {
             const container = document.getElementById('news-accordion-container');
-            if(!container) return;
+            if (!container) return;
             container.innerHTML = '';
 
-            newsAccordionData.forEach(item => {
+            currentActiveNewsList.forEach(item => {
                 const isOpen = openAccordionId === item.id;
                 const div = document.createElement('div');
                 div.className = "bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl overflow-hidden transition-all shadow-xs";
                 
                 let summaryHtml = '';
-                if(isOpen) {
+                if (isOpen) {
                     summaryHtml = `
                     <div class="px-4 pb-4 pt-2 border-t border-[var(--border-color)] bg-[var(--primary-light)] space-y-2 text-xs">
                         <span class="font-bold text-[var(--primary)] block">💡 3줄 핵심 브리프:</span>
@@ -937,6 +1114,646 @@
             renderNewsAccordion();
         }
 
+        function refreshNewsManual() {
+            const icon = document.getElementById('news-refresh-icon');
+            if (icon) {
+                icon.classList.remove('rotate-anim');
+                void icon.offsetWidth;
+                icon.classList.add('rotate-anim');
+            }
+
+            const timeType = getAutoNewsTimeType();
+            currentActiveNewsList = [...newsTimelinePool[timeType]].sort(() => 0.5 - Math.random());
+            renderNewsAccordion();
+
+            const status = document.getElementById('news-update-status');
+            if (status) {
+                const now = new Date();
+                const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                status.innerText = `${timeStr} 갱신`;
+            }
+        }
+
+        /* 📋 [오늘의 할일 관리 - 홈 전진 배치] */
+        let currentTodoCat = '전체';
+        let currentTodoStatus = '전체';
+
+        function renderTodos() {
+            const container = document.getElementById('todo-checklist-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            state.todos.sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
+
+            let pendingCount = 0;
+            state.todos.forEach(item => {
+                if (item.status === '진행') pendingCount++;
+                const matchCat = (currentTodoCat === '전체' || item.cat === currentTodoCat);
+                const matchStat = (currentTodoStatus === '전체' || item.status === currentTodoStatus);
+                if (!matchCat || !matchStat) return;
+
+                const div = document.createElement('div');
+                div.className = "p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between";
+                
+                let titleClass = "font-bold text-[var(--text-main)] truncate";
+                let selectClass = "text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text-main)]";
+                if (item.status === '완료') {
+                    titleClass = "font-bold text-[var(--text-sub)] line-through truncate opacity-50";
+                    selectClass = "text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-emerald-500 bg-emerald-950 text-emerald-300";
+                } else if (item.status === '연기') {
+                    titleClass = "font-bold text-amber-300 truncate";
+                    selectClass = "text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-amber-500 bg-amber-950 text-amber-300";
+                }
+
+                div.innerHTML = `
+                    <div class="flex items-center gap-2.5 flex-1 mr-2 overflow-hidden">
+                        <span class="text-xs font-mono-code font-bold text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">${item.time}</span>
+                        <span class="${titleClass}">${item.text}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <span class="text-[10px] primary-badge font-black px-2 py-0.5 rounded-full">${item.cat}</span>
+                        <select onchange="updateTodoStatus('${item.id}', this.value)" class="${selectClass}">
+                            <option value="진행" ${item.status === '진행' ? 'selected' : ''}>진행</option>
+                            <option value="연기" ${item.status === '연기' ? 'selected' : ''}>연기</option>
+                            <option value="완료" ${item.status === '완료' ? 'selected' : ''}>완료</option>
+                        </select>
+                        <button onclick="editTodo('${item.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] px-1 font-bold">수정</button>
+                        <button onclick="deleteTodo('${item.id}')" class="text-[11px] text-red-400 hover:text-red-300 px-1 font-bold">삭제</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            const badge = document.getElementById('todo-stats-badge');
+            if (badge) badge.innerText = `${pendingCount}건 진행중`;
+        }
+
+        function addTodoInline() {
+            const time = document.getElementById('todo-time-input').value || '00:00';
+            const cat = document.getElementById('todo-cat-select').value;
+            const text = document.getElementById('todo-input-bar').value.trim();
+            if (!text) return;
+
+            state.todos.push({
+                id: 't_' + Date.now(),
+                time,
+                cat,
+                text,
+                status: '진행'
+            });
+            renderTodos();
+            syncToCloud();
+            document.getElementById('todo-input-bar').value = '';
+        }
+
+        function updateTodoStatus(id, status) {
+            const todo = state.todos.find(t => t.id === id);
+            if (todo) {
+                todo.status = status;
+                renderTodos();
+                syncToCloud();
+            }
+        }
+
+        function editTodo(id) {
+            const todo = state.todos.find(t => t.id === id);
+            if (!todo) return;
+            const newTime = prompt("시간 수정 (HH:MM)", todo.time);
+            if (newTime === null) return;
+            const newCat = prompt("카테고리 수정 (회의/심방/사역/가정)", todo.cat);
+            if (newCat === null) return;
+            const newText = prompt("할일 내용 수정", todo.text);
+            if (newText === null || !newText.trim()) return;
+
+            todo.time = newTime;
+            todo.cat = newCat;
+            todo.text = newText.trim();
+            renderTodos();
+            syncToCloud();
+        }
+
+        function deleteTodo(id) {
+            if (confirm("이 할일을 삭제하시겠습니까?")) {
+                state.todos = state.todos.filter(t => t.id !== id);
+                renderTodos();
+                syncToCloud();
+            }
+        }
+
+        function filterTodoCat(cat) {
+            currentTodoCat = cat;
+            document.querySelectorAll('#todo-cat-tabs .cat-tab').forEach(t => {
+                if (t.innerText === cat) t.className = "cat-tab px-3.5 py-1.5 rounded-full text-xs font-black primary-badge";
+                else t.className = "cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]";
+            });
+            renderTodos();
+        }
+
+        function filterTodoStatus(stat) {
+            currentTodoStatus = stat;
+            document.querySelectorAll('#todo-status-tabs .stat-tab').forEach(t => {
+                if ((stat === '전체' && t.innerText === '모든상태') || t.innerText.includes(stat)) {
+                    t.className = "stat-tab px-2.5 py-1 rounded-lg font-black primary-badge";
+                } else {
+                    t.className = "stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]";
+                }
+            });
+            renderTodos();
+        }
+
+        /* 🗓️ [주간 일정표 관리] */
+        function renderWeekly() {
+            ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].forEach(day => {
+                const container = document.getElementById('week-' + day);
+                if (!container) return;
+                container.innerHTML = '';
+                (state.weekly[day] || []).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = "bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] leading-snug group relative";
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <b class="text-[var(--primary)] font-mono-code font-bold">${item.time}</b>
+                            <button onclick="deleteWeeklySchedule('${day}', '${item.id}')" class="text-[9px] text-red-400 hover:font-bold opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                        </div>
+                        <span class="font-bold text-[11px] text-[var(--text-main)] block mt-0.5">${item.text}</span>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        function addWeeklySchedule(day) {
+            const time = prompt("시간 입력 (예: 14:00)");
+            if (!time) return;
+            const text = prompt("일정 내용 입력");
+            if (!text) return;
+            state.weekly[day] = state.weekly[day] || [];
+            state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
+            state.weekly[day].sort((a, b) => a.time.localeCompare(b.time));
+            renderWeekly();
+            syncToCloud();
+        }
+
+        function deleteWeeklySchedule(day, id) {
+            if (confirm("이 주간 일정을 삭제하시겠습니까?")) {
+                state.weekly[day] = state.weekly[day].filter(item => item.id !== id);
+                renderWeekly();
+                syncToCloud();
+            }
+        }
+
+        /* 📁 [사역 프로젝트 관리 : 인라인 엔터 세부 과업 추가] */
+        function renderProjects() {
+            const activeGrid = document.getElementById('active-projects-grid');
+            const completedGrid = document.getElementById('completed-projects-grid');
+            if (!activeGrid || !completedGrid) return;
+            activeGrid.innerHTML = '';
+            completedGrid.innerHTML = '';
+
+            const today = new Date("2026-08-27");
+            const activeProjects = state.projects.filter(p => !p.completed);
+            const completedProjects = state.projects.filter(p => p.completed);
+
+            activeProjects.sort((a, b) => (a.end || '9999.12.31').localeCompare(b.end || '9999.12.31'));
+
+            let totalRates = 0;
+            activeProjects.forEach(p => {
+                const endDate = new Date((p.end || '2026.08.27').replace(/\./g, '-'));
+                const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                
+                let ddayText = `D-${diffDays}`;
+                let ddayClass = "text-[10px] font-mono-code font-bold primary-badge px-2.5 py-0.5 rounded-full";
+                if (diffDays < 0) {
+                    ddayText = `D+${Math.abs(diffDays)} 초과`;
+                    ddayClass = "text-[10px] font-mono-code font-bold text-white bg-gray-600 px-2.5 py-0.5 rounded-full";
+                } else if (diffDays <= 2) {
+                    ddayText = `D-${diffDays} 임박`;
+                    ddayClass = "text-[10px] font-mono-code font-bold text-white bg-red-500 px-2.5 py-0.5 rounded-full animate-pulse";
+                }
+
+                const subtasks = p.subtasks || [];
+                const doneCount = subtasks.filter(st => st.done).length;
+                const rate = subtasks.length > 0 ? Math.round((doneCount / subtasks.length) * 100) : 0;
+                totalRates += rate;
+
+                const card = document.createElement('div');
+                card.className = "glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-[var(--primary)]";
+                
+                let subtasksHtml = '';
+                subtasks.forEach(st => {
+                    subtasksHtml += `
+                    <div class="flex items-center justify-between group">
+                        <label class="flex items-center gap-2 cursor-pointer flex-1 overflow-hidden">
+                            <input type="checkbox" ${st.done ? 'checked' : ''} onchange="toggleSubTask('${p.id}', '${st.id}')" class="accent-[var(--primary)] rounded">
+                            <span class="${st.done ? 'line-through text-[var(--text-sub)] opacity-60' : 'text-[var(--text-main)]'} font-medium truncate">${st.text}</span>
+                        </label>
+                        <button onclick="deleteSubTask('${p.id}', '${st.id}')" class="text-[10px] text-red-400 opacity-0 group-hover:opacity-100 font-bold px-1 transition-opacity">✕</button>
+                    </div>`;
+                });
+
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-[var(--primary-light)] px-2.5 py-1 rounded-full text-[var(--primary)]">진행중</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="${ddayClass}">${ddayText}</span>
+                                <button onclick="editProject('${p.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold px-1.5 py-0.5 rounded bg-[var(--bg-color)] border border-[var(--border-color)]">수정</button>
+                                <button onclick="deleteProject('${p.id}')" class="text-[11px] text-red-400 hover:text-red-300 font-bold px-1.5 py-0.5 rounded bg-[var(--bg-color)] border border-[var(--border-color)]">삭제</button>
+                            </div>
+                        </div>
+                        <h4 class="font-black text-base text-[var(--text-main)]">${p.title}</h4>
+                        <p class="text-xs text-[var(--text-sub)] font-mono-code font-bold">${p.start} ~ ${p.end}</p>
+                        
+                        <div class="space-y-2 pt-2 border-t border-[var(--border-color)]">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-bold text-[var(--text-sub)]">세부 실행 과업</span>
+                                <span class="text-[10px] font-mono-code font-bold text-[var(--primary)]">${doneCount}/${subtasks.length}</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs">${subtasksHtml}</div>
+                            
+                            <!-- 인라인 엔터 입력창 -->
+                            <div class="pt-1.5">
+                                <input type="text" id="subtask-input-${p.id}" placeholder="+ 새 실행과업 입력 후 엔터..." class="w-full p-2.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-medium focus:border-[var(--primary)]" onkeypress="if(event.key==='Enter') addSubTaskInline('${p.id}', this)">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-2">
+                        <div class="flex justify-between text-[11px] font-mono-code font-bold">
+                            <span>진행률</span>
+                            <span class="text-[var(--primary)]">${rate}%</span>
+                        </div>
+                        <div class="w-full bg-[var(--bg-color)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
+                            <div class="bg-[var(--primary)] h-full transition-all" style="width: ${rate}%;"></div>
+                        </div>
+                        <button onclick="toggleProjectComplete('${p.id}')" class="w-full mt-2 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] text-xs font-bold rounded-xl text-[var(--text-main)] hover:bg-emerald-600 hover:text-black transition-all">✅ 프로젝트 완료 처리</button>
+                    </div>
+                `;
+                activeGrid.appendChild(card);
+            });
+
+            completedProjects.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "glass-card p-5 space-y-2 border-t-4 border-t-gray-600 bg-black/20";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-gray-800 text-gray-400 px-2.5 py-1 rounded-full">완료됨</span>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="toggleProjectComplete('${p.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">되돌리기</button>
+                            <button onclick="deleteProject('${p.id}')" class="text-[11px] text-red-400 hover:text-red-300 font-bold">삭제</button>
+                        </div>
+                    </div>
+                    <h4 class="font-bold text-base text-[var(--text-main)]">${p.title}</h4>
+                    <p class="text-xs text-[var(--text-sub)] font-mono-code font-bold">${p.start} ~ ${p.end}</p>
+                `;
+                completedGrid.appendChild(card);
+            });
+
+            const overallRate = activeProjects.length > 0 ? Math.round(totalRates / activeProjects.length) : 100;
+            const overallBadge = document.getElementById('proj-overall-progress');
+            if (overallBadge) overallBadge.innerText = `전체 진척도 ${overallRate}%`;
+        }
+
+        function addNewProject() {
+            const title = prompt("새 프로젝트 이름");
+            if (!title) return;
+            const start = prompt("시작일 (YYYY.MM.DD)", "2026.08.27");
+            const end = prompt("마감일 (YYYY.MM.DD)", "2026.09.05");
+            state.projects.push({
+                id: 'p_' + Date.now(),
+                title,
+                start,
+                end,
+                completed: false,
+                subtasks: [{ id: 'st_' + Date.now(), text: '기본 기획 및 방향성 수립', done: false }]
+            });
+            renderProjects();
+            syncToCloud();
+        }
+
+        function addSubTaskInline(projectId, inputEl) {
+            const text = inputEl.value.trim();
+            if (!text) return;
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            project.subtasks = project.subtasks || [];
+            project.subtasks.push({ id: 'st_' + Date.now(), text, done: false });
+            inputEl.value = '';
+            renderProjects();
+            syncToCloud();
+            // 입력 포커스 복원
+            setTimeout(() => {
+                const nextInput = document.getElementById(`subtask-input-${projectId}`);
+                if (nextInput) nextInput.focus();
+            }, 50);
+        }
+
+        function toggleSubTask(projectId, subtaskId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            const st = (project.subtasks || []).find(s => s.id === subtaskId);
+            if (st) {
+                st.done = !st.done;
+                renderProjects();
+                syncToCloud();
+            }
+        }
+
+        function deleteSubTask(projectId, subtaskId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            project.subtasks = (project.subtasks || []).filter(s => s.id !== subtaskId);
+            renderProjects();
+            syncToCloud();
+        }
+
+        function toggleProjectComplete(id) {
+            const project = state.projects.find(p => p.id === id);
+            if (project) {
+                project.completed = !project.completed;
+                renderProjects();
+                syncToCloud();
+            }
+        }
+
+        function editProject(id) {
+            const project = state.projects.find(p => p.id === id);
+            if (!project) return;
+            const newTitle = prompt("프로젝트 이름 수정", project.title);
+            if (newTitle === null || !newTitle.trim()) return;
+            const newStart = prompt("시작일 수정 (YYYY.MM.DD)", project.start);
+            const newEnd = prompt("마감일 수정 (YYYY.MM.DD)", project.end);
+
+            project.title = newTitle.trim();
+            project.start = newStart;
+            project.end = newEnd;
+            renderProjects();
+            syncToCloud();
+        }
+
+        function deleteProject(id) {
+            if (confirm("이 프로젝트를 완전히 삭제하시겠습니까?")) {
+                state.projects = state.projects.filter(p => p.id !== id);
+                renderProjects();
+                syncToCloud();
+            }
+        }
+
+        /* 📝 [회의록 & 퀵메모 관리] */
+        let currentMemoCat = '전체';
+
+        function renderMemos() {
+            const list = document.getElementById('memo-archive-list');
+            if (!list) return;
+            list.innerHTML = '';
+            
+            const query = (document.getElementById('memo-search-input')?.value || '').toLowerCase();
+
+            state.memos.forEach(m => {
+                const matchCat = (currentMemoCat === '전체' || m.cat === currentMemoCat);
+                const matchQuery = !query || m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query);
+                if (!matchCat || !matchQuery) return;
+
+                const div = document.createElement('div');
+                div.className = "p-5 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl shadow-xs";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-mono-code primary-badge font-black px-2.5 py-0.5 rounded-full">${m.cat}</span>
+                            <span class="text-xs font-bold text-[var(--text-main)]">${m.title}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-[var(--text-sub)] font-mono-code">${m.date}</span>
+                            <button onclick="editMemo('${m.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">수정</button>
+                            <button onclick="deleteMemo('${m.id}')" class="text-[11px] text-red-400 hover:text-red-300 font-bold">삭제</button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-[var(--text-main)] font-medium leading-relaxed cursor-pointer" onclick="openMemoDetail('${m.id}')">
+                        ${m.content.replace(/\n/g, '<br>')}
+                    </p>
+                    <div class="flex justify-end gap-2 mt-3 pt-2 border-t border-[var(--border-color)]">
+                        <button onclick="sendMemoToStudy('${m.id}')" class="text-[11px] font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">➔ 생각의 서재로 복사</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function saveTodayMemo() {
+            const cat = document.getElementById('memo-cat-select').value;
+            const title = document.getElementById('memo-title-input').value.trim() || '회의 및 사역 메모';
+            const content = document.getElementById('today-memo-input').value.trim();
+            if (!content) return;
+
+            state.memos.unshift({
+                id: 'm_' + Date.now(),
+                cat,
+                title,
+                date: '2026.08.27',
+                content
+            });
+            renderMemos();
+            syncToCloud();
+            document.getElementById('memo-title-input').value = '';
+            document.getElementById('today-memo-input').value = '';
+            alert("클라우드 회의록에 안전하게 저장되었습니다.");
+        }
+
+        function editMemo(id) {
+            const memo = state.memos.find(m => m.id === id);
+            if (!memo) return;
+            const newCat = prompt("카테고리 수정", memo.cat);
+            if (!newCat) return;
+            const newTitle = prompt("제목 수정", memo.title);
+            if (!newTitle) return;
+            const newContent = prompt("내용 수정", memo.content);
+            if (!newContent) return;
+
+            memo.cat = newCat;
+            memo.title = newTitle;
+            memo.content = newContent;
+            renderMemos();
+            syncToCloud();
+        }
+
+        function deleteMemo(id) {
+            if (confirm("이 회의록을 삭제하시겠습니까?")) {
+                state.memos = state.memos.filter(m => m.id !== id);
+                renderMemos();
+                syncToCloud();
+            }
+        }
+
+        function filterMemoCat(cat) {
+            currentMemoCat = cat;
+            document.querySelectorAll('#memo-cat-filter .memo-filter-btn').forEach(btn => {
+                if ((cat === '전체' && btn.innerText === '전체보기') || btn.innerText === cat) {
+                    btn.className = "memo-filter-btn px-4 py-2 rounded-full text-xs font-black primary-badge whitespace-nowrap";
+                } else {
+                    btn.className = "memo-filter-btn px-4 py-2 rounded-full text-xs font-bold text-[var(--text-sub)] bg-[var(--primary-light)] whitespace-nowrap";
+                }
+            });
+            renderMemos();
+        }
+
+        function searchMemos() {
+            renderMemos();
+        }
+
+        function openMemoDetail(id) {
+            const memo = state.memos.find(m => m.id === id);
+            if (!memo) return;
+            document.getElementById('memo-modal-cat').innerText = memo.cat;
+            document.getElementById('memo-modal-date').innerText = memo.date;
+            document.getElementById('memo-modal-title').innerText = memo.title;
+            document.getElementById('memo-modal-content').innerText = memo.content;
+            document.getElementById('memo-detail-modal').classList.add('show');
+        }
+
+        function sendMemoToStudy(id) {
+            const memo = state.memos.find(m => m.id === id);
+            if (!memo) return;
+            state.thoughts.unshift({
+                id: 'th_' + Date.now(),
+                cat: '설교착상',
+                title: memo.title,
+                content: memo.content
+            });
+            renderThoughts();
+            syncToCloud();
+            alert("생각의 서재로 복사되었습니다.");
+        }
+
+        /* 🧠 [생각의 서재 관리] */
+        function renderThoughts() {
+            const grid = document.getElementById('thought-card-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            state.thoughts.forEach(th => {
+                const div = document.createElement('div');
+                div.className = "glass-card p-6 space-y-4 cursor-pointer hover:border-[var(--primary)] transition-all flex flex-col justify-between";
+                div.onclick = function() { openThoughtModal(th.id); };
+                div.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono-code primary-badge font-black uppercase px-3 py-1 rounded-full">${th.cat} | ${th.title}</span>
+                            <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
+                                <button onclick="editThought('${th.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">수정</button>
+                                <button onclick="deleteThought('${th.id}')" class="text-[11px] text-red-400 hover:text-red-300 font-bold">삭제</button>
+                            </div>
+                        </div>
+                        <h4 class="font-bold text-base text-[var(--text-main)] mt-3 line-clamp-3 leading-relaxed">"${th.content}"</h4>
+                    </div>
+                    <button class="text-xs font-bold text-[var(--text-sub)] text-left hover:text-[var(--primary)] pt-2 border-t border-[var(--border-color)]" onclick="event.stopPropagation(); forwardToSermonIdea('${th.id}')">➔ 설교 아이디어 회의록으로 즉시 전송</button>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function addThoughtCard() {
+            const cat = document.getElementById('thought-cat-select').value;
+            const title = document.getElementById('thought-title').value.trim();
+            const content = document.getElementById('thought-content').value.trim();
+            if (!title || !content) { alert("출처와 내용을 모두 입력하세요."); return; }
+
+            state.thoughts.unshift({
+                id: 'th_' + Date.now(),
+                cat,
+                title,
+                content
+            });
+            renderThoughts();
+            syncToCloud();
+            document.getElementById('thought-title').value = '';
+            document.getElementById('thought-content').value = '';
+            alert("클라우드 서재에 박제되었습니다.");
+        }
+
+        function editThought(id) {
+            const thought = state.thoughts.find(t => t.id === id);
+            if (!thought) return;
+            const newTitle = prompt("태그/출처 수정", thought.title);
+            if (!newTitle) return;
+            const newContent = prompt("내용 수정", thought.content);
+            if (!newContent) return;
+
+            thought.title = newTitle;
+            thought.content = newContent;
+            renderThoughts();
+            syncToCloud();
+        }
+
+        function deleteThought(id) {
+            if (confirm("이 서재 카드를 삭제하시겠습니까?")) {
+                state.thoughts = state.thoughts.filter(t => t.id !== id);
+                renderThoughts();
+                syncToCloud();
+            }
+        }
+
+        function forwardToSermonIdea(id) {
+            const thought = state.thoughts.find(t => t.id === id);
+            if (!thought) return;
+            state.memos.unshift({
+                id: 'm_' + Date.now(),
+                cat: '설교 아이디어',
+                title: `[서재 착상] ${thought.title}`,
+                date: '2026.08.27',
+                content: thought.content
+            });
+            renderMemos();
+            syncToCloud();
+            alert("회의록의 [설교 아이디어] 탭으로 즉시 전송되었습니다.");
+        }
+
+        function openThoughtModal(id) {
+            const thought = state.thoughts.find(t => t.id === id);
+            if (!thought) return;
+            document.getElementById('modal-tag').innerText = `${thought.cat} | ${thought.title}`;
+            document.getElementById('modal-text').innerText = thought.content;
+            document.getElementById('thought-modal').classList.add('show');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function openFabModal() {
+            document.getElementById('fab-input').value = '';
+            document.getElementById('fab-modal').classList.add('show');
+        }
+
+        function submitFab() {
+            const type = document.getElementById('fab-type').value;
+            const text = document.getElementById('fab-input').value.trim();
+            if (!text) return;
+            if (type === 'todo') {
+                state.todos.push({
+                    id: 't_' + Date.now(),
+                    time: '12:00',
+                    cat: '사역',
+                    text,
+                    status: '진행'
+                });
+                renderTodos();
+                syncToCloud();
+                alert("오늘의 할일에 추가되었습니다.");
+            } else {
+                state.memos.unshift({
+                    id: 'm_' + Date.now(),
+                    cat: '교회 공통',
+                    title: '퀵 메모',
+                    date: '2026.08.27',
+                    content: text
+                });
+                renderMemos();
+                syncToCloud();
+                alert("회의록에 추가되었습니다.");
+            }
+            closeModal('fab-modal');
+        }
+
+        /* 💾 [기본 데이터셋 및 상태 초기화] */
         const defaultWeekly = {
             mon: [{ id: 'w1', time: '10:00', text: '교역자 회의' }, { id: 'w2', time: '14:00', text: '광주 심방' }],
             tue: [{ id: 'w3', time: '19:30', text: '리더 1on1' }],
@@ -1007,15 +1824,15 @@
         function setSyncStatus(status) {
             const dot = document.getElementById('sync-dot');
             const text = document.getElementById('sync-text');
-            if(!dot || !text) return;
+            if (!dot || !text) return;
 
-            if(status === 'saving') {
+            if (status === 'saving') {
                 dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
                 text.innerText = "클라우드 저장중...";
-            } else if(status === 'synced') {
+            } else if (status === 'synced') {
                 dot.className = "w-2 h-2 rounded-full bg-emerald-400";
                 text.innerText = "클라우드 동기화 완료";
-            } else if(status === 'error') {
+            } else if (status === 'error') {
                 dot.className = "w-2 h-2 rounded-full bg-red-500";
                 text.innerText = "클라우드 연결 확인 필요";
             }
@@ -1024,12 +1841,12 @@
         appDocRef.onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
-                if(data.weekly) state.weekly = data.weekly;
-                if(data.todos) state.todos = data.todos;
-                if(data.projects) state.projects = data.projects;
-                if(data.memos) state.memos = data.memos;
-                if(data.thoughts) state.thoughts = data.thoughts;
-                if(data.theme) state.theme = data.theme;
+                if (data.weekly) state.weekly = data.weekly;
+                if (data.todos) state.todos = data.todos;
+                if (data.projects) state.projects = data.projects;
+                if (data.memos) state.memos = data.memos;
+                if (data.thoughts) state.thoughts = data.thoughts;
+                if (data.theme) state.theme = data.theme;
                 
                 switchTheme(state.theme, false);
                 renderWeekly();
@@ -1046,13 +1863,13 @@
             setSyncStatus('error');
         });
 
-        function switchTheme(themeName, shouldSync=true) {
+        function switchTheme(themeName, shouldSync = true) {
             document.body.className = 'theme-' + themeName + ' selection:bg-[var(--primary)] selection:text-[var(--primary-text)]';
             state.theme = themeName;
             
             ['burgundy', 'cosmic', 'forest'].forEach(t => {
                 const btn = document.getElementById('btn-theme-' + t);
-                if(t === themeName) {
+                if (t === themeName) {
                     btn.className = "px-3 py-1 rounded-full font-bold text-[11px] transition-all theme-btn-active";
                 } else {
                     btn.className = "px-3 py-1 rounded-full font-bold text-[11px] transition-all text-[var(--text-sub)] hover:text-[var(--primary)]";
@@ -1064,7 +1881,7 @@
             renderMemos();
             renderThoughts();
 
-            if(shouldSync) syncToCloud();
+            if (shouldSync) syncToCloud();
         }
 
         function switchView(viewId, evt) {
@@ -1092,605 +1909,9 @@
         setInterval(updateHeroClock, 1000);
         updateHeroClock();
 
-        function renderWeekly() {
-            ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].forEach(day => {
-                const container = document.getElementById('week-' + day);
-                if(!container) return;
-                container.innerHTML = '';
-                (state.weekly[day] || []).forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = "bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] leading-snug group relative";
-                    div.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <b class="text-[var(--primary)] font-mono-code font-bold">${item.time}</b>
-                            <button onclick="deleteWeeklySchedule('${day}', '${item.id}')" class="text-[9px] text-red-400 hover:font-bold opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
-                        </div>
-                        <span class="font-bold text-[11px] text-[var(--text-main)] block mt-0.5">${item.text}</span>
-                    `;
-                    container.appendChild(div);
-                });
-            });
-        }
-
-        function addWeeklySchedule(day) {
-            const time = prompt("시간 입력 (예: 14:00)");
-            if(!time) return;
-            const text = prompt("일정 내용 입력");
-            if(!text) return;
-            state.weekly[day] = state.weekly[day] || [];
-            state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
-            state.weekly[day].sort((a, b) => a.time.localeCompare(b.time));
-            renderWeekly();
-            syncToCloud();
-        }
-
-        function deleteWeeklySchedule(day, id) {
-            if(confirm("이 주간 일정을 삭제하시겠습니까?")) {
-                state.weekly[day] = state.weekly[day].filter(item => item.id !== id);
-                renderWeekly();
-                syncToCloud();
-            }
-        }
-
-        /* 📋 오늘의 할일 */
-        let currentTodoCat = '전체';
-        let currentTodoStatus = '전체';
-
-        function renderTodos() {
-            const container = document.getElementById('todo-checklist-container');
-            if(!container) return;
-            container.innerHTML = '';
-            
-            state.todos.sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
-
-            let pendingCount = 0;
-            state.todos.forEach(item => {
-                if(item.status === '진행') pendingCount++;
-                const matchCat = (currentTodoCat === '전체' || item.cat === currentTodoCat);
-                const matchStat = (currentTodoStatus === '전체' || item.status === currentTodoStatus);
-                if(!matchCat || !matchStat) return;
-
-                const div = document.createElement('div');
-                div.className = "p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between";
-                
-                let titleClass = "font-bold text-[var(--text-main)] truncate";
-                let selectClass = "text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text-main)]";
-                if(item.status === '완료') {
-                    titleClass = "font-bold text-[var(--text-sub)] line-through truncate opacity-50";
-                    selectClass = "text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-emerald-500 bg-emerald-950 text-emerald-300";
-                } else if(item.status === '연기') {
-                    titleClass = "font-bold text-amber-300 truncate";
-                    selectClass = "text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-amber-500 bg-amber-950 text-amber-300";
-                }
-
-                div.innerHTML = `
-                    <div class="flex items-center gap-2.5 flex-1 mr-2 overflow-hidden">
-                        <span class="text-xs font-mono-code font-bold text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">${item.time}</span>
-                        <span class="${titleClass}">${item.text}</span>
-                    </div>
-                    <div class="flex items-center gap-1.5 shrink-0">
-                        <span class="text-[10px] primary-badge font-black px-2 py-0.5 rounded-full">${item.cat}</span>
-                        <select onchange="updateTodoStatus('${item.id}', this.value)" class="${selectClass}">
-                            <option value="진행" ${item.status === '진행' ? 'selected' : ''}>진행</option>
-                            <option value="연기" ${item.status === '연기' ? 'selected' : ''}>연기</option>
-                            <option value="완료" ${item.status === '완료' ? 'selected' : ''}>완료</option>
-                        </select>
-                        <button onclick="editTodo('${item.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] px-1 font-bold">수정</button>
-                        <button onclick="deleteTodo('${item.id}')" class="text-[11px] text-red-400 hover:text-red-300 px-1 font-bold">삭제</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-
-            const badge = document.getElementById('todo-stats-badge');
-            if(badge) badge.innerText = `${pendingCount}건 진행중`;
-        }
-
-        function addTodoInline() {
-            const time = document.getElementById('todo-time-input').value || '00:00';
-            const cat = document.getElementById('todo-cat-select').value;
-            const text = document.getElementById('todo-input-bar').value.trim();
-            if(!text) return;
-
-            state.todos.push({
-                id: 't_' + Date.now(),
-                time,
-                cat,
-                text,
-                status: '진행'
-            });
-            renderTodos();
-            syncToCloud();
-            document.getElementById('todo-input-bar').value = '';
-        }
-
-        function updateTodoStatus(id, status) {
-            const todo = state.todos.find(t => t.id === id);
-            if(todo) {
-                todo.status = status;
-                renderTodos();
-                syncToCloud();
-            }
-        }
-
-        function editTodo(id) {
-            const todo = state.todos.find(t => t.id === id);
-            if(!todo) return;
-            const newTime = prompt("시간 수정 (HH:MM)", todo.time);
-            if(newTime === null) return;
-            const newCat = prompt("카테고리 수정 (회의/심방/사역/가정)", todo.cat);
-            if(newCat === null) return;
-            const newText = prompt("할일 내용 수정", todo.text);
-            if(newText === null || !newText.trim()) return;
-
-            todo.time = newTime;
-            todo.cat = newCat;
-            todo.text = newText.trim();
-            renderTodos();
-            syncToCloud();
-        }
-
-        function deleteTodo(id) {
-            if(confirm("이 할일을 삭제하시겠습니까?")) {
-                state.todos = state.todos.filter(t => t.id !== id);
-                renderTodos();
-                syncToCloud();
-            }
-        }
-
-        function filterTodoCat(cat) {
-            currentTodoCat = cat;
-            document.querySelectorAll('#todo-cat-tabs .cat-tab').forEach(t => {
-                if(t.innerText === cat) t.className = "cat-tab px-3.5 py-1.5 rounded-full text-xs font-black primary-badge";
-                else t.className = "cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]";
-            });
-            renderTodos();
-        }
-
-        function filterTodoStatus(stat) {
-            currentTodoStatus = stat;
-            document.querySelectorAll('#todo-status-tabs .stat-tab').forEach(t => {
-                if((stat==='전체' && t.innerText==='모든상태') || t.innerText.includes(stat)) {
-                    t.className = "stat-tab px-2.5 py-1 rounded-lg font-black primary-badge";
-                } else {
-                    t.className = "stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]";
-                }
-            });
-            renderTodos();
-        }
-
-        /* 📁 프로젝트 관리 */
-        function renderProjects() {
-            const activeGrid = document.getElementById('active-projects-grid');
-            const completedGrid = document.getElementById('completed-projects-grid');
-            if(!activeGrid || !completedGrid) return;
-            activeGrid.innerHTML = '';
-            completedGrid.innerHTML = '';
-
-            const today = new Date("2026-08-27");
-            const activeProjects = state.projects.filter(p => !p.completed);
-            const completedProjects = state.projects.filter(p => p.completed);
-
-            activeProjects.sort((a, b) => (a.end || '9999.12.31').localeCompare(b.end || '9999.12.31'));
-
-            let totalRates = 0;
-            activeProjects.forEach(p => {
-                const endDate = new Date((p.end || '2026.08.27').replace(/\./g, '-'));
-                const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-                
-                let ddayText = `D-${diffDays}`;
-                let ddayClass = "text-[10px] font-mono-code font-bold primary-badge px-2.5 py-0.5 rounded-full";
-                if(diffDays < 0) {
-                    ddayText = `D+${Math.abs(diffDays)} 초과`;
-                    ddayClass = "text-[10px] font-mono-code font-bold text-white bg-gray-600 px-2.5 py-0.5 rounded-full";
-                } else if(diffDays <= 2) {
-                    ddayText = `D-${diffDays} 임박`;
-                    ddayClass = "text-[10px] font-mono-code font-bold text-white bg-red-500 px-2.5 py-0.5 rounded-full animate-pulse";
-                }
-
-                const subtasks = p.subtasks || [];
-                const doneCount = subtasks.filter(st => st.done).length;
-                const rate = subtasks.length > 0 ? Math.round((doneCount / subtasks.length) * 100) : 0;
-                totalRates += rate;
-
-                const card = document.createElement('div');
-                card.className = "glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-[var(--primary)]";
-                
-                let subtasksHtml = '';
-                subtasks.forEach(st => {
-                    subtasksHtml += `
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" ${st.done ? 'checked' : ''} onchange="toggleSubTask('${p.id}', '${st.id}')" class="accent-[var(--primary)] rounded">
-                        <span class="${st.done ? 'line-through text-[var(--text-sub)] opacity-60' : 'text-[var(--text-main)]'} font-medium">${st.text}</span>
-                    </label>`;
-                });
-
-                card.innerHTML = `
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-[var(--primary-light)] px-2.5 py-1 rounded-full text-[var(--primary)]">진행중</span>
-                            <div class="flex items-center gap-1.5">
-                                <span class="${ddayClass}">${ddayText}</span>
-                                <button onclick="editProject('${p.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold px-1.5 py-0.5 rounded bg-[var(--bg-color)] border border-[var(--border-color)]">수정</button>
-                                <button onclick="deleteProject('${p.id}')" class="text-[11px] text-red-400 hover:text-red-300 font-bold px-1.5 py-0.5 rounded bg-[var(--bg-color)] border border-[var(--border-color)]">삭제</button>
-                            </div>
-                        </div>
-                        <h4 class="font-black text-base text-[var(--text-main)]">${p.title}</h4>
-                        <p class="text-xs text-[var(--text-sub)] font-mono-code font-bold">${p.start} ~ ${p.end}</p>
-                        
-                        <div class="space-y-1.5 pt-2 border-t border-[var(--border-color)]">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-[var(--text-sub)]">세부 실행 과업</span>
-                                <button onclick="addSubTask('${p.id}')" class="text-[10px] font-bold text-[var(--primary)]">+ 과업 추가</button>
-                            </div>
-                            <div class="space-y-1 text-xs">${subtasksHtml}</div>
-                        </div>
-                    </div>
-                    <div class="space-y-2 pt-2">
-                        <div class="flex justify-between text-[11px] font-mono-code font-bold">
-                            <span>진행률</span>
-                            <span class="text-[var(--primary)]">${rate}%</span>
-                        </div>
-                        <div class="w-full bg-[var(--bg-color)] h-2 rounded-full overflow-hidden border border-[var(--border-color)]">
-                            <div class="bg-[var(--primary)] h-full transition-all" style="width: ${rate}%;"></div>
-                        </div>
-                        <button onclick="toggleProjectComplete('${p.id}')" class="w-full mt-2 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] text-xs font-bold rounded-xl text-[var(--text-main)] hover:bg-emerald-600 hover:text-black transition-all">✅ 프로젝트 완료 처리</button>
-                    </div>
-                `;
-                activeGrid.appendChild(card);
-            });
-
-            completedProjects.forEach(p => {
-                const card = document.createElement('div');
-                card.className = "glass-card p-5 space-y-2 border-t-4 border-t-gray-600 bg-black/20";
-                card.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-gray-800 text-gray-400 px-2.5 py-1 rounded-full">완료됨</span>
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="toggleProjectComplete('${p.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">되돌리기</button>
-                            <button onclick="deleteProject('${p.id}')" class="text-[11px] text-red-400 hover:text-red-300 font-bold">삭제</button>
-                        </div>
-                    </div>
-                    <h4 class="font-bold text-base text-[var(--text-main)]">${p.title}</h4>
-                    <p class="text-xs text-[var(--text-sub)] font-mono-code font-bold">${p.start} ~ ${p.end}</p>
-                `;
-                completedGrid.appendChild(card);
-            });
-
-            const overallRate = activeProjects.length > 0 ? Math.round(totalRates / activeProjects.length) : 100;
-            const overallBadge = document.getElementById('proj-overall-progress');
-            if(overallBadge) overallBadge.innerText = `전체 진척도 ${overallRate}%`;
-        }
-
-        function addNewProject() {
-            const title = prompt("새 프로젝트 이름");
-            if(!title) return;
-            const start = prompt("시작일 (YYYY.MM.DD)", "2026.08.27");
-            const end = prompt("마감일 (YYYY.MM.DD)", "2026.09.05");
-            state.projects.push({
-                id: 'p_' + Date.now(),
-                title,
-                start,
-                end,
-                completed: false,
-                subtasks: [{ id: 'st_' + Date.now(), text: '기본 기획 및 방향성 수립', done: false }]
-            });
-            renderProjects();
-            syncToCloud();
-        }
-
-        function addSubTask(projectId) {
-            const project = state.projects.find(p => p.id === projectId);
-            if(!project) return;
-            const text = prompt("추가할 세부 과업을 입력하세요:");
-            if(!text) return;
-            project.subtasks = project.subtasks || [];
-            project.subtasks.push({ id: 'st_' + Date.now(), text, done: false });
-            renderProjects();
-            syncToCloud();
-        }
-
-        function toggleSubTask(projectId, subtaskId) {
-            const project = state.projects.find(p => p.id === projectId);
-            if(!project) return;
-            const st = (project.subtasks || []).find(s => s.id === subtaskId);
-            if(st) {
-                st.done = !st.done;
-                renderProjects();
-                syncToCloud();
-            }
-        }
-
-        function toggleProjectComplete(id) {
-            const project = state.projects.find(p => p.id === id);
-            if(project) {
-                project.completed = !project.completed;
-                renderProjects();
-                syncToCloud();
-            }
-        }
-
-        function editProject(id) {
-            const project = state.projects.find(p => p.id === id);
-            if(!project) return;
-            const newTitle = prompt("프로젝트 이름 수정", project.title);
-            if(newTitle === null || !newTitle.trim()) return;
-            const newStart = prompt("시작일 수정 (YYYY.MM.DD)", project.start);
-            const newEnd = prompt("마감일 수정 (YYYY.MM.DD)", project.end);
-
-            project.title = newTitle.trim();
-            project.start = newStart;
-            project.end = newEnd;
-            renderProjects();
-            syncToCloud();
-        }
-
-        function deleteProject(id) {
-            if(confirm("이 프로젝트를 완전히 삭제하시겠습니까?")) {
-                state.projects = state.projects.filter(p => p.id !== id);
-                renderProjects();
-                syncToCloud();
-            }
-        }
-
-        /* 📝 회의록 관리 */
-        let currentMemoCat = '전체';
-
-        function renderMemos() {
-            const list = document.getElementById('memo-archive-list');
-            if(!list) return;
-            list.innerHTML = '';
-            
-            const query = (document.getElementById('memo-search-input')?.value || '').toLowerCase();
-
-            state.memos.forEach(m => {
-                const matchCat = (currentMemoCat === '전체' || m.cat === currentMemoCat);
-                const matchQuery = !query || m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query);
-                if(!matchCat || !matchQuery) return;
-
-                const div = document.createElement('div');
-                div.className = "p-5 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl shadow-xs";
-                div.innerHTML = `
-                    <div class="flex justify-between items-center mb-2">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-mono-code primary-badge font-black px-2.5 py-0.5 rounded-full">${m.cat}</span>
-                            <span class="text-xs font-bold text-[var(--text-main)]">${m.title}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] text-[var(--text-sub)] font-mono-code">${m.date}</span>
-                            <button onclick="editMemo('${m.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">수정</button>
-                            <button onclick="deleteMemo('${m.id}')" class="text-[11px] text-red-400 hover:text-red-300 font-bold">삭제</button>
-                        </div>
-                    </div>
-                    <p class="text-xs text-[var(--text-main)] font-medium leading-relaxed cursor-pointer" onclick="openMemoDetail('${m.id}')">
-                        ${m.content.replace(/\n/g, '<br>')}
-                    </p>
-                    <div class="flex justify-end gap-2 mt-3 pt-2 border-t border-[var(--border-color)]">
-                        <button onclick="sendMemoToStudy('${m.id}')" class="text-[11px] font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">➔ 생각의 서재로 복사</button>
-                    </div>
-                `;
-                list.appendChild(div);
-            });
-        }
-
-        function saveTodayMemo() {
-            const cat = document.getElementById('memo-cat-select').value;
-            const title = document.getElementById('memo-title-input').value.trim() || '회의 및 사역 메모';
-            const content = document.getElementById('today-memo-input').value.trim();
-            if(!content) return;
-
-            state.memos.unshift({
-                id: 'm_' + Date.now(),
-                cat,
-                title,
-                date: '2026.08.27',
-                content
-            });
-            renderMemos();
-            syncToCloud();
-            document.getElementById('memo-title-input').value = '';
-            document.getElementById('today-memo-input').value = '';
-            alert("클라우드 회의록에 안전하게 저장되었습니다.");
-        }
-
-        function editMemo(id) {
-            const memo = state.memos.find(m => m.id === id);
-            if(!memo) return;
-            const newCat = prompt("카테고리 수정", memo.cat);
-            if(!newCat) return;
-            const newTitle = prompt("제목 수정", memo.title);
-            if(!newTitle) return;
-            const newContent = prompt("내용 수정", memo.content);
-            if(!newContent) return;
-
-            memo.cat = newCat;
-            memo.title = newTitle;
-            memo.content = newContent;
-            renderMemos();
-            syncToCloud();
-        }
-
-        function deleteMemo(id) {
-            if(confirm("이 회의록을 삭제하시겠습니까?")) {
-                state.memos = state.memos.filter(m => m.id !== id);
-                renderMemos();
-                syncToCloud();
-            }
-        }
-
-        function filterMemoCat(cat) {
-            currentMemoCat = cat;
-            document.querySelectorAll('#memo-cat-filter .memo-filter-btn').forEach(btn => {
-                if((cat==='전체' && btn.innerText==='전체보기') || btn.innerText === cat) {
-                    btn.className = "memo-filter-btn px-4 py-2 rounded-full text-xs font-black primary-badge whitespace-nowrap";
-                } else {
-                    btn.className = "memo-filter-btn px-4 py-2 rounded-full text-xs font-bold text-[var(--text-sub)] bg-[var(--primary-light)] whitespace-nowrap";
-                }
-            });
-            renderMemos();
-        }
-
-        function searchMemos() {
-            renderMemos();
-        }
-
-        function openMemoDetail(id) {
-            const memo = state.memos.find(m => m.id === id);
-            if(!memo) return;
-            document.getElementById('memo-modal-cat').innerText = memo.cat;
-            document.getElementById('memo-modal-date').innerText = memo.date;
-            document.getElementById('memo-modal-title').innerText = memo.title;
-            document.getElementById('memo-modal-content').innerText = memo.content;
-            document.getElementById('memo-detail-modal').classList.add('show');
-        }
-
-        function sendMemoToStudy(id) {
-            const memo = state.memos.find(m => m.id === id);
-            if(!memo) return;
-            state.thoughts.unshift({
-                id: 'th_' + Date.now(),
-                cat: '설교착상',
-                title: memo.title,
-                content: memo.content
-            });
-            renderThoughts();
-            syncToCloud();
-            alert("생각의 서재로 복사되었습니다.");
-        }
-
-        /* 🧠 생각의 서재 관리 */
-        function renderThoughts() {
-            const grid = document.getElementById('thought-card-grid');
-            if(!grid) return;
-            grid.innerHTML = '';
-
-            state.thoughts.forEach(th => {
-                const div = document.createElement('div');
-                div.className = "glass-card p-6 space-y-4 cursor-pointer hover:border-[var(--primary)] transition-all flex flex-col justify-between";
-                div.onclick = function() { openThoughtModal(th.id); };
-                div.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-mono-code primary-badge font-black uppercase px-3 py-1 rounded-full">${th.cat} | ${th.title}</span>
-                            <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
-                                <button onclick="editThought('${th.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">수정</button>
-                                <button onclick="deleteThought('${th.id}')" class="text-[11px] text-red-400 hover:text-red-300 font-bold">삭제</button>
-                            </div>
-                        </div>
-                        <h4 class="font-bold text-base text-[var(--text-main)] mt-3 line-clamp-3 leading-relaxed">"${th.content}"</h4>
-                    </div>
-                    <button class="text-xs font-bold text-[var(--text-sub)] text-left hover:text-[var(--primary)] pt-2 border-t border-[var(--border-color)]" onclick="event.stopPropagation(); forwardToSermonIdea('${th.id}')">➔ 설교 아이디어 회의록으로 즉시 전송</button>
-                `;
-                grid.appendChild(div);
-            });
-        }
-
-        function addThoughtCard() {
-            const cat = document.getElementById('thought-cat-select').value;
-            const title = document.getElementById('thought-title').value.trim();
-            const content = document.getElementById('thought-content').value.trim();
-            if(!title || !content) { alert("출처와 내용을 모두 입력하세요."); return; }
-
-            state.thoughts.unshift({
-                id: 'th_' + Date.now(),
-                cat,
-                title,
-                content
-            });
-            renderThoughts();
-            syncToCloud();
-            document.getElementById('thought-title').value = '';
-            document.getElementById('thought-content').value = '';
-            alert("클라우드 서재에 박제되었습니다.");
-        }
-
-        function editThought(id) {
-            const thought = state.thoughts.find(t => t.id === id);
-            if(!thought) return;
-            const newTitle = prompt("태그/출처 수정", thought.title);
-            if(!newTitle) return;
-            const newContent = prompt("내용 수정", thought.content);
-            if(!newContent) return;
-
-            thought.title = newTitle;
-            thought.content = newContent;
-            renderThoughts();
-            syncToCloud();
-        }
-
-        function deleteThought(id) {
-            if(confirm("이 서재 카드를 삭제하시겠습니까?")) {
-                state.thoughts = state.thoughts.filter(t => t.id !== id);
-                renderThoughts();
-                syncToCloud();
-            }
-        }
-
-        function forwardToSermonIdea(id) {
-            const thought = state.thoughts.find(t => t.id === id);
-            if(!thought) return;
-            state.memos.unshift({
-                id: 'm_' + Date.now(),
-                cat: '설교 아이디어',
-                title: `[서재 착상] ${thought.title}`,
-                date: '2026.08.27',
-                content: thought.content
-            });
-            renderMemos();
-            syncToCloud();
-            alert("회의록의 [설교 아이디어] 탭으로 즉시 전송되었습니다.");
-        }
-
-        function openThoughtModal(id) {
-            const thought = state.thoughts.find(t => t.id === id);
-            if(!thought) return;
-            document.getElementById('modal-tag').innerText = `${thought.cat} | ${thought.title}`;
-            document.getElementById('modal-text').innerText = thought.content;
-            document.getElementById('thought-modal').classList.add('show');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('show');
-        }
-
-        function openFabModal() {
-            document.getElementById('fab-input').value = '';
-            document.getElementById('fab-modal').classList.add('show');
-        }
-
-        function submitFab() {
-            const type = document.getElementById('fab-type').value;
-            const text = document.getElementById('fab-input').value.trim();
-            if(!text) return;
-            if(type === 'todo') {
-                state.todos.push({
-                    id: 't_' + Date.now(),
-                    time: '12:00',
-                    cat: '사역',
-                    text,
-                    status: '진행'
-                });
-                renderTodos();
-                syncToCloud();
-                alert("오늘의 할일에 추가되었습니다.");
-            } else {
-                state.memos.unshift({
-                    id: 'm_' + Date.now(),
-                    cat: '교회 공통',
-                    title: '퀵 메모',
-                    date: '2026.08.27',
-                    content: text
-                });
-                renderMemos();
-                syncToCloud();
-                alert("회의록에 추가되었습니다.");
-            }
-            closeModal('fab-modal');
-        }
-
         // 초기화 실행
         initTheologyNarrative();
-        renderNewsAccordion();
+        initNewsEngine();
         switchTheme(state.theme, false);
         renderWeekly();
         renderTodos();
