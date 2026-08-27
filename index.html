@@ -7,6 +7,11 @@
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    
+    <!-- Firebase CDN SDK (v9 compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap');
 
@@ -44,7 +49,7 @@
             --gif-opacity: 0.55;
         }
 
-        /* 3. 🌲 쥬얼 세이지 포레스트 (답답하지 않고 산뜻하게 밝아진 숲의 무드) */
+        /* 3. 🌲 쥬얼 세이지 포레스트 */
         body.theme-forest {
             --bg-color: #122119;
             --card-bg: rgba(22, 38, 29, 0.92);
@@ -168,13 +173,21 @@
         .fab-btn:hover { transform: scale(1.08); }
         @media (min-width: 768px) { .fab-btn { bottom: 40px; right: 40px; } }
 
+        #cloud-sync-status {
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
     </style>
 </head>
 <body class="theme-forest selection:bg-[var(--primary)] selection:text-[var(--primary-text)]">
 
-    <!-- 상단 헤더 & 백업 복구 엔진 -->
+    <!-- 상단 헤더 & 클라우드 상태 표시 -->
     <header class="bg-[var(--nav-bg)] backdrop-blur-2xl border-b border-[var(--border-color)] px-4 md:px-10 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-xs transition-colors duration-300">
         <div class="flex items-center gap-3 md:gap-6">
             <span class="text-[10px] md:text-xs font-mono-code font-black tracking-widest uppercase primary-badge px-3.5 py-1.5 rounded-full shadow-xs">Control Center</span>
@@ -182,11 +195,11 @@
             <span class="text-xs font-bold text-[var(--text-sub)]">예수를 닮아가는 남편, 아빠, 목사 '임예창'</span>
         </div>
         
-        <div class="flex items-center gap-2 md:gap-3 text-xs">
-            <div class="hidden sm:flex items-center gap-1.5 bg-[var(--card-bg)] px-2.5 py-1 rounded-full border border-[var(--border-color)] shadow-2xs">
-                <button onclick="exportDataBackup()" title="모든 데이터 JSON 백업" class="text-[10px] font-bold text-[var(--text-sub)] hover:text-[var(--primary)] px-2 py-0.5 rounded">💾 백업</button>
-                <button onclick="document.getElementById('import-backup-file').click()" title="JSON 데이터 복원" class="text-[10px] font-bold text-[var(--text-sub)] hover:text-[var(--primary)] px-2 py-0.5 rounded">📂 복구</button>
-                <input type="file" id="import-backup-file" style="display:none" accept=".json" onchange="importDataBackup(event)">
+        <div class="flex items-center gap-2 md:gap-4 text-xs">
+            <!-- 클라우드 실시간 동기화 인디케이터 -->
+            <div id="cloud-sync-status" class="bg-[var(--card-bg)] px-3 py-1.5 rounded-full border border-[var(--border-color)] text-[var(--text-sub)]">
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse" id="sync-dot"></span>
+                <span id="sync-text">클라우드 연결중...</span>
             </div>
 
             <div class="flex items-center bg-[var(--card-bg)] px-2 py-1 rounded-full border border-[var(--border-color)] shadow-2xs">
@@ -199,7 +212,7 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-10 space-y-6 md:space-y-8">
 
-        <!-- ================= [1] 홈 화면 (배너 시계 아래 날씨 & 1열 와이드 뉴스) ================= -->
+        <!-- ================= [1] 홈 화면 ================= -->
         <section id="view-home" class="page-view active space-y-6 md:space-y-8">
             <div class="furnace-hero text-white p-6 sm:p-8 md:p-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <img src="fire-bg.gif" alt="Spiritual Flame" class="hero-gif absolute top-0 left-0 w-full h-full object-cover z-0 pointer-events-none">
@@ -213,7 +226,7 @@
                 <!-- 우측 통합 관제 패널: 시계 바로 아래 실시간 날씨 및 회전 새로고침 버튼 -->
                 <div class="relative z-10 bg-black/45 backdrop-blur-2xl px-6 py-5 rounded-3xl border border-white/20 text-right w-full lg:w-auto shadow-2xl shrink-0 space-y-3">
                     <div>
-                        <span id="hero-clock" class="text-4xl sm:text-5xl font-mono-code font-black block tracking-tight drop-shadow-sm" style="color: var(--hero-clock-color);">13:40:26</span>
+                        <span id="hero-clock" class="text-4xl sm:text-5xl font-mono-code font-black block tracking-tight drop-shadow-sm" style="color: var(--hero-clock-color);">14:27:49</span>
                         <span id="hero-date" class="text-xs text-white/90 block mt-1 font-bold">2026년 8월 27일 (목)</span>
                     </div>
 
@@ -231,7 +244,7 @@
                             </div>
                         </div>
 
-                        <!-- 세련된 기하학적 새로고침 버튼 -->
+                        <!-- 세련된 회전 새로고침 버튼 -->
                         <button onclick="refreshLiveWeather(event)" title="기상 및 브리핑 실시간 새로고침" class="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 active:scale-95 flex items-center justify-center shrink-0">
                             <svg id="weather-refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -307,7 +320,7 @@
                 </div>
             </div>
 
-            <!-- 뉴스 플래시: 한 줄씩 시원하게 읽히는 가로 풀 와이드 리스트 -->
+            <!-- 뉴스 플래시 -->
             <div class="glass-card p-5 md:p-6 space-y-4">
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                     <div class="flex items-center gap-3">
@@ -323,7 +336,7 @@
             </div>
         </section>
 
-        <!-- ================= [2] 일정 (오늘의 할일 + 쾌적한 캘린더) ================= -->
+        <!-- ================= [2] 일정 ================= -->
         <section id="view-calendar" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -367,7 +380,7 @@
                 <div id="todo-checklist-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"></div>
             </div>
 
-            <!-- 시원하게 정돈된 통합 캘린더 뷰 -->
+            <!-- 통합 캘린더 뷰 -->
             <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
@@ -387,7 +400,7 @@
             </div>
         </section>
 
-        <!-- ================= [3] 사역현황 (프로젝트 & D-Day) ================= -->
+        <!-- ================= [3] 사역현황 ================= -->
         <section id="view-dashboard" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -413,7 +426,7 @@
             </div>
         </section>
 
-        <!-- ================= [4] 회의록 (건재순 6대 카테고리) ================= -->
+        <!-- ================= [4] 회의록 ================= -->
         <section id="view-meetings" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -458,7 +471,7 @@
             </div>
         </section>
 
-        <!-- ================= [5] 생각의 서재 (6대 리서치 툴 & 묵상 아카이브) ================= -->
+        <!-- ================= [5] 생각의 서재 ================= -->
         <section id="view-assets" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -582,16 +595,20 @@
     </div>
 
     <script>
-        /* 💾 [데이터 영속성] localStorage 관리 엔진 */
-        const Storage = {
-            get: (key, fallback) => {
-                const data = localStorage.getItem('yc_' + key);
-                return data ? JSON.parse(data) : fallback;
-            },
-            set: (key, value) => {
-                localStorage.setItem('yc_' + key, JSON.stringify(value));
-            }
+        /* ☁️ [Firebase Firestore 클라우드 실시간 동기화 엔진] */
+        const firebaseConfig = {
+            apiKey: "AIzaSyAI5ZHYd_Mi7JogsgZAYsBERsbPMD5m544",
+            authDomain: "wwjd-hub.firebaseapp.com",
+            projectId: "wwjd-hub",
+            storageBucket: "wwjd-hub.firebasestorage.app",
+            messagingSenderId: "518785715153",
+            appId: "1:518785715153:web:2fd76cfe4a1aabd6bd2ef0",
+            measurementId: "G-FCN8CSHR7Y"
         };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const appDocRef = db.collection('ministry_data').doc('master_workspace');
 
         const defaultWeekly = {
             mon: [{ id: 'w1', time: '10:00', text: '교역자 회의' }, { id: 'w2', time: '14:00', text: '광주 심방' }],
@@ -641,55 +658,76 @@
         ];
 
         let state = {
-            theme: Storage.get('theme', 'forest'),
-            weekly: Storage.get('weekly', defaultWeekly),
-            todos: Storage.get('todos', defaultTodos),
-            projects: Storage.get('projects', defaultProjects),
-            memos: Storage.get('memos', defaultMemos),
-            thoughts: Storage.get('thoughts', defaultThoughts)
+            theme: localStorage.getItem('yc_theme') || 'forest',
+            weekly: defaultWeekly,
+            todos: defaultTodos,
+            projects: defaultProjects,
+            memos: defaultMemos,
+            thoughts: defaultThoughts
         };
 
-        /* 💾 JSON 데이터 백업 및 복원 */
-        function exportDataBackup() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `사역공간_데이터백업_${new Date().toISOString().split('T')[0]}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+        // 클라우드 저장 트리거 (로컬 스토리지 자동 백업 병행)
+        function syncToCloud() {
+            setSyncStatus('saving');
+            localStorage.setItem('yc_theme', state.theme);
+            appDocRef.set(state, { merge: true })
+                .then(() => {
+                    setSyncStatus('synced');
+                })
+                .catch((error) => {
+                    console.error("Firestore 동기화 에러: ", error);
+                    setSyncStatus('error');
+                });
         }
 
-        function importDataBackup(event) {
-            const fileReader = new FileReader();
-            fileReader.onload = function() {
-                try {
-                    const importedState = JSON.parse(fileReader.result);
-                    if(importedState && importedState.todos && importedState.projects) {
-                        state = importedState;
-                        Storage.set('theme', state.theme || 'forest');
-                        Storage.set('weekly', state.weekly || defaultWeekly);
-                        Storage.set('todos', state.todos || []);
-                        Storage.set('projects', state.projects || []);
-                        Storage.set('memos', state.memos || []);
-                        Storage.set('thoughts', state.thoughts || []);
-                        alert("데이터가 성공적으로 복원되었습니다!");
-                        location.reload();
-                    } else {
-                        alert("올바르지 않은 백업 파일 형식입니다.");
-                    }
-                } catch(e) {
-                    alert("파일을 읽는 도중 오류가 발생했습니다.");
-                }
-            };
-            fileReader.readAsText(event.target.files[0]);
+        function setSyncStatus(status) {
+            const dot = document.getElementById('sync-dot');
+            const text = document.getElementById('sync-text');
+            if(!dot || !text) return;
+
+            if(status === 'saving') {
+                dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+                text.innerText = "클라우드 저장중...";
+            } else if(status === 'synced') {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+                text.innerText = "클라우드 동기화 완료";
+            } else if(status === 'error') {
+                dot.className = "w-2 h-2 rounded-full bg-red-500";
+                text.innerText = "클라우드 연결 확인 필요";
+            }
         }
 
-        function switchTheme(themeName) {
+        // 실시간 클라우드 리스너 (기기 간 실시간 반영)
+        appDocRef.onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                if(data.weekly) state.weekly = data.weekly;
+                if(data.todos) state.todos = data.todos;
+                if(data.projects) state.projects = data.projects;
+                if(data.memos) state.memos = data.memos;
+                if(data.thoughts) state.thoughts = data.thoughts;
+                if(data.theme) state.theme = data.theme;
+                
+                switchTheme(state.theme, false);
+                renderWeekly();
+                renderTodos();
+                renderProjects();
+                renderMemos();
+                renderThoughts();
+                setSyncStatus('synced');
+            } else {
+                // 초기 문서 생성
+                syncToCloud();
+            }
+        }, (error) => {
+            console.error("클라우드 리스너 에러: ", error);
+            setSyncStatus('error');
+        });
+
+        function switchTheme(themeName, shouldSync=true) {
             document.body.className = 'theme-' + themeName + ' selection:bg-[var(--primary)] selection:text-[var(--primary-text)]';
             state.theme = themeName;
-            Storage.set('theme', themeName);
-
+            
             ['burgundy', 'cosmic', 'forest'].forEach(t => {
                 const btn = document.getElementById('btn-theme-' + t);
                 if(t === themeName) {
@@ -703,6 +741,8 @@
             renderProjects();
             renderMemos();
             renderThoughts();
+
+            if(shouldSync) syncToCloud();
         }
 
         function switchView(viewId, evt) {
@@ -782,15 +822,15 @@
             state.weekly[day] = state.weekly[day] || [];
             state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
             state.weekly[day].sort((a, b) => a.time.localeCompare(b.time));
-            Storage.set('weekly', state.weekly);
             renderWeekly();
+            syncToCloud();
         }
 
         function deleteWeeklySchedule(day, id) {
             if(confirm("이 주간 일정을 삭제하시겠습니까?")) {
                 state.weekly[day] = state.weekly[day].filter(item => item.id !== id);
-                Storage.set('weekly', state.weekly);
                 renderWeekly();
+                syncToCloud();
             }
         }
 
@@ -857,8 +897,8 @@
                 title: current.a,
                 content: current.q
             });
-            Storage.set('thoughts', state.thoughts);
             renderThoughts();
+            syncToCloud();
             alert("생각의 서재에 명언이 복사되었습니다.");
         }
 
@@ -929,8 +969,8 @@
                 text,
                 status: '진행'
             });
-            Storage.set('todos', state.todos);
             renderTodos();
+            syncToCloud();
             document.getElementById('todo-input-bar').value = '';
         }
 
@@ -938,8 +978,8 @@
             const todo = state.todos.find(t => t.id === id);
             if(todo) {
                 todo.status = status;
-                Storage.set('todos', state.todos);
                 renderTodos();
+                syncToCloud();
             }
         }
 
@@ -956,15 +996,15 @@
             todo.time = newTime;
             todo.cat = newCat;
             todo.text = newText.trim();
-            Storage.set('todos', state.todos);
             renderTodos();
+            syncToCloud();
         }
 
         function deleteTodo(id) {
             if(confirm("이 할일을 삭제하시겠습니까?")) {
                 state.todos = state.todos.filter(t => t.id !== id);
-                Storage.set('todos', state.todos);
                 renderTodos();
+                syncToCloud();
             }
         }
 
@@ -989,7 +1029,7 @@
             renderTodos();
         }
 
-        /* 📁 [사역현황] 프로젝트 칸반 */
+        /* 📁 [사역현황] 프로젝트 관리 */
         function renderProjects() {
             const activeGrid = document.getElementById('active-projects-grid');
             const completedGrid = document.getElementById('completed-projects-grid');
@@ -1105,8 +1145,8 @@
                 completed: false,
                 subtasks: [{ id: 'st_' + Date.now(), text: '기본 기획 및 방향성 수립', done: false }]
             });
-            Storage.set('projects', state.projects);
             renderProjects();
+            syncToCloud();
         }
 
         function addSubTask(projectId) {
@@ -1116,8 +1156,8 @@
             if(!text) return;
             project.subtasks = project.subtasks || [];
             project.subtasks.push({ id: 'st_' + Date.now(), text, done: false });
-            Storage.set('projects', state.projects);
             renderProjects();
+            syncToCloud();
         }
 
         function toggleSubTask(projectId, subtaskId) {
@@ -1126,8 +1166,8 @@
             const st = (project.subtasks || []).find(s => s.id === subtaskId);
             if(st) {
                 st.done = !st.done;
-                Storage.set('projects', state.projects);
                 renderProjects();
+                syncToCloud();
             }
         }
 
@@ -1135,8 +1175,8 @@
             const project = state.projects.find(p => p.id === id);
             if(project) {
                 project.completed = !project.completed;
-                Storage.set('projects', state.projects);
                 renderProjects();
+                syncToCloud();
             }
         }
 
@@ -1151,19 +1191,19 @@
             project.title = newTitle.trim();
             project.start = newStart;
             project.end = newEnd;
-            Storage.set('projects', state.projects);
             renderProjects();
+            syncToCloud();
         }
 
         function deleteProject(id) {
             if(confirm("이 프로젝트를 완전히 삭제하시겠습니까?")) {
                 state.projects = state.projects.filter(p => p.id !== id);
-                Storage.set('projects', state.projects);
                 renderProjects();
+                syncToCloud();
             }
         }
 
-        /* 📝 [회의록 탭] 회의록 관리 */
+        /* 📝 [회의록 탭] */
         let currentMemoCat = '전체';
 
         function renderMemos() {
@@ -1216,11 +1256,11 @@
                 date: '2026.08.27',
                 content
             });
-            Storage.set('memos', state.memos);
             renderMemos();
+            syncToCloud();
             document.getElementById('memo-title-input').value = '';
             document.getElementById('today-memo-input').value = '';
-            alert("회의록에 안전하게 박제되었습니다.");
+            alert("클라우드 회의록에 안전하게 저장되었습니다.");
         }
 
         function editMemo(id) {
@@ -1236,15 +1276,15 @@
             memo.cat = newCat;
             memo.title = newTitle;
             memo.content = newContent;
-            Storage.set('memos', state.memos);
             renderMemos();
+            syncToCloud();
         }
 
         function deleteMemo(id) {
             if(confirm("이 회의록을 삭제하시겠습니까?")) {
                 state.memos = state.memos.filter(m => m.id !== id);
-                Storage.set('memos', state.memos);
                 renderMemos();
+                syncToCloud();
             }
         }
 
@@ -1283,12 +1323,12 @@
                 title: memo.title,
                 content: memo.content
             });
-            Storage.set('thoughts', state.thoughts);
             renderThoughts();
+            syncToCloud();
             alert("생각의 서재로 복사되었습니다.");
         }
 
-        /* 🧠 [생각의 서재 탭] 묵상 관리 */
+        /* 🧠 [생각의 서재 탭] */
         function renderThoughts() {
             const grid = document.getElementById('thought-card-grid');
             if(!grid) return;
@@ -1327,11 +1367,11 @@
                 title,
                 content
             });
-            Storage.set('thoughts', state.thoughts);
             renderThoughts();
+            syncToCloud();
             document.getElementById('thought-title').value = '';
             document.getElementById('thought-content').value = '';
-            alert("생각의 서재에 박제되었습니다.");
+            alert("클라우드 서재에 박제되었습니다.");
         }
 
         function editThought(id) {
@@ -1344,15 +1384,15 @@
 
             thought.title = newTitle;
             thought.content = newContent;
-            Storage.set('thoughts', state.thoughts);
             renderThoughts();
+            syncToCloud();
         }
 
         function deleteThought(id) {
             if(confirm("이 서재 카드를 삭제하시겠습니까?")) {
                 state.thoughts = state.thoughts.filter(t => t.id !== id);
-                Storage.set('thoughts', state.thoughts);
                 renderThoughts();
+                syncToCloud();
             }
         }
 
@@ -1366,8 +1406,8 @@
                 date: '2026.08.27',
                 content: thought.content
             });
-            Storage.set('memos', state.memos);
             renderMemos();
+            syncToCloud();
             alert("회의록의 [설교 아이디어] 탭으로 즉시 전송되었습니다.");
         }
 
@@ -1400,8 +1440,8 @@
                     text,
                     status: '진행'
                 });
-                Storage.set('todos', state.todos);
                 renderTodos();
+                syncToCloud();
                 alert("오늘의 할일에 추가되었습니다.");
             } else {
                 state.memos.unshift({
@@ -1411,15 +1451,15 @@
                     date: '2026.08.27',
                     content: text
                 });
-                Storage.set('memos', state.memos);
                 renderMemos();
+                syncToCloud();
                 alert("회의록에 추가되었습니다.");
             }
             closeModal('fab-modal');
         }
 
-        // 전체 초기화
-        switchTheme(state.theme);
+        // 뷰 초기 렌더링
+        switchTheme(state.theme, false);
         renderWeekly();
         renderTodos();
         renderProjects();
