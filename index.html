@@ -10,52 +10,55 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap');
 
-        /* 1. 🩸 클래식 버건디 */
+        /* 1. 🩸 클래식 버건디 (완벽한 화이트 텍스트 대비) */
         body.theme-burgundy {
-            --bg-color: #f6f5f2;
-            --card-bg: rgba(255, 255, 255, 0.94);
-            --primary: #6b1420;
-            --primary-light: rgba(107, 20, 32, 0.08);
-            --border-color: rgba(107, 20, 32, 0.12);
-            --text-main: #191616;
-            --text-sub: #575252;
-            --nav-bg: rgba(255, 255, 255, 0.94);
-            --hero-bg: linear-gradient(135deg, #350b11 0%, #5e1620 60%, #1c0508 100%);
-            --hero-text-sub: #fecdd3;
+            --bg-color: #f7f5f2;
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --primary: #781423;
+            --primary-text: #ffffff;
+            --primary-light: rgba(120, 20, 35, 0.08);
+            --border-color: rgba(120, 20, 35, 0.14);
+            --text-main: #1c1917;
+            --text-sub: #57534e;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --hero-bg: linear-gradient(135deg, #3d0a11 0%, #691721 60%, #240509 100%);
+            --hero-clock-color: #ffd6dc;
             --gif-filter: none;
-            --gif-opacity: 0.4;
+            --gif-opacity: 0.35;
         }
 
         /* 2. 🌌 코스믹 네온 */
         body.theme-cosmic {
-            --bg-color: #0b0914;
-            --card-bg: rgba(22, 20, 38, 0.85);
+            --bg-color: #0d0b18;
+            --card-bg: rgba(23, 20, 42, 0.9);
             --primary: #ff4d88;
+            --primary-text: #ffffff;
             --primary-light: rgba(255, 77, 136, 0.15);
-            --border-color: rgba(255, 255, 255, 0.14);
+            --border-color: rgba(255, 255, 255, 0.15);
             --text-main: #f4f4f5;
             --text-sub: #a1a1aa;
-            --nav-bg: rgba(22, 20, 38, 0.92);
-            --hero-bg: linear-gradient(135deg, #18092a 0%, #2e0f50 50%, #0d0617 100%);
-            --hero-text-sub: #f472b6;
+            --nav-bg: rgba(23, 20, 42, 0.94);
+            --hero-bg: linear-gradient(135deg, #1d0a33 0%, #35105e 50%, #10061d 100%);
+            --hero-clock-color: #fbcfe8;
             --gif-filter: none;
-            --gif-opacity: 0.6;
+            --gif-opacity: 0.55;
         }
 
-        /* 3. 🌲 딥 파인 포레스트 (하이엔드 다크 슬레이트 & 에메랄드) */
+        /* 3. 🌲 쥬얼 세이지 포레스트 (답답하지 않고 산뜻하게 밝아진 숲의 무드) */
         body.theme-forest {
-            --bg-color: #0b1712;
-            --card-bg: rgba(16, 30, 23, 0.92);
+            --bg-color: #122119;
+            --card-bg: rgba(22, 38, 29, 0.92);
             --primary: #34d399;
-            --primary-light: rgba(52, 211, 153, 0.12);
-            --border-color: rgba(52, 211, 153, 0.2);
+            --primary-text: #06180f;
+            --primary-light: rgba(52, 211, 153, 0.14);
+            --border-color: rgba(52, 211, 153, 0.22);
             --text-main: #f0fdf4;
             --text-sub: #a7f3d0;
-            --nav-bg: rgba(16, 30, 23, 0.95);
-            --hero-bg: radial-gradient(circle at 65% 50%, #173827 0%, #08140e 85%);
-            --hero-text-sub: #6ee7b7;
-            --gif-filter: sepia(0.6) hue-rotate(85deg) saturate(1.4) brightness(0.8);
-            --gif-opacity: 0.35;
+            --nav-bg: rgba(22, 38, 29, 0.96);
+            --hero-bg: radial-gradient(circle at 65% 45%, #1d4d33 0%, #10291d 75%, #0a1b13 100%);
+            --hero-clock-color: #6ee7b7;
+            --gif-filter: sepia(0.5) hue-rotate(80deg) saturate(1.3) brightness(0.9);
+            --gif-opacity: 0.38;
         }
 
         body {
@@ -70,7 +73,6 @@
         }
 
         .font-hero-title {
-            font-family: 'Pretendard', sans-serif;
             font-weight: 900;
             letter-spacing: -0.045em;
         }
@@ -79,18 +81,29 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
+        .theme-btn-active {
+            background-color: var(--primary) !important;
+            color: var(--primary-text) !important;
+            font-weight: 900 !important;
+        }
+
+        .primary-badge {
+            background-color: var(--primary);
+            color: var(--primary-text);
+        }
+
         .glass-card {
             background: var(--card-bg);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--border-color);
             border-radius: 24px;
-            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .glass-card:hover {
             border-color: var(--primary);
-            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.15);
         }
 
         .furnace-hero {
@@ -98,8 +111,8 @@
             position: relative;
             overflow: hidden;
             border-radius: 32px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.22);
         }
 
         .hero-gif {
@@ -121,9 +134,16 @@
             transform: translateY(0); 
         }
 
+        .rotate-anim {
+            animation: spinOnce 0.6s ease-in-out;
+        }
+        @keyframes spinOnce {
+            100% { transform: rotate(360deg); }
+        }
+
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.72); backdrop-filter: blur(8px);
             display: none; justify-content: center; align-items: center; z-index: 100;
             opacity: 0; transition: opacity 0.2s ease;
         }
@@ -140,9 +160,9 @@
         .fab-btn {
             position: fixed; bottom: 85px; right: 24px; z-index: 90;
             width: 56px; height: 56px; border-radius: 28px;
-            background: var(--primary); color: #000000;
+            background: var(--primary); color: var(--primary-text);
             display: flex; justify-content: center; align-items: center;
-            font-size: 26px; font-weight: 900; box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+            font-size: 26px; font-weight: 900; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             cursor: pointer; transition: transform 0.2s;
         }
         .fab-btn:hover { transform: scale(1.08); }
@@ -152,12 +172,12 @@
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
     </style>
 </head>
-<body class="theme-forest selection:bg-[var(--primary)] selection:text-black">
+<body class="theme-forest selection:bg-[var(--primary)] selection:text-[var(--primary-text)]">
 
-    <!-- 상단 커맨드 헤더 & JSON 데이터 백업/복원 엔진 -->
+    <!-- 상단 헤더 & 백업 복구 엔진 -->
     <header class="bg-[var(--nav-bg)] backdrop-blur-2xl border-b border-[var(--border-color)] px-4 md:px-10 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-xs transition-colors duration-300">
         <div class="flex items-center gap-3 md:gap-6">
-            <span class="text-[10px] md:text-xs font-mono-code font-black tracking-widest uppercase text-black bg-[var(--primary)] px-3.5 py-1.5 rounded-full shadow-xs">Control Center</span>
+            <span class="text-[10px] md:text-xs font-mono-code font-black tracking-widest uppercase primary-badge px-3.5 py-1.5 rounded-full shadow-xs">Control Center</span>
             <div class="h-4 w-[1px] bg-[var(--border-color)] hidden md:block"></div>
             <span class="text-xs font-bold text-[var(--text-sub)]">예수를 닮아가는 남편, 아빠, 목사 '임예창'</span>
         </div>
@@ -179,33 +199,52 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-10 space-y-6 md:space-y-8">
 
-        <!-- ================= [1] 홈 화면 (관제탑 & 모던 레이아웃) ================= -->
+        <!-- ================= [1] 홈 화면 (배너 시계 아래 날씨 & 1열 와이드 뉴스) ================= -->
         <section id="view-home" class="page-view active space-y-6 md:space-y-8">
             <div class="furnace-hero text-white p-6 sm:p-8 md:p-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <img src="fire-bg.gif" alt="Spiritual Flame" class="hero-gif absolute top-0 left-0 w-full h-full object-cover z-0 pointer-events-none">
                 
-                <div class="relative z-10 space-y-3.5 w-full lg:max-w-2xl">
+                <div class="relative z-10 space-y-3.5 w-full lg:max-w-xl">
                     <span class="text-[10px] font-mono-code tracking-widest uppercase bg-black/40 px-3.5 py-1 rounded-full backdrop-blur-md inline-block font-bold border border-white/20">Spiritual Furnace Control Tower</span>
                     <h1 class="text-3xl sm:text-4xl md:text-5xl font-hero-title leading-tight break-keep drop-shadow-md">임예창의 사역공간</h1>
                     <p class="text-xs sm:text-sm text-emerald-200/90 font-medium tracking-wide break-keep">"하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라"</p>
-                    
-                    <div class="bg-black/35 backdrop-blur-md border border-white/20 rounded-2xl p-4 mt-2 shadow-inner">
-                        <div class="flex flex-wrap items-center gap-4 text-xs font-bold">
-                            <div class="flex items-center gap-2"><span class="text-base">📍</span> 분당 24°C 맑음</div>
-                            <div class="w-px h-3.5 bg-white/30 hidden sm:block"></div>
-                            <div class="flex items-center gap-2"><span class="text-base">☁️</span> 경기광주 22°C 흐림</div>
-                            <span class="text-[11px] text-amber-300 font-semibold bg-black/40 px-3 py-1 rounded-full border border-amber-400/30">광주 심방 동선 흐림 · 우산 체크 요망</span>
-                        </div>
-                    </div>
                 </div>
                 
-                <div class="relative z-10 bg-black/40 backdrop-blur-2xl px-6 py-5 rounded-2xl border border-white/20 text-right w-full lg:w-auto shadow-2xl shrink-0">
-                    <span id="hero-clock" class="text-4xl sm:text-5xl font-mono-code font-black text-emerald-300 block tracking-tight drop-shadow-sm">13:33:04</span>
-                    <span id="hero-date" class="text-xs text-white/90 block mt-2 font-bold">2026년 8월 27일 (목)</span>
+                <!-- 우측 통합 관제 패널: 시계 바로 아래 실시간 날씨 및 회전 새로고침 버튼 -->
+                <div class="relative z-10 bg-black/45 backdrop-blur-2xl px-6 py-5 rounded-3xl border border-white/20 text-right w-full lg:w-auto shadow-2xl shrink-0 space-y-3">
+                    <div>
+                        <span id="hero-clock" class="text-4xl sm:text-5xl font-mono-code font-black block tracking-tight drop-shadow-sm" style="color: var(--hero-clock-color);">13:40:26</span>
+                        <span id="hero-date" class="text-xs text-white/90 block mt-1 font-bold">2026년 8월 27일 (목)</span>
+                    </div>
+
+                    <!-- 시계 아래 날씨 & 실시간 새로고침 -->
+                    <div class="pt-3 border-t border-white/20 flex items-center justify-between sm:justify-end gap-3 text-xs">
+                        <div class="flex items-center gap-3 text-left">
+                            <div>
+                                <span class="text-[10px] text-white/60 block font-mono-code">BASE</span>
+                                <span id="weather-bundang" class="font-bold text-white text-xs">📍 분당 24°C 맑음</span>
+                            </div>
+                            <div class="w-px h-6 bg-white/20"></div>
+                            <div>
+                                <span class="text-[10px] text-white/60 block font-mono-code">FIELD</span>
+                                <span id="weather-gwangju" class="font-bold text-amber-300 text-xs">☁️ 경기광주 22°C 흐림</span>
+                            </div>
+                        </div>
+
+                        <!-- 세련된 기하학적 새로고침 버튼 -->
+                        <button onclick="refreshLiveWeather(event)" title="기상 및 브리핑 실시간 새로고침" class="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 active:scale-95 flex items-center justify-center shrink-0">
+                            <svg id="weather-refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="weather-comment" class="text-[11px] text-amber-200 text-left bg-black/40 px-3 py-1.5 rounded-xl border border-amber-400/30 font-medium">
+                        💡 광주 심방 동선 흐림 · 우산 및 이동 경로 체크
+                    </div>
                 </div>
             </div>
 
-            <!-- 오늘의 한마디 (모던 산세리프 마감) -->
+            <!-- 오늘의 한마디 -->
             <div class="glass-card p-5 md:p-6 border-l-4 border-l-[var(--primary)] space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="text-[11px] font-mono-code font-extrabold text-[var(--primary)] uppercase tracking-wider">Today Reflection</span>
@@ -214,7 +253,7 @@
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                             다른 문구
                         </button>
-                        <button onclick="useQuoteForStudy()" class="px-3 py-1 bg-[var(--primary)] text-black text-[11px] font-bold rounded-lg shadow-xs hover:opacity-85 transition-all">서재로 전송</button>
+                        <button onclick="useQuoteForStudy()" class="px-3 py-1 primary-badge text-[11px] font-black rounded-lg shadow-xs hover:opacity-85 transition-all">서재로 전송</button>
                     </div>
                 </div>
                 <div>
@@ -223,77 +262,73 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- 주간 일정표 (가로 1줄 고정 & 다중 일정 명시) -->
-                    <div class="glass-card p-5 md:p-6 space-y-4 overflow-hidden">
-                        <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">주간 일정표</h3>
-                            <span class="text-xs text-[var(--text-sub)] font-bold">시간순 자동 정렬</span>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 620px; overflow-x: auto;">
-                            <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
-                                <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">월</span>
-                                <div class="flex-1 space-y-1.5" id="week-mon"></div>
-                                <button onclick="addWeeklySchedule('mon')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
-                            </div>
-                            <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
-                                <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">화</span>
-                                <div class="flex-1 space-y-1.5" id="week-tue"></div>
-                                <button onclick="addWeeklySchedule('tue')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
-                            </div>
-                            <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
-                                <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">수</span>
-                                <div class="flex-1 space-y-1.5" id="week-wed"></div>
-                                <button onclick="addWeeklySchedule('wed')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
-                            </div>
-                            <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
-                                <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">목</span>
-                                <div class="flex-1 space-y-1.5" id="week-thu"></div>
-                                <button onclick="addWeeklySchedule('thu')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
-                            </div>
-                            <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
-                                <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">금</span>
-                                <div class="flex-1 space-y-1.5" id="week-fri"></div>
-                                <button onclick="addWeeklySchedule('fri')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
-                            </div>
-                            <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
-                                <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">토</span>
-                                <div class="flex-1 space-y-1.5" id="week-sat"></div>
-                                <button onclick="addWeeklySchedule('sat')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
-                            </div>
-                            <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
-                                <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">일</span>
-                                <div class="flex-1 space-y-1.5" id="week-sun"></div>
-                                <button onclick="addWeeklySchedule('sun')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
-                            </div>
-                        </div>
+            <!-- 주간 일정표 (가로 1줄 고정) -->
+            <div class="glass-card p-5 md:p-6 space-y-4 overflow-hidden">
+                <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">주간 일정표</h3>
+                    <span class="text-xs text-[var(--text-sub)] font-bold">시간순 자동 정렬</span>
+                </div>
+                <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 620px; overflow-x: auto;">
+                    <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
+                        <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">월</span>
+                        <div class="flex-1 space-y-1.5" id="week-mon"></div>
+                        <button onclick="addWeeklySchedule('mon')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
+                    </div>
+                    <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
+                        <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">화</span>
+                        <div class="flex-1 space-y-1.5" id="week-tue"></div>
+                        <button onclick="addWeeklySchedule('tue')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
+                    </div>
+                    <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
+                        <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">수</span>
+                        <div class="flex-1 space-y-1.5" id="week-wed"></div>
+                        <button onclick="addWeeklySchedule('wed')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
+                    </div>
+                    <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
+                        <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">목</span>
+                        <div class="flex-1 space-y-1.5" id="week-thu"></div>
+                        <button onclick="addWeeklySchedule('thu')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
+                    </div>
+                    <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
+                        <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">금</span>
+                        <div class="flex-1 space-y-1.5" id="week-fri"></div>
+                        <button onclick="addWeeklySchedule('fri')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
+                    </div>
+                    <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
+                        <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">토</span>
+                        <div class="flex-1 space-y-1.5" id="week-sat"></div>
+                        <button onclick="addWeeklySchedule('sat')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
+                    </div>
+                    <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
+                        <span class="font-black text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">일</span>
+                        <div class="flex-1 space-y-1.5" id="week-sun"></div>
+                        <button onclick="addWeeklySchedule('sun')" class="w-full text-center text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-black py-0.5">+</button>
                     </div>
                 </div>
+            </div>
 
-                <!-- 뉴스 플래시 (일반 4 + 청년/사회 2) -->
-                <div class="glass-card p-5 md:p-6 space-y-4">
-                    <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">뉴스 플래시</h3>
-                            <span id="news-live-date" class="text-[10px] font-mono-code text-[var(--text-sub)] font-semibold">2026.08.27 업데이트</span>
-                        </div>
-                        <button onclick="refreshNews()" class="flex items-center gap-1 text-[11px] font-bold text-[var(--text-sub)] hover:text-[var(--primary)] bg-[var(--primary-light)] px-2.5 py-1 rounded-lg transition-all">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                            새로고침
-                        </button>
+            <!-- 뉴스 플래시: 한 줄씩 시원하게 읽히는 가로 풀 와이드 리스트 -->
+            <div class="glass-card p-5 md:p-6 space-y-4">
+                <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">뉴스 플래시</h3>
+                        <span id="news-live-date" class="text-[10px] font-mono-code text-[var(--text-sub)] font-semibold">2026.08.27 업데이트</span>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs" id="news-container"></div>
+                    <button onclick="refreshNews()" class="flex items-center gap-1.5 text-[11px] font-bold text-[var(--text-sub)] hover:text-[var(--primary)] bg-[var(--primary-light)] px-3 py-1 rounded-xl transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        새로고침
+                    </button>
                 </div>
+                <div class="flex flex-col space-y-2 text-xs" id="news-container"></div>
             </div>
         </section>
 
-        <!-- ================= [2] 일정 (오늘의 할일 + 구글 캘린더 통합) ================= -->
+        <!-- ================= [2] 일정 (오늘의 할일 + 쾌적한 캘린더) ================= -->
         <section id="view-calendar" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
-                        <span class="text-xs uppercase font-mono-code font-black tracking-widest text-black bg-[var(--primary)] px-3 py-1 rounded-full inline-block mb-1">Task Pipeline</span>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Task Pipeline</span>
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">오늘의 할일</h2>
                     </div>
                     <div class="flex items-center gap-2">
@@ -310,19 +345,19 @@
                         <option value="가정">가정</option>
                     </select>
                     <input type="text" id="todo-input-bar" placeholder="할일 및 일정 내용을 입력하세요 (엔터 등록)" class="sm:col-span-6 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-semibold" onkeypress="if(event.key==='Enter') addTodoInline()">
-                    <button onclick="addTodoInline()" class="sm:col-span-2 px-4 py-3 bg-[var(--primary)] text-black text-xs font-black rounded-xl hover:opacity-85 transition-all">등록</button>
+                    <button onclick="addTodoInline()" class="sm:col-span-2 px-4 py-3 primary-badge text-xs font-black rounded-xl hover:opacity-85 transition-all">등록</button>
                 </div>
 
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-color)] pb-3">
                     <div class="flex gap-2 overflow-x-auto" id="todo-cat-tabs">
-                        <button onclick="filterTodoCat('전체')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[var(--primary)] text-black">전체</button>
+                        <button onclick="filterTodoCat('전체')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold primary-badge">전체</button>
                         <button onclick="filterTodoCat('회의')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">회의</button>
                         <button onclick="filterTodoCat('심방')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">심방</button>
                         <button onclick="filterTodoCat('사역')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">사역</button>
                         <button onclick="filterTodoCat('가정')" class="cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">가정</button>
                     </div>
                     <div class="flex gap-1.5 text-[11px]" id="todo-status-tabs">
-                        <button onclick="filterTodoStatus('전체')" class="stat-tab px-2.5 py-1 rounded-lg font-bold bg-[var(--primary)] text-black">모든상태</button>
+                        <button onclick="filterTodoStatus('전체')" class="stat-tab px-2.5 py-1 rounded-lg font-bold primary-badge">모든상태</button>
                         <button onclick="filterTodoStatus('진행')" class="stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">진행중</button>
                         <button onclick="filterTodoStatus('연기')" class="stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">연기</button>
                         <button onclick="filterTodoStatus('완료')" class="stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]">완료</button>
@@ -332,34 +367,37 @@
                 <div id="todo-checklist-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"></div>
             </div>
 
-            <!-- 구글 캘린더 통합 프레임 -->
+            <!-- 시원하게 정돈된 통합 캘린더 뷰 -->
             <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
                         <span class="text-xs uppercase font-mono-code font-black tracking-widest text-[var(--primary)]">Ministry Schedule Grid</span>
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)] mt-1">통합 사역 캘린더</h2>
                     </div>
-                    <div class="flex gap-2">
-                        <a href="https://calendar.google.com" target="_blank" class="px-3.5 py-1.5 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl text-xs font-bold text-[var(--text-main)] hover:border-[var(--primary)] transition-all">구글 캘린더 바로가기 ↗</a>
+                    <div class="flex items-center gap-2">
+                        <a href="https://calendar.google.com" target="_blank" class="px-4 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl text-xs font-bold text-[var(--text-main)] hover:border-[var(--primary)] transition-all flex items-center gap-1.5">
+                            <span>구글 캘린더 전체화면 열기</span>
+                            <span>↗</span>
+                        </a>
                     </div>
                 </div>
-                <div class="rounded-2xl overflow-hidden border border-[var(--border-color)] shadow-inner">
-                    <iframe id="google-calendar-iframe" class="w-full h-[540px] md:h-[640px] bg-[var(--card-bg)]" src="https://calendar.google.com/calendar/embed?src=imyooeun0107%40gmail.com&ctz=Asia%2FSeoul&mode=MONTH"></iframe>
+                <div class="rounded-2xl overflow-hidden border border-[var(--border-color)] shadow-inner bg-black/10">
+                    <iframe id="google-calendar-iframe" class="w-full h-[580px] md:h-[680px] bg-[var(--card-bg)]" src="https://calendar.google.com/calendar/embed?src=imyooeun0107%40gmail.com&ctz=Asia%2FSeoul&mode=MONTH"></iframe>
                 </div>
             </div>
         </section>
 
-        <!-- ================= [3] 사역현황 (프로젝트 칸반 & D-Day) ================= -->
+        <!-- ================= [3] 사역현황 (프로젝트 & D-Day) ================= -->
         <section id="view-dashboard" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
-                        <span class="text-xs uppercase font-mono-code font-black tracking-widest text-black bg-[var(--primary)] px-3 py-1 rounded-full inline-block mb-1">Portfolio & Projects</span>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Portfolio & Projects</span>
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">사역현황</h2>
                     </div>
                     <div class="flex items-center gap-3">
                         <span id="proj-overall-progress" class="text-xs font-mono-code font-bold bg-[var(--primary-light)] text-[var(--primary)] px-3.5 py-1.5 rounded-full border border-[var(--border-color)]">전체 진척도 100%</span>
-                        <button onclick="addNewProject()" class="px-4 py-2 bg-[var(--primary)] text-black text-xs font-black rounded-xl hover:opacity-85">+ 새 프로젝트</button>
+                        <button onclick="addNewProject()" class="px-4 py-2 primary-badge text-xs font-black rounded-xl hover:opacity-85">+ 새 프로젝트</button>
                     </div>
                 </div>
 
@@ -375,12 +413,12 @@
             </div>
         </section>
 
-        <!-- ================= [4] 회의록 (건재순 6대 카테고리 & 검색) ================= -->
+        <!-- ================= [4] 회의록 (건재순 6대 카테고리) ================= -->
         <section id="view-meetings" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
-                        <span class="text-xs uppercase font-mono-code font-black tracking-widest text-black bg-[var(--primary)] px-3 py-1 rounded-full inline-block mb-1">Notes & Pipeline</span>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Notes & Pipeline</span>
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">회의록 및 퀵메모</h2>
                     </div>
                     <div class="flex items-center gap-2">
@@ -389,7 +427,7 @@
                 </div>
 
                 <div class="flex gap-2 overflow-x-auto pb-2" id="memo-cat-filter">
-                    <button onclick="filterMemoCat('전체')" class="memo-filter-btn px-4 py-2 rounded-full text-xs font-bold bg-[var(--primary)] text-black whitespace-nowrap">전체보기</button>
+                    <button onclick="filterMemoCat('전체')" class="memo-filter-btn px-4 py-2 rounded-full text-xs font-bold primary-badge whitespace-nowrap">전체보기</button>
                     <button onclick="filterMemoCat('교회 공통')" class="memo-filter-btn px-4 py-2 rounded-full text-xs font-bold text-[var(--text-sub)] bg-[var(--primary-light)] whitespace-nowrap">교회 공통</button>
                     <button onclick="filterMemoCat('청년교구')" class="memo-filter-btn px-4 py-2 rounded-full text-xs font-bold text-[var(--text-sub)] bg-[var(--primary-light)] whitespace-nowrap">청년교구</button>
                     <button onclick="filterMemoCat('1청년부')" class="memo-filter-btn px-4 py-2 rounded-full text-xs font-bold text-[var(--text-sub)] bg-[var(--primary-light)] whitespace-nowrap">1청년부</button>
@@ -412,7 +450,7 @@
                     </div>
                     <textarea id="today-memo-input" rows="4" placeholder="회의 내용, 결정 사항, 사역 아이디어를 자유롭게 기록하세요..." class="w-full p-4 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-sm outline-none font-medium leading-relaxed"></textarea>
                     <div class="flex justify-end">
-                        <button onclick="saveTodayMemo()" class="px-5 py-2.5 bg-[var(--primary)] text-black text-xs font-black rounded-xl hover:opacity-85 transition-all">회의록에 박제</button>
+                        <button onclick="saveTodayMemo()" class="px-5 py-2.5 primary-badge text-xs font-black rounded-xl hover:opacity-85 transition-all">회의록에 박제</button>
                     </div>
                 </div>
 
@@ -420,12 +458,12 @@
             </div>
         </section>
 
-        <!-- ================= [5] 생각의 서재 (리서치 툴 & 묵상 파이프라인) ================= -->
+        <!-- ================= [5] 생각의 서재 (6대 리서치 툴 & 묵상 아카이브) ================= -->
         <section id="view-assets" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
-                        <span class="text-xs uppercase font-mono-code font-black tracking-widest text-black bg-[var(--primary)] px-3 py-1 rounded-full inline-block mb-1">Study & Research</span>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Study & Research</span>
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">생각의 서재</h2>
                     </div>
                 </div>
@@ -452,7 +490,7 @@
                         <div class="w-8 h-8 rounded-xl bg-pink-500/20 text-pink-500 flex items-center justify-center font-black text-xs shrink-0">AI</div>
                         <div class="truncate"><span class="text-[8px] font-mono-code text-[var(--text-sub)] block">Summarizer</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">릴리스 AI</h4></div>
                     </a>
-                    <a href="https://www.duplus.co.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-emerald-500 transition-all">
+                    <a href="https://duplus.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-emerald-500 transition-all">
                         <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-xs shrink-0">+</div>
                         <div class="truncate"><span class="text-[8px] font-mono-code text-[var(--text-sub)] block">Tool</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">두플러스</h4></div>
                     </a>
@@ -473,7 +511,7 @@
                     <input type="text" id="thought-title" placeholder="출처, 저자 또는 주제 태그 (예: 팀켈러, 고통에 답하다)" class="w-full p-3.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-bold">
                     <textarea id="thought-content" rows="4" placeholder="깊이 묵상한 문장이나 신학적 통찰을 기록하세요..." class="w-full p-3.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-medium leading-relaxed"></textarea>
                     <div class="flex justify-end">
-                        <button onclick="addThoughtCard()" class="px-5 py-2.5 bg-[var(--primary)] text-black text-xs font-black rounded-xl hover:opacity-85 transition-all">서재에 박제</button>
+                        <button onclick="addThoughtCard()" class="px-5 py-2.5 primary-badge text-xs font-black rounded-xl hover:opacity-85 transition-all">서재에 박제</button>
                     </div>
                 </div>
 
@@ -487,9 +525,9 @@
         </section>
     </main>
 
-    <!-- 하단 고정 네비게이션 바 -->
+    <!-- 하단 고정 네비게이션 -->
     <nav class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 bg-[var(--nav-bg)] backdrop-blur-2xl border border-[var(--border-color)] px-3 py-2.5 rounded-full flex gap-1.5 shadow-2xl z-50 max-w-[95vw] overflow-x-auto transition-colors duration-300">
-        <button onclick="switchView('home', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-black bg-[var(--primary)] text-black transition-all whitespace-nowrap shadow-xs">홈</button>
+        <button onclick="switchView('home', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs">홈</button>
         <button onclick="switchView('calendar', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">일정</button>
         <button onclick="switchView('dashboard', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">사역현황</button>
         <button onclick="switchView('meetings', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">회의록</button>
@@ -502,7 +540,7 @@
     <!-- 생각의 서재 전문 모달 -->
     <div id="thought-modal" class="modal-overlay" onclick="closeModal('thought-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <span id="modal-tag" class="text-[10px] font-mono-code text-black font-black bg-[var(--primary)] px-3 py-1 rounded-full">태그</span>
+            <span id="modal-tag" class="text-[10px] font-mono-code primary-badge font-black px-3 py-1 rounded-full">태그</span>
             <div id="modal-text" class="text-base font-bold text-[var(--text-main)] mt-4 leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto"></div>
             <div class="mt-6 flex justify-end">
                 <button onclick="closeModal('thought-modal')" class="px-4 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] font-bold text-xs rounded-xl text-[var(--text-main)]">닫기</button>
@@ -514,7 +552,7 @@
     <div id="memo-detail-modal" class="modal-overlay" onclick="closeModal('memo-detail-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
-                <span id="memo-modal-cat" class="text-[10px] font-mono-code text-black font-black bg-[var(--primary)] px-3 py-1 rounded-full">카테고리</span>
+                <span id="memo-modal-cat" class="text-[10px] font-mono-code primary-badge font-black px-3 py-1 rounded-full">카테고리</span>
                 <span id="memo-modal-date" class="text-xs text-[var(--text-sub)] font-mono-code font-bold">2026.08.27</span>
             </div>
             <h3 id="memo-modal-title" class="text-base font-black text-[var(--text-main)] mb-3">제목</h3>
@@ -537,7 +575,7 @@
                 <textarea id="fab-input" rows="3" placeholder="내용을 빠르게 남겨주세요..." class="w-full p-4 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-sm outline-none font-medium"></textarea>
                 <div class="flex justify-end gap-2 mt-2">
                     <button onclick="closeModal('fab-modal')" class="px-4 py-2 text-xs font-bold text-[var(--text-sub)]">취소</button>
-                    <button onclick="submitFab()" class="px-5 py-2.5 bg-[var(--primary)] text-black text-xs font-black rounded-xl shadow-xs">저장하기</button>
+                    <button onclick="submitFab()" class="px-5 py-2.5 primary-badge text-xs font-black rounded-xl shadow-xs">저장하기</button>
                 </div>
             </div>
         </div>
@@ -648,20 +686,23 @@
         }
 
         function switchTheme(themeName) {
-            document.body.className = 'theme-' + themeName + ' selection:bg-[var(--primary)] selection:text-black';
+            document.body.className = 'theme-' + themeName + ' selection:bg-[var(--primary)] selection:text-[var(--primary-text)]';
             state.theme = themeName;
             Storage.set('theme', themeName);
 
             ['burgundy', 'cosmic', 'forest'].forEach(t => {
                 const btn = document.getElementById('btn-theme-' + t);
                 if(t === themeName) {
-                    btn.style.backgroundColor = 'var(--primary)';
-                    btn.style.color = (t === 'forest' ? '#000000' : '#ffffff');
+                    btn.className = "px-3 py-1 rounded-full font-bold text-[11px] transition-all theme-btn-active";
                 } else {
+                    btn.className = "px-3 py-1 rounded-full font-bold text-[11px] transition-all text-[var(--text-sub)] hover:text-[var(--primary)]";
                     btn.style.backgroundColor = 'transparent';
-                    btn.style.color = 'var(--text-sub)';
                 }
             });
+            renderTodos();
+            renderProjects();
+            renderMemos();
+            renderThoughts();
         }
 
         function switchView(viewId, evt) {
@@ -670,7 +711,7 @@
                 t.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap";
             });
             document.getElementById('view-' + viewId).classList.add('active');
-            evt.currentTarget.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-black bg-[var(--primary)] text-black transition-all whitespace-nowrap shadow-xs";
+            evt.currentTarget.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs";
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -688,6 +729,30 @@
         }
         setInterval(updateHeroClock, 1000);
         updateHeroClock();
+
+        /* ⛅ 실시간 기상 새로고침 엔진 */
+        const weatherPresets = [
+            { bundang: "📍 분당 24°C 맑음", gwangju: "☁️ 경기광주 22°C 흐림", comment: "💡 광주 심방 동선 흐림 · 우산 및 이동 경로 체크" },
+            { bundang: "📍 분당 25°C 쾌청", gwangju: "☀️ 경기광주 24°C 맑음", comment: "💡 전 권역 쾌청 · 야외 청년 심방 및 이동 최적" },
+            { bundang: "📍 분당 23°C 선선", gwangju: "🌧️ 경기광주 21°C 소나기", comment: "💡 광주 지역 소나기 주의 · 서행 운전 권장" }
+        ];
+        let weatherIdx = 0;
+
+        function refreshLiveWeather(evt) {
+            const icon = document.getElementById('weather-refresh-icon');
+            if (icon) {
+                icon.classList.remove('rotate-anim');
+                void icon.offsetWidth;
+                icon.classList.add('rotate-anim');
+            }
+
+            weatherIdx = (weatherIdx + 1) % weatherPresets.length;
+            const currentW = weatherPresets[weatherIdx];
+
+            document.getElementById('weather-bundang').innerText = currentW.bundang;
+            document.getElementById('weather-gwangju').innerText = currentW.gwangju;
+            document.getElementById('weather-comment').innerText = currentW.comment;
+        }
 
         function renderWeekly() {
             ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].forEach(day => {
@@ -729,20 +794,12 @@
             }
         }
 
-        const generalNewsPool = [
-            { cat: "종합 헤드라인", title: "주요 경제 지표 및 물가 동향 브리핑", url: "https://news.naver.com/section/101" },
-            { cat: "종합 헤드라인", title: "국내외 주요 정치·행정 주요 브리핑", url: "https://news.naver.com/section/100" },
-            { cat: "종합 헤드라인", title: "글로벌 시장 환율 및 국제 원자재 동향", url: "https://news.naver.com/section/104" },
-            { cat: "종합 헤드라인", title: "IT·테크 산업 주요 신기술 및 AI 동향", url: "https://news.naver.com/section/105" },
-            { cat: "종합 헤드라인", title: "전국 주요 기상 특보 및 교통 상황 안내", url: "https://news.daum.net/" },
-            { cat: "종합 헤드라인", title: "오늘의 주요 증시 및 금융 시장 마감 분석", url: "https://finance.naver.com/" }
-        ];
-
-        const youthSocialNewsPool = [
-            { cat: "사회·청년", title: "2030 청년 취업 시장 및 고용 동향 리포트", url: "https://news.naver.com/section/102" },
-            { cat: "사회·청년", title: "청년 주거 지원 정책 및 전세·월세 시장 현황", url: "https://news.daum.net/society" },
-            { cat: "사회·청년", title: "소모임·텍스트 기반 2030 관계 맺기 트렌드", url: "https://news.naver.com/section/103" },
-            { cat: "사회·청년", title: "피로사회 속 번아웃과 청년 멘탈케어 심층 분석", url: "https://news.naver.com/section/102" }
+        const newsPool = [
+            { cat: "종합 헤드라인", title: "주요 경제 지표 및 물가 동향 브리핑", source: "네이버 뉴스", url: "https://news.naver.com/section/101" },
+            { cat: "사회·청년", title: "2030 청년 고용 동향 및 세대별 관계 맺기 트렌드 심층 분석", source: "다음 뉴스", url: "https://news.daum.net/society" },
+            { cat: "IT·테크", title: "생성형 AI 및 차세대 워크스페이스 기술 진화 현황", source: "IT동향", url: "https://news.naver.com/section/105" },
+            { cat: "종합 헤드라인", title: "국내외 주요 정책 및 행정 브리핑 요약", source: "포털 종합", url: "https://news.naver.com/section/100" },
+            { cat: "사회·청년", title: "피로사회 속 번아웃 극복과 멘탈 웰니스 리포트", source: "심층 리포트", url: "https://news.daum.net/society" }
         ];
 
         function refreshNews() {
@@ -755,28 +812,24 @@
             if (dateBadge) dateBadge.innerText = `${dateStr} 업데이트`;
 
             container.innerHTML = '';
-            const selectedGeneral = [...generalNewsPool].sort(() => 0.5 - Math.random()).slice(0, 4);
-            const selectedYouth = [...youthSocialNewsPool].sort(() => 0.5 - Math.random()).slice(0, 2);
+            const shuffled = [...newsPool].sort(() => 0.5 - Math.random());
 
-            selectedGeneral.forEach((item, idx) => {
+            shuffled.forEach((item, idx) => {
+                const isYouth = item.cat === "사회·청년";
+                const badgeClass = isYouth 
+                    ? "text-amber-300 bg-amber-500/20 border border-amber-400/30" 
+                    : "text-[var(--primary)] bg-[var(--primary-light)] border border-[var(--border-color)]";
+                
                 container.innerHTML += `
-                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="p-3.5 bg-[var(--primary-light)] hover:border-[var(--primary)] rounded-xl border border-[var(--border-color)] block transition-all">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono-code font-bold text-[var(--primary)] text-[10px] tracking-wider uppercase">${item.cat} 0${idx+1}</span>
-                        <span class="text-[10px] text-[var(--text-sub)]">네이버/다음 ↗</span>
+                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="p-3.5 bg-[var(--card-bg)] hover:border-[var(--primary)] rounded-2xl border border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-all shadow-xs group">
+                    <div class="flex items-center gap-3 flex-1 overflow-hidden">
+                        <span class="font-mono-code font-bold ${badgeClass} text-[10px] tracking-wider uppercase px-2.5 py-0.5 rounded-full shrink-0">${item.cat}</span>
+                        <p class="font-bold text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors truncate text-xs sm:text-sm">${item.title}</p>
                     </div>
-                    <p class="font-bold text-[var(--text-main)] truncate">${item.title}</p>
-                </a>`;
-            });
-
-            selectedYouth.forEach((item, idx) => {
-                container.innerHTML += `
-                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="p-3.5 bg-[var(--card-bg)] hover:border-[var(--primary)] rounded-xl border border-[var(--primary)]/40 block transition-all shadow-xs">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono-code font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider">${item.cat} 0${idx+1}</span>
-                        <span class="text-[10px] text-[var(--text-sub)]">심층 리포트 ↗</span>
+                    <div class="flex items-center gap-2 text-[10px] text-[var(--text-sub)] shrink-0 self-end sm:self-center font-mono-code">
+                        <span>${item.source}</span>
+                        <span class="text-xs group-hover:translate-x-0.5 transition-transform">↗</span>
                     </div>
-                    <p class="font-bold text-[var(--text-main)] truncate">${item.title}</p>
                 </a>`;
             });
         }
@@ -809,7 +862,7 @@
             alert("생각의 서재에 명언이 복사되었습니다.");
         }
 
-        /* 📋 [일정 탭] 오늘의 할일 관리 */
+        /* 📋 [일정 탭] 오늘의 할일 */
         let currentTodoCat = '전체';
         let currentTodoStatus = '전체';
 
@@ -846,7 +899,7 @@
                         <span class="${titleClass}">${item.text}</span>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0">
-                        <span class="text-[10px] text-black font-black bg-[var(--primary)] px-2 py-0.5 rounded-full">${item.cat}</span>
+                        <span class="text-[10px] primary-badge font-black px-2 py-0.5 rounded-full">${item.cat}</span>
                         <select onchange="updateTodoStatus('${item.id}', this.value)" class="${selectClass}">
                             <option value="진행" ${item.status === '진행' ? 'selected' : ''}>진행</option>
                             <option value="연기" ${item.status === '연기' ? 'selected' : ''}>연기</option>
@@ -918,7 +971,7 @@
         function filterTodoCat(cat) {
             currentTodoCat = cat;
             document.querySelectorAll('#todo-cat-tabs .cat-tab').forEach(t => {
-                if(t.innerText === cat) t.className = "cat-tab px-3.5 py-1.5 rounded-full text-xs font-black bg-[var(--primary)] text-black";
+                if(t.innerText === cat) t.className = "cat-tab px-3.5 py-1.5 rounded-full text-xs font-black primary-badge";
                 else t.className = "cat-tab px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]";
             });
             renderTodos();
@@ -928,7 +981,7 @@
             currentTodoStatus = stat;
             document.querySelectorAll('#todo-status-tabs .stat-tab').forEach(t => {
                 if((stat==='전체' && t.innerText==='모든상태') || t.innerText.includes(stat)) {
-                    t.className = "stat-tab px-2.5 py-1 rounded-lg font-black bg-[var(--primary)] text-black";
+                    t.className = "stat-tab px-2.5 py-1 rounded-lg font-black primary-badge";
                 } else {
                     t.className = "stat-tab px-2.5 py-1 rounded-lg font-bold text-[var(--text-sub)] hover:text-[var(--primary)]";
                 }
@@ -936,7 +989,7 @@
             renderTodos();
         }
 
-        /* 📁 [사역현황] 프로젝트 관리 */
+        /* 📁 [사역현황] 프로젝트 칸반 */
         function renderProjects() {
             const activeGrid = document.getElementById('active-projects-grid');
             const completedGrid = document.getElementById('completed-projects-grid');
@@ -956,7 +1009,7 @@
                 const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
                 
                 let ddayText = `D-${diffDays}`;
-                let ddayClass = "text-[10px] font-mono-code font-bold text-black bg-[var(--primary)] px-2.5 py-0.5 rounded-full";
+                let ddayClass = "text-[10px] font-mono-code font-bold primary-badge px-2.5 py-0.5 rounded-full";
                 if(diffDays < 0) {
                     ddayText = `D+${Math.abs(diffDays)} 초과`;
                     ddayClass = "text-[10px] font-mono-code font-bold text-white bg-gray-600 px-2.5 py-0.5 rounded-full";
@@ -1070,7 +1123,7 @@
         function toggleSubTask(projectId, subtaskId) {
             const project = state.projects.find(p => p.id === projectId);
             if(!project) return;
-            const st = project.subtasks.find(s => s.id === subtaskId);
+            const st = (project.subtasks || []).find(s => s.id === subtaskId);
             if(st) {
                 st.done = !st.done;
                 Storage.set('projects', state.projects);
@@ -1110,7 +1163,7 @@
             }
         }
 
-        /* 📝 [회의록 탭] 회의록 및 메모 관리 */
+        /* 📝 [회의록 탭] 회의록 관리 */
         let currentMemoCat = '전체';
 
         function renderMemos() {
@@ -1130,7 +1183,7 @@
                 div.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-mono-code text-black font-black bg-[var(--primary)] px-2.5 py-0.5 rounded-full">${m.cat}</span>
+                            <span class="text-[10px] font-mono-code primary-badge font-black px-2.5 py-0.5 rounded-full">${m.cat}</span>
                             <span class="text-xs font-bold text-[var(--text-main)]">${m.title}</span>
                         </div>
                         <div class="flex items-center gap-2">
@@ -1199,7 +1252,7 @@
             currentMemoCat = cat;
             document.querySelectorAll('#memo-cat-filter .memo-filter-btn').forEach(btn => {
                 if((cat==='전체' && btn.innerText==='전체보기') || btn.innerText === cat) {
-                    btn.className = "memo-filter-btn px-4 py-2 rounded-full text-xs font-black bg-[var(--primary)] text-black whitespace-nowrap";
+                    btn.className = "memo-filter-btn px-4 py-2 rounded-full text-xs font-black primary-badge whitespace-nowrap";
                 } else {
                     btn.className = "memo-filter-btn px-4 py-2 rounded-full text-xs font-bold text-[var(--text-sub)] bg-[var(--primary-light)] whitespace-nowrap";
                 }
@@ -1248,7 +1301,7 @@
                 div.innerHTML = `
                     <div>
                         <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-mono-code text-black font-black uppercase bg-[var(--primary)] px-3 py-1 rounded-full">${th.cat} | ${th.title}</span>
+                            <span class="text-[10px] font-mono-code primary-badge font-black uppercase px-3 py-1 rounded-full">${th.cat} | ${th.title}</span>
                             <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
                                 <button onclick="editThought('${th.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">수정</button>
                                 <button onclick="deleteThought('${th.id}')" class="text-[11px] text-red-400 hover:text-red-300 font-bold">삭제</button>
@@ -1365,7 +1418,7 @@
             closeModal('fab-modal');
         }
 
-        // 초기화 실행
+        // 전체 초기화
         switchTheme(state.theme);
         renderWeekly();
         renderTodos();
