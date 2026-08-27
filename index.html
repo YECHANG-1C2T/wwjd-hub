@@ -9,22 +9,20 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap');
         
-        /* 1. 🩸 클래식 버건디 */
         body.theme-burgundy {
-            --bg-color: #f6f5f2;
-            --card-bg: rgba(255, 255, 255, 0.92);
+            --bg-color: #f7f6f3;
+            --card-bg: rgba(255, 255, 255, 0.94);
             --primary: #6b1420;
             --primary-light: rgba(107, 20, 32, 0.08);
             --border-color: rgba(107, 20, 32, 0.12);
-            --text-main: #18181b;
-            --text-sub: #52525b;
+            --text-main: #1c1917;
+            --text-sub: #57534e;
             --nav-bg: rgba(255, 255, 255, 0.92);
             --hero-bg: linear-gradient(135deg, #380a10 0%, #5c181f 60%, #200508 100%);
+            --gif-filter: none;
             --gif-opacity: 0.45;
-            --gif-blend: screen;
         }
 
-        /* 2. 🌌 코스믹 네온 */
         body.theme-cosmic {
             --bg-color: #0b0914;
             --card-bg: rgba(20, 18, 35, 0.85);
@@ -35,30 +33,29 @@
             --text-sub: #a1a1aa;
             --nav-bg: rgba(20, 18, 35, 0.92);
             --hero-bg: linear-gradient(135deg, #18092a 0%, #2d0e4e 50%, #0d0617 100%);
+            --gif-filter: none;
             --gif-opacity: 0.65;
-            --gif-blend: screen;
         }
 
-        /* 3. 🌲 포레스트 세레니티 */
         body.theme-forest {
-            --bg-color: #eef3ef;
+            --bg-color: #f0f4f1;
             --card-bg: rgba(255, 255, 255, 0.92);
-            --primary: #1e4a30;
-            --primary-light: rgba(30, 74, 48, 0.08);
-            --border-color: rgba(30, 74, 48, 0.12);
-            --text-main: #111e16;
-            --text-sub: #455e4e;
+            --primary: #234e3d;
+            --primary-light: rgba(35, 78, 61, 0.08);
+            --border-color: rgba(35, 78, 61, 0.14);
+            --text-main: #14231b;
+            --text-sub: #4b6354;
             --nav-bg: rgba(255, 255, 255, 0.92);
-            --hero-bg: linear-gradient(135deg, #0e2417 0%, #1c452c 60%, #08160e 100%);
-            --gif-opacity: 0.4;
-            --gif-blend: screen;
+            --hero-bg: linear-gradient(135deg, #0f241a 0%, #1f4232 50%, #0c1a13 100%);
+            --gif-filter: hue-rotate(95deg) saturate(1.4) brightness(0.9);
+            --gif-opacity: 0.55;
         }
 
         body {
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            letter-spacing: -0.02em;
+            letter-spacing: -0.025em;
             margin: 0;
             padding-bottom: 140px;
             transition: background-color 0.4s ease, color 0.4s ease;
@@ -71,12 +68,12 @@
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--border-color);
             border-radius: 24px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.04);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .glass-card:hover {
             border-color: var(--primary);
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.07);
         }
 
         .furnace-hero {
@@ -85,7 +82,14 @@
             overflow: hidden;
             border-radius: 32px;
             border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.18);
+        }
+
+        .hero-gif {
+            opacity: var(--gif-opacity);
+            filter: var(--gif-filter);
+            mix-blend-mode: screen;
+            transition: filter 0.4s ease, opacity 0.4s ease;
         }
 
         .page-view { 
@@ -122,7 +126,7 @@
             background: var(--primary); color: white;
             display: flex; justify-content: center; align-items: center;
             font-size: 26px; box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer; transition: transform 0.2s;
         }
         .fab-btn:hover { transform: scale(1.08); }
         @media (min-width: 768px) { .fab-btn { bottom: 40px; right: 40px; } }
@@ -131,9 +135,8 @@
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
     </style>
 </head>
-<body class="theme-burgundy selection:bg-[var(--primary)] selection:text-white">
+<body class="theme-forest selection:bg-[var(--primary)] selection:text-white">
 
-    <!-- 상단 유틸리티 바 -->
     <header class="bg-[var(--nav-bg)] backdrop-blur-2xl border-b border-[var(--border-color)] px-4 md:px-10 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-xs transition-colors duration-300">
         <div class="flex items-center gap-3 md:gap-6">
             <span class="text-[10px] md:text-xs font-extrabold tracking-widest uppercase text-white bg-[var(--primary)] px-3.5 py-1.5 rounded-full shadow-xs">Control Center</span>
@@ -153,22 +156,19 @@
 
         <!-- ================= [1] 홈 화면 ================= -->
         <section id="view-home" class="page-view active space-y-6 md:space-y-8">
-            
-            <!-- 히어로 배너 (GIF 효과 및 텍스트 렌더링 완벽 복원) -->
             <div class="furnace-hero text-white p-6 sm:p-8 md:p-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                <img src="fire-bg.gif" alt="Cosmic Fire" class="absolute top-0 left-0 w-full h-full object-cover z-0 pointer-events-none" style="opacity: var(--gif-opacity); mix-blend-mode: var(--gif-blend);">
+                <img src="fire-bg.gif" alt="Spiritual Flame" class="hero-gif absolute top-0 left-0 w-full h-full object-cover z-0 pointer-events-none">
                 
                 <div class="relative z-10 space-y-4 w-full lg:max-w-2xl">
                     <span class="text-[11px] font-mono tracking-widest uppercase bg-black/40 px-3.5 py-1 rounded-full backdrop-blur-md inline-block font-extrabold border border-white/20">Spiritual Furnace Control Tower</span>
                     <h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-snug break-keep drop-shadow-md">임예창의 사역공간</h1>
                     <p class="text-xs sm:text-sm text-white/90 font-medium italic tracking-wide break-keep">"하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라"</p>
                     
-                    <!-- 스마트 날씨 & 동선 퀵 브리핑 위젯 -->
                     <div class="bg-black/35 backdrop-blur-md border border-white/20 rounded-2xl p-4 mt-2 shadow-inner">
                         <div class="flex flex-wrap items-center gap-4 text-sm font-extrabold">
                             <div class="flex items-center gap-2"><span class="text-lg">📍</span> 분당 24°C 맑음</div>
                             <div class="w-px h-4 bg-white/30 hidden sm:block"></div>
-                            <div class="flex items-center gap-2"><span class="text-lg">☁️</span> 광주 22°C 흐림</div>
+                            <div class="flex items-center gap-2"><span class="text-lg">☁️</span> 경기광주 22°C 흐림</div>
                         </div>
                         <p class="text-xs text-amber-300 mt-2 font-bold bg-black/40 inline-block px-3 py-1 rounded-full border border-amber-400/30">💡 경기광주 심방 동선 흐림. 차량 이동 시 우산 체크 요망</p>
                     </div>
@@ -180,7 +180,6 @@
                 </div>
             </div>
 
-            <!-- 오늘의 한마디 -->
             <div class="glass-card p-5 md:p-6 border-l-4 border-l-[var(--primary)] space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="text-[11px] font-mono font-extrabold text-[var(--primary)] uppercase tracking-wider">오늘의 한마디</span>
@@ -197,14 +196,12 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                 <div class="lg:col-span-2 space-y-6">
-                    <!-- 주간 일정표 (가로 1줄 강제 고정 & 다중 일정 명시) -->
                     <div class="glass-card p-5 md:p-6 space-y-4 overflow-hidden">
                         <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">주간 일정표</h3>
                             <span class="text-xs text-[var(--text-sub)] font-bold">스케줄 전체 명시</span>
                         </div>
                         <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 620px; overflow-x: auto;">
-                            <!-- 월~일 그리드 -->
                             <div class="bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]">
                                 <span class="font-extrabold text-[var(--primary)] block text-center pb-1 border-b border-[var(--border-color)]">월</span>
                                 <div class="flex-1 space-y-1.5" id="week-mon">
@@ -260,7 +257,6 @@
                     </div>
                 </div>
 
-                <!-- 뉴스 플래시 -->
                 <div class="glass-card p-5 md:p-6 space-y-4">
                     <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">뉴스 플래시</h3>
@@ -271,29 +267,30 @@
             </div>
         </section>
 
-        <!-- ================= [2] 오늘의 할일 ================= -->
+        <!-- ================= [2] 일정 (오늘의 할일: 시간 순 자동정렬 & 상태선택 + 구글 캘린더) ================= -->
         <section id="view-calendar" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
-                        <span class="text-xs uppercase font-extrabold tracking-widest text-[var(--primary)] bg-[var(--primary-light)] px-3 py-1 rounded-full inline-block mb-1">Schedule & Tasks</span>
+                        <span class="text-xs uppercase font-extrabold tracking-widest text-[var(--primary)] bg-[var(--primary-light)] px-3 py-1 rounded-full inline-block mb-1">Today Tasks</span>
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">오늘의 할일</h2>
                     </div>
+                    <span class="text-xs text-[var(--text-sub)] font-bold">시간 입력 시 자동 정렬</span>
                 </div>
 
-                <!-- 인라인 스마트 추가 바 -->
-                <div class="flex gap-2">
-                    <select id="todo-cat-select" class="p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-bold">
+                <!-- 시간 + 태그 + 내용 스마트 인라인 바 -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                    <input type="time" id="todo-time-input" value="10:00" class="sm:col-span-2 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-bold">
+                    <select id="todo-cat-select" class="sm:col-span-2 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-bold">
                         <option value="회의">회의</option>
                         <option value="심방">심방</option>
                         <option value="사역">사역</option>
                         <option value="가정">가정</option>
                     </select>
-                    <input type="text" id="todo-input-bar" placeholder="할일이나 일정을 입력하고 엔터를 누르세요" class="flex-1 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-semibold" onkeypress="if(event.key==='Enter') addTodoInline()">
-                    <button onclick="addTodoInline()" class="px-5 py-3 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:opacity-85 transition-all">등록</button>
+                    <input type="text" id="todo-input-bar" placeholder="할일 및 일정을 입력하세요 (엔터 등록)" class="sm:col-span-6 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-semibold" onkeypress="if(event.key==='Enter') addTodoInline()">
+                    <button onclick="addTodoInline()" class="sm:col-span-2 px-4 py-3 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:opacity-85 transition-all">등록</button>
                 </div>
 
-                <!-- 4대 축 필터 -->
                 <div class="flex gap-2 border-b border-[var(--border-color)] pb-2 overflow-x-auto" id="todo-tabs">
                     <button onclick="filterTodo('전체')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-[var(--primary)] text-white">전체보기</button>
                     <button onclick="filterTodo('회의')" class="px-4 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">회의</button>
@@ -302,22 +299,39 @@
                     <button onclick="filterTodo('가정')" class="px-4 py-1.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:bg-[var(--primary-light)]">가정</button>
                 </div>
 
+                <!-- 할일 목록 컨테이너 -->
                 <div id="todo-checklist-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div class="p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between todo-item" data-cat="사역">
-                        <label class="flex items-center gap-3 cursor-pointer flex-1 mr-2 overflow-hidden">
-                            <input type="checkbox" onchange="updateProgress(this)" class="todo-checkbox accent-[var(--primary)] w-4 h-4 shrink-0">
-                            <span class="font-bold text-[var(--text-main)] truncate">주말 청년부 사역 세팅 검토</span>
-                        </label>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span class="text-[10px] text-white font-bold bg-[var(--primary)] px-2.5 py-0.5 rounded-full">사역</span>
-                            <span class="text-[10px] text-gray-500 font-bold bg-gray-200/60 px-2 py-0.5 rounded border border-gray-400/30 status-badge">진행</span>
+                    <div class="p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between todo-item" data-cat="사역" data-time="14:00">
+                        <div class="flex items-center gap-2.5 flex-1 mr-2 overflow-hidden">
+                            <span class="text-xs font-mono font-black text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)] todo-time">14:00</span>
+                            <span class="font-bold text-[var(--text-main)] truncate todo-title">주말 청년부 사역 세팅 검토</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="text-[10px] text-white font-bold bg-[var(--primary)] px-2 py-0.5 rounded-full">${cat}</span>
+                            <select onchange="updateTodoStatus(this)" class="text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text-main)]">
+                                <option value="진행" selected>진행</option>
+                                <option value="연기">연기</option>
+                                <option value="완료">완료</option>
+                            </select>
+                            <button onclick="editTodo(this)" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] px-1 font-bold">수정</button>
+                            <button onclick="deleteTodoItem(this)" class="text-[11px] text-red-500 hover:text-red-700 px-1 font-bold">삭제</button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div class="glass-card p-6 md:p-8 space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
+                    <div>
+                        <span class="text-xs uppercase font-extrabold tracking-widest text-[var(--primary)]">Calendar Grid</span>
+                        <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)] mt-1">임예창 목사 구글 캘린더[cite: 1]</h2>
+                    </div>
+                </div>
+                <iframe id="google-calendar-iframe" class="w-full h-[520px] md:h-[620px] rounded-2xl border border-[var(--border-color)] bg-[var(--card-bg)]" src="https://calendar.google.com/calendar/embed?src=imyooeun0107%40gmail.com&ctz=Asia%2FSeoul&mode=MONTH"></iframe>[cite: 1]
+            </div>
         </section>
 
-        <!-- ================= [3] 사역현황 ================= -->
+        <!-- ================= [3] 사역현황 (수정 및 삭제 완벽 지원) ================= -->
         <section id="view-dashboard" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -330,21 +344,24 @@
 
                 <h3 class="text-sm font-extrabold text-[var(--text-main)] pt-2">진행 중인 사역</h3>
                 <div id="active-projects-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-[var(--primary)] proj-card" data-end="2026-08-28">
+                    <div class="glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-[var(--primary)] proj-card" data-start="2026.08.20" data-end="2026.08.28">
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
                                 <span class="text-[10px] font-mono font-bold uppercase tracking-wider bg-[var(--primary-light)] px-2.5 py-1 rounded-full text-[var(--primary)]">진행중</span>
-                                <span class="text-[10px] font-bold text-white bg-red-500 px-2 py-1 rounded-full animate-pulse">D-2 임박</span>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="editProject(this)" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold px-1.5 py-0.5 rounded bg-[var(--bg-color)] border border-[var(--border-color)]">수정</button>
+                                    <button onclick="deleteProject(this)" class="text-[11px] text-red-500 hover:text-red-700 font-bold px-1.5 py-0.5 rounded bg-[var(--bg-color)] border border-[var(--border-color)]">삭제</button>
+                                </div>
                             </div>
-                            <h4 class="font-extrabold text-base text-[var(--text-main)]">「순간의 말」 워크숍 기획</h4>
-                            <p class="text-xs text-[var(--text-sub)] font-mono font-bold">2026.08.20 ~ 2026.08.28</p>
+                            <h4 class="font-extrabold text-base text-[var(--text-main)] proj-title">「순간의 말」 워크숍 기획[cite: 1]</h4>
+                            <p class="text-xs text-[var(--text-sub)] font-mono font-bold proj-dates">2026.08.20 ~ 2026.08.28</p>
                         </div>
                         <button onclick="completeProject(this)" class="w-full py-2 bg-[var(--bg-color)] border border-[var(--border-color)] text-xs font-bold rounded-xl text-[var(--text-main)] hover:bg-emerald-600 hover:text-white transition-all">✅ 프로젝트 완료 처리</button>
                     </div>
                 </div>
 
                 <h3 class="text-sm font-extrabold text-[var(--text-sub)] pt-6 border-t border-[var(--border-color)]">완료된 프로젝트 아카이브</h3>
-                <div id="completed-projects-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-75"></div>
+                <div id="completed-projects-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-85"></div>
             </div>
         </section>
 
@@ -358,7 +375,6 @@
                     </div>
                 </div>
 
-                <!-- 건재순 6대 사역 영역 필터 -->
                 <div class="flex gap-2 overflow-x-auto pb-2">
                     <button class="px-4 py-2 rounded-full text-xs font-bold bg-[var(--primary)] text-white whitespace-nowrap">전체보기</button>
                     <button class="px-4 py-2 rounded-full text-xs font-bold text-[var(--text-sub)] bg-[var(--primary-light)] whitespace-nowrap">교회 공통</button>
@@ -400,70 +416,65 @@
                     </div>
                 </div>
 
-                <!-- 잘잘법 포함 6대 필수 리서치 툴 고정 -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                     <a href="https://www.millie.co.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all">
                         <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center font-bold text-xs shrink-0">BK</div>
-                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">E-Book</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">밀리의 서재</h4></div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">E-Book</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">밀리의 서재[cite: 1]</h4></div>
                     </a>
                     <a href="https://www.youtube.com/@jaljalbeop" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-red-500 transition-all">
                         <div class="w-8 h-8 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center font-bold text-xs shrink-0">YT</div>
-                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Channel</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">잘잘법</h4></div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Channel</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">잘잘법[cite: 1]</h4></div>
                     </a>
                     <a href="https://www.dbpia.co.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-blue-500 transition-all">
                         <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold text-xs shrink-0">DB</div>
-                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Paper</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">DBpia 논문</h4></div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Paper</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">DBpia 논문[cite: 1]</h4></div>
                     </a>
                     <a href="https://www.riss.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-purple-500 transition-all">
                         <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-500 flex items-center justify-center font-bold text-xs shrink-0">RS</div>
-                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Research</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">RISS 학술정보</h4></div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Research</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">RISS 학술정보[cite: 1]</h4></div>
                     </a>
                     <a href="https://lilys.ai" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-pink-500 transition-all">
                         <div class="w-8 h-8 rounded-xl bg-pink-500/20 text-pink-500 flex items-center justify-center font-bold text-xs shrink-0">AI</div>
-                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Summarizer</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">릴리스 AI</h4></div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Summarizer</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">릴리스 AI[cite: 1]</h4></div>
                     </a>
                     <a href="https://www.duplus.co.kr" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-emerald-500 transition-all">
                         <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-xs shrink-0">+</div>
-                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Tool</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">두플러스</h4></div>
+                        <div class="truncate"><span class="text-[8px] font-mono text-[var(--text-sub)] block">Tool</span><h4 class="font-bold text-xs text-[var(--text-main)] truncate">두플러스[cite: 1]</h4></div>
                     </a>
                 </div>
 
                 <div class="p-6 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl space-y-3 mt-6">
-                    <span class="text-xs font-extrabold text-[var(--primary)] uppercase tracking-wider block">묵상 기록하기</span>
+                    <span class="text-xs font-extrabold text-[var(--primary)] uppercase tracking-wider block">묵상 기록하기[cite: 1]</span>
                     <input type="text" id="thought-title" placeholder="출처 및 태그 입력" class="w-full p-3.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-bold">
                     <textarea id="thought-content" rows="3" placeholder="문장이나 생각을 기록하세요..." class="w-full p-3.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-medium leading-relaxed"></textarea>
                     <div class="flex justify-end">
-                        <button onclick="addThoughtCard()" class="px-5 py-2.5 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:opacity-85 transition-all">서재에 박제</button>
+                        <button onclick="addThoughtCard()" class="px-5 py-2.5 bg-[var(--primary)] text-white text-xs font-bold rounded-xl hover:opacity-85 transition-all">서재에 박제[cite: 1]</button>
                     </div>
                 </div>
 
                 <div id="thought-card-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                    <!-- 클릭 시 전체 팝업 뷰 -->
                     <div class="glass-card p-6 space-y-4 cursor-pointer hover:border-[var(--primary)] transition-all flex flex-col justify-between" onclick="openThoughtModal(this)">
                         <div>
                             <span class="text-[10px] font-mono text-[var(--primary)] font-bold uppercase bg-[var(--primary-light)] px-3 py-1 rounded-full">독서묵상</span>
-                            <h4 class="font-extrabold text-base text-[var(--text-main)] mt-3 line-clamp-3 content-area">"고립 속에서 신음하는 세대에게 교회가 건네야 할 단 하나의 언어는 완벽한 정답이 아니라 깊은 실존적 공감이다."</h4>
+                            <h4 class="font-extrabold text-base text-[var(--text-main)] mt-3 line-clamp-3 content-area">"고립 속에서 신음하는 세대에게 교회가 건네야 할 단 하나의 언어는 완벽한 정답이 아니라 깊은 실존적 공감이다."[cite: 1]</h4>
                         </div>
-                        <button class="text-xs font-bold text-[var(--text-sub)] text-left hover:text-[var(--primary)]" onclick="event.stopPropagation(); alert('설교 아이디어로 복사되었습니다!');">➔ 설교 아이디어로 복사</button>
+                        <button class="text-xs font-bold text-[var(--text-sub)] text-left hover:text-[var(--primary)]" onclick="event.stopPropagation(); alert('설교 아이디어로 복사되었습니다!');">➔ 설교 아이디어로 복사[cite: 1]</button>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- 하단 네비게이션 -->
     <nav class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 bg-[var(--nav-bg)] backdrop-blur-2xl border border-[var(--border-color)] px-3 py-2.5 rounded-full flex gap-1.5 shadow-2xl z-50 max-w-[95vw] overflow-x-auto transition-colors duration-300">
         <button onclick="switchView('home', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold bg-[var(--primary)] text-white transition-all whitespace-nowrap shadow-xs">홈</button>
-        <button onclick="switchView('calendar', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">오늘의할일</button>
+        <button onclick="switchView('calendar', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">일정</button>
         <button onclick="switchView('dashboard', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">사역현황</button>
         <button onclick="switchView('meetings', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">회의록</button>
         <button onclick="switchView('assets', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">생각의서재</button>
     </nav>
 
-    <!-- 플로팅 퀵메모 버튼 -->
     <div class="fab-btn" onclick="openFabModal()" title="빠른 메모/할일 추가">+</div>
 
-    <!-- 생각의 서재 팝업 모달 -->
     <div id="thought-modal" class="modal-overlay" onclick="closeModal('thought-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <span id="modal-tag" class="text-[10px] font-mono text-[var(--primary)] font-bold bg-[var(--primary-light)] px-3 py-1 rounded-full">태그</span>
@@ -474,7 +485,6 @@
         </div>
     </div>
 
-    <!-- 플로팅 입력 팝업 모달 -->
     <div id="fab-modal" class="modal-overlay" onclick="closeModal('fab-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3 class="font-extrabold text-lg text-[var(--text-main)] mb-4">빠른 입력</h3>
@@ -506,7 +516,7 @@
                 }
             });
         }
-        switchTheme('burgundy');
+        switchTheme('forest');
 
         function switchView(viewId, evt) {
             document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
@@ -598,37 +608,87 @@
             alert("생각의 서재에 명언이 복사되었습니다.");
         }
 
+        /* 📋 오늘의 할일 관리: 시간 순 자동 정렬 + 상태 변경 + 수정/삭제 */
         function addTodoInline() {
+            const time = document.getElementById('todo-time-input').value || '00:00';
             const cat = document.getElementById('todo-cat-select').value;
             const text = document.getElementById('todo-input-bar').value.trim();
             if(!text) return;
+            
             const container = document.getElementById('todo-checklist-container');
             const div = document.createElement('div');
             div.className = "p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between todo-item";
             div.setAttribute("data-cat", cat);
+            div.setAttribute("data-time", time);
             div.innerHTML = `
-                <label class="flex items-center gap-3 cursor-pointer flex-1 mr-2 overflow-hidden">
-                    <input type="checkbox" onchange="updateProgress(this)" class="todo-checkbox accent-[var(--primary)] w-4 h-4 shrink-0">
-                    <span class="font-bold text-[var(--text-main)] truncate">${text}</span>
-                </label>
-                <div class="flex items-center gap-2 shrink-0">
-                    <span class="text-[10px] text-white font-bold bg-[var(--primary)] px-2.5 py-0.5 rounded-full">${cat}</span>
-                    <span class="text-[10px] text-gray-500 font-bold bg-gray-200/60 px-2 py-0.5 rounded border border-gray-400/30 status-badge">진행</span>
+                <div class="flex items-center gap-2.5 flex-1 mr-2 overflow-hidden">
+                    <span class="text-xs font-mono font-black text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)] todo-time">${time}</span>
+                    <span class="font-bold text-[var(--text-main)] truncate todo-title">${text}</span>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="text-[10px] text-white font-bold bg-[var(--primary)] px-2 py-0.5 rounded-full">${cat}</span>
+                    <select onchange="updateTodoStatus(this)" class="text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text-main)]">
+                        <option value="진행" selected>진행</option>
+                        <option value="연기">연기</option>
+                        <option value="완료">완료</option>
+                    </select>
+                    <button onclick="editTodo(this)" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] px-1 font-bold">수정</button>
+                    <button onclick="deleteTodoItem(this)" class="text-[11px] text-red-500 hover:text-red-700 px-1 font-bold">삭제</button>
                 </div>
             `;
-            container.prepend(div);
+            container.appendChild(div);
+            sortTodoList();
             document.getElementById('todo-input-bar').value = '';
         }
 
-        function updateProgress(cb) {
-            const span = cb.nextElementSibling;
-            const badge = cb.closest('.todo-item').querySelector('.status-badge');
-            if(cb.checked) {
-                span.className = "font-bold line-through text-[var(--text-sub)] truncate";
-                badge.innerText = "완료";
+        function sortTodoList() {
+            const container = document.getElementById('todo-checklist-container');
+            const items = Array.from(container.querySelectorAll('.todo-item'));
+            items.sort((a, b) => {
+                const timeA = a.getAttribute('data-time') || '00:00';
+                const timeB = b.getAttribute('data-time') || '00:00';
+                return timeA.localeCompare(timeB);
+            });
+            items.forEach(item => container.appendChild(item));
+        }
+
+        function updateTodoStatus(selectElem) {
+            const item = selectElem.closest('.todo-item');
+            const title = item.querySelector('.todo-title');
+            const val = selectElem.value;
+            if(val === '완료') {
+                title.className = "font-bold text-[var(--text-sub)] line-through truncate todo-title opacity-60";
+                selectElem.className = "text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-emerald-500 bg-emerald-50 text-emerald-700";
+            } else if(val === '연기') {
+                title.className = "font-bold text-amber-600 truncate todo-title";
+                selectElem.className = "text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-amber-500 bg-amber-50 text-amber-700";
             } else {
-                span.className = "font-bold text-[var(--text-main)] truncate";
-                badge.innerText = "진행";
+                title.className = "font-bold text-[var(--text-main)] truncate todo-title";
+                selectElem.className = "text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text-main)]";
+            }
+        }
+
+        function editTodo(btn) {
+            const item = btn.closest('.todo-item');
+            const titleSpan = item.querySelector('.todo-title');
+            const timeSpan = item.querySelector('.todo-time');
+            const currentTitle = titleSpan.innerText;
+            const currentTime = item.getAttribute('data-time') || '10:00';
+
+            const newTime = prompt("시간 수정 (HH:MM)", currentTime);
+            if(newTime === null) return;
+            const newTitle = prompt("할일 내용 수정", currentTitle);
+            if(newTitle === null || !newTitle.trim()) return;
+
+            item.setAttribute('data-time', newTime);
+            timeSpan.innerText = newTime;
+            titleSpan.innerText = newTitle.trim();
+            sortTodoList();
+        }
+
+        function deleteTodoItem(btn) {
+            if(confirm("이 할일을 삭제하시겠습니까?")) {
+                btn.closest('.todo-item').remove();
             }
         }
 
@@ -648,34 +708,66 @@
             });
         }
 
+        /* 📁 사역현황 관리: 추가 + 완료 이동 + 수정 + 삭제 */
         function addNewProject() {
             const name = prompt("새 프로젝트 이름");
             if(!name) return;
-            const start = prompt("시작일 (YYYY.MM.DD)");
-            const end = prompt("마감일 (YYYY.MM.DD)");
+            const start = prompt("시작일 (YYYY.MM.DD)", "2026.08.27");
+            const end = prompt("마감일 (YYYY.MM.DD)", "2026.09.05");
             const grid = document.getElementById('active-projects-grid');
             
             const div = document.createElement('div');
             div.className = "glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-[var(--primary)] proj-card";
+            div.setAttribute("data-start", start);
+            div.setAttribute("data-end", end);
             div.innerHTML = `
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] font-mono font-bold uppercase tracking-wider bg-[var(--primary-light)] px-2.5 py-1 rounded-full text-[var(--primary)]">진행중</span>
+                        <div class="flex items-center gap-1">
+                            <button onclick="editProject(this)" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold px-1.5 py-0.5 rounded bg-[var(--bg-color)] border border-[var(--border-color)]">수정</button>
+                            <button onclick="deleteProject(this)" class="text-[11px] text-red-500 hover:text-red-700 font-bold px-1.5 py-0.5 rounded bg-[var(--bg-color)] border border-[var(--border-color)]">삭제</button>
+                        </div>
                     </div>
-                    <h4 class="font-extrabold text-base text-[var(--text-main)]">${name}</h4>
-                    <p class="text-xs text-[var(--text-sub)] font-mono font-bold">${start} ~ ${end}</p>
+                    <h4 class="font-extrabold text-base text-[var(--text-main)] proj-title">${name}</h4>
+                    <p class="text-xs text-[var(--text-sub)] font-mono font-bold proj-dates">${start} ~ ${end}</p>
                 </div>
                 <button onclick="completeProject(this)" class="w-full py-2 bg-[var(--bg-color)] border border-[var(--border-color)] text-xs font-bold rounded-xl text-[var(--text-main)] hover:bg-emerald-600 hover:text-white transition-all">✅ 프로젝트 완료 처리</button>
             `;
             grid.prepend(div);
         }
 
+        function editProject(btn) {
+            const card = btn.closest('.proj-card');
+            const titleElem = card.querySelector('.proj-title');
+            const datesElem = card.querySelector('.proj-dates');
+            const curTitle = titleElem.innerText;
+            const curStart = card.getAttribute('data-start') || '2026.08.27';
+            const curEnd = card.getAttribute('data-end') || '2026.09.05';
+
+            const newTitle = prompt("프로젝트 이름 수정", curTitle);
+            if(newTitle === null || !newTitle.trim()) return;
+            const newStart = prompt("시작일 수정 (YYYY.MM.DD)", curStart);
+            const newEnd = prompt("마감일 수정 (YYYY.MM.DD)", curEnd);
+
+            card.setAttribute('data-start', newStart);
+            card.setAttribute('data-end', newEnd);
+            titleElem.innerText = newTitle.trim();
+            datesElem.innerText = `${newStart} ~ ${newEnd}`;
+        }
+
+        function deleteProject(btn) {
+            if(confirm("이 프로젝트를 완전히 삭제하시겠습니까?")) {
+                btn.closest('.proj-card').remove();
+            }
+        }
+
         function completeProject(btn) {
             const card = btn.closest('.proj-card');
             const archive = document.getElementById('completed-projects-grid');
             btn.remove();
-            card.querySelector('span').innerText = "완료됨";
-            card.className = "glass-card p-5 space-y-2 border-t-4 border-t-gray-400 bg-gray-100/50";
+            card.querySelector('.space-y-3 > div > span').innerText = "완료됨";
+            card.className = "glass-card p-5 space-y-2 border-t-4 border-t-gray-400 bg-gray-100/50 proj-card";
             archive.prepend(card);
         }
 
