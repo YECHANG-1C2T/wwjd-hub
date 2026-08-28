@@ -161,11 +161,16 @@ function forwardNarrativeToStudy() {
     const item = masterTheologyNarratives[activeNarrativeIdx];
     const content = `<h1>[역사적 질문]</h1><p>${item.question}</p><h2>[선언]</h2><p>${item.declaration}</p><p>- ${item.author} (${item.work})</p><h2>[역사적 배경]</h2><p>${item.history}</p><h2>[사역적 질문]</h2><p>${item.contemporary}</p>`;
     
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
     state.thoughts.unshift({
         id: 'th_' + Date.now(),
         cat: '신학스토리',
         stage: '숙성',
         title: `${item.author} - ${item.era}`,
+        createdAt: timeStr,
+        updatedAt: timeStr,
         content: content
     });
     renderThoughts();
@@ -256,7 +261,7 @@ let state = {
     todos: defaultTodos,
     projects: defaultProjects,
     memos: [{ id: 'm1', cat: '교회 공통', title: '하반기 목회 계획', date: '2026.08.28', content: '소그룹 모임 장소 재배치 논의 완료.' }],
-    thoughts: [{ id: 'th1', cat: '설교착상', stage: '숙성', title: '팀켈러 일과 영성', content: '<h1>소명으로서의 일터</h1><p>복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 <mark>거룩한 소명의 자리</mark>로 변화시킨다.</p>' }]
+    thoughts: [{ id: 'th1', cat: '설교착상', stage: '숙성', title: '팀켈러 일과 영성', createdAt: '2026.08.28 15:58', updatedAt: '2026.08.28 15:58', content: '<h1>소명으로서의 일터</h1><p>복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 <mark>거룩한 소명의 자리</mark>로 변화시킨다.</p>' }]
 };
 
 let currentActiveThoughtId = null;
@@ -329,7 +334,7 @@ function switchTheme(themeName, shouldSync=true) {
     if(shouldSync) syncToCloud();
 }
 
-/* 🪵 [공간 탈바꿈] 탭 전환 시 통나무집 서재(Cabin) 완벽 변신 */
+/* 🪵 [공간 탈바꿈] 탭 전환 시 산들바람 / 오일 램프 앰비언트 활성화 */
 function switchView(viewId, evt) {
     document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap");
@@ -342,12 +347,19 @@ function switchView(viewId, evt) {
     const headerBadge = document.querySelector('header span.primary-badge');
     const headerSub = document.querySelector('header span.text-xs.font-bold');
 
-    // 통나무집 전용 조명 앰비언트 주입
+    // 앰비언트 엘리먼트 주입
     let cabinGlow = document.getElementById('cabin-lamp-glow');
     if (!cabinGlow) {
         cabinGlow = document.createElement('div');
         cabinGlow.id = 'cabin-lamp-glow';
         document.body.prepend(cabinGlow);
+    }
+
+    let windShimmer = document.getElementById('forest-wind-shimmer');
+    if (!windShimmer) {
+        windShimmer = document.createElement('div');
+        windShimmer.id = 'forest-wind-shimmer';
+        document.body.prepend(windShimmer);
     }
 
     if (viewId === 'assets') {
@@ -741,7 +753,7 @@ function deleteMemo(id) {
     syncToCloud();
 }
 
-/* 생각의 서재 (폰트 스케일러, 드래그 서식, 라이브 모달, 숙성 생애주기) */
+/* 생각의 서재 (초단위 타임스탬프, 인라인 퇴고, 모달 무음 동기화) */
 function adjustThoughtZoom(delta) {
     state.thoughtZoom = Math.max(0.85, Math.min(1.4, state.thoughtZoom + delta));
     applyThoughtZoomUI();
@@ -815,18 +827,24 @@ function renderThoughts() {
         if(stage === '숙성') stageDot = '📖';
         if(stage === '결실') stageDot = '✨';
 
+        const createdText = th.createdAt || '2026.08.28 15:58';
+        const isModified = th.updatedAt && th.updatedAt !== th.createdAt;
+        const modifiedText = isModified ? `<span class="text-[9px] text-[var(--text-sub)] opacity-75 font-mono-code font-bold">· 수정 ${th.updatedAt.split(' ')[1]}</span>` : '';
+
         const div = document.createElement('div');
         div.className = "glass-card p-6 space-y-4 cursor-pointer hover:border-[var(--primary)] transition-all flex flex-col justify-between group";
         div.onclick = function() { openThoughtModal(th.id); };
         div.innerHTML = `
             <div>
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-1.5">
+                <div class="flex justify-between items-center mb-1">
+                    <div class="flex items-center gap-2 overflow-hidden">
                         <span class="bookmark-ribbon primary-badge">${stageDot} #${th.cat || '서재'}</span>
-                        <span class="text-xs font-black text-[var(--text-main)] truncate max-w-[200px]">${th.title}</span>
+                        <span class="text-[10px] font-mono-code text-[var(--text-sub)] font-bold shrink-0">${createdText}</span>
+                        ${modifiedText}
                     </div>
                     <button onclick="event.stopPropagation(); deleteThought('${th.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
                 </div>
+                <h4 contenteditable="true" onclick="event.stopPropagation()" onblur="updateCardThoughtTitle('${th.id}', this.innerText)" class="font-black text-sm text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${th.title}</h4>
                 <div class="mt-3 line-clamp-3 leading-relaxed thought-body font-medium">${th.content}</div>
             </div>
             <button class="text-xs font-bold text-[var(--text-sub)] text-left hover:text-[var(--primary)] pt-2 border-t border-[var(--border-color)]" onclick="event.stopPropagation(); forwardToSermonIdea('${th.id}')">➔ 설교 아이디어로 전송</button>
@@ -835,13 +853,28 @@ function renderThoughts() {
     });
 }
 
+function updateCardThoughtTitle(id, newTitle) {
+    if(!newTitle.trim()) return;
+    const t = state.thoughts.find(item => item.id === id);
+    if(t) {
+        t.title = newTitle.trim();
+        const now = new Date();
+        t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        renderThoughts();
+        syncToCloud();
+    }
+}
+
 function addThoughtCard() {
     const stage = document.getElementById('thought-stage-select').value;
     const title = document.getElementById('thought-title').value.trim();
     const content = document.getElementById('thought-editor-content').innerHTML.trim();
     if(!title || !content) return;
 
-    state.thoughts.unshift({ id: 'th_' + Date.now(), cat: '서재기록', stage, title, content });
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    state.thoughts.unshift({ id: 'th_' + Date.now(), cat: '서재기록', stage, title, createdAt: timeStr, updatedAt: timeStr, content });
     renderThoughts();
     syncToCloud();
     document.getElementById('thought-title').value = '';
@@ -870,6 +903,8 @@ function closeThoughtModal() {
                 t.title = titleEl.innerText.trim() || t.title;
                 t.content = contentEl.innerHTML.trim() || t.content;
                 if(stageEl) t.stage = stageEl.value;
+                const now = new Date();
+                t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
                 renderThoughts();
                 syncToCloud();
             }
@@ -882,19 +917,37 @@ function closeThoughtModal() {
 function updateModalThoughtStage(newStage) {
     if(!currentActiveThoughtId) return;
     const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
-    if(t) { t.stage = newStage; renderThoughts(); syncToCloud(); }
+    if(t) {
+        t.stage = newStage;
+        const now = new Date();
+        t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        renderThoughts();
+        syncToCloud();
+    }
 }
 
 function updateModalThoughtTitle(newTitle) {
     if(!currentActiveThoughtId || !newTitle.trim()) return;
     const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
-    if(t) { t.title = newTitle.trim(); renderThoughts(); syncToCloud(); }
+    if(t) {
+        t.title = newTitle.trim();
+        const now = new Date();
+        t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        renderThoughts();
+        syncToCloud();
+    }
 }
 
 function updateModalThoughtContent(newContent) {
     if(!currentActiveThoughtId || !newContent.trim()) return;
     const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
-    if(t) { t.content = newContent.trim(); renderThoughts(); syncToCloud(); }
+    if(t) {
+        t.content = newContent.trim();
+        const now = new Date();
+        t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        renderThoughts();
+        syncToCloud();
+    }
 }
 
 function forwardCurrentThoughtToSermon() {
@@ -908,7 +961,7 @@ function forwardToSermonIdea(id) {
     if(!thought) return;
     
     const plainText = thought.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
-    const formattedIdea = `[서재 착상: ${thought.title}]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 단계: ${thought.stage || '착상'}\n📜 본문/내용: ${plainText}`;
+    const formattedIdea = `[서재 착상: ${thought.title}]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 단계: ${thought.stage || '착상'}\n🕒 기록: ${thought.createdAt || '2026.08.28 15:58'}\n📜 본문/내용: ${plainText}`;
 
     state.memos.unshift({
         id: 'm_' + Date.now(),
