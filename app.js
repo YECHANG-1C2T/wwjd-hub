@@ -1,5 +1,5 @@
 /* ==========================================================================
-   [CORE ENGINE] Firebase 연동 및 애플리케이션 상태 관리
+   [CORE ENGINE] Firebase 연동 및 상태 관리
    ========================================================================== */
 const firebaseConfig = {
     apiKey: "AIzaSyAI5ZHYd_Mi7JogsgZAYsBERsbPMD5m544",
@@ -14,7 +14,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const appDocRef = db.collection('ministry_data').doc('master_workspace');
 
-let state = {
+window.state = {
     theme: localStorage.getItem('yc_theme') || 'forest',
     thoughtZoom: parseFloat(localStorage.getItem('yc_thought_zoom')) || 1.0,
     weekly: defaultWeekly,
@@ -25,33 +25,35 @@ let state = {
 };
 
 let currentActiveThoughtId = null;
-let activeNewsList = [...masterNaverNewsPool];
-let openAccordionId = null;
 let activeNarrativeIdx = 0;
+let liveNaverNewsList = [];
+let openAccordionId = null;
 let currentMemoCat = '전체';
 
-function syncToCloud() {
+window.syncToCloud = function() {
     const dot = document.getElementById('sync-dot');
-    if(dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
-    localStorage.setItem('yc_theme', state.theme);
-    localStorage.setItem('yc_thought_zoom', state.thoughtZoom);
-    appDocRef.set(state, { merge: true })
-        .then(() => { if(dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400"; })
-        .catch(err => { if(dot) dot.className = "w-2 h-2 rounded-full bg-red-500"; });
-}
+    if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+    localStorage.setItem('yc_theme', window.state.theme);
+    localStorage.setItem('yc_thought_zoom', window.state.thoughtZoom);
+    appDocRef.set(window.state, { merge: true })
+        .then(() => { if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400"; })
+        .catch(() => { if (dot) dot.className = "w-2 h-2 rounded-full bg-red-500"; });
+};
 
 appDocRef.onSnapshot((doc) => {
     if (doc.exists) {
         const data = doc.data();
-        if(data.weekly) state.weekly = data.weekly;
-        if(data.todos) state.todos = data.todos;
-        if(data.projects) state.projects = data.projects;
-        if(data.memos) state.memos = data.memos;
-        if(data.thoughts) state.thoughts = data.thoughts;
-        if(data.theme) state.theme = data.theme;
-        if(data.thoughtZoom) state.thoughtZoom = data.thoughtZoom;
-        switchTheme(state.theme, false);
-        applyThoughtZoomUI();
+        if (data.weekly) window.state.weekly = data.weekly;
+        if (data.todos) window.state.todos = data.todos;
+        if (data.projects) window.state.projects = data.projects;
+        if (data.memos) window.state.memos = data.memos;
+        if (data.thoughts) window.state.thoughts = data.thoughts;
+        if (data.theme) window.state.theme = data.theme;
+        if (data.thoughtZoom) window.state.thoughtZoom = data.thoughtZoom;
+
+        if (typeof switchTheme === 'function') switchTheme(window.state.theme, false);
+        if (typeof applyThoughtZoomUI === 'function') applyThoughtZoomUI();
+
         renderWeeklyGrid();
         renderTodos();
         renderHomeTodos();
@@ -62,7 +64,7 @@ appDocRef.onSnapshot((doc) => {
 });
 
 /* ==========================================================================
-   [WEATHER & CLOCK] 노르웨이 기상청 수치예보 및 글로벌 시계
+   [WEATHER & CLOCK]
    ========================================================================== */
 function interpretWMO(code) {
     if (code === 0) return { text: "맑음", icon: "☀️" };
@@ -82,12 +84,12 @@ async function fetchLiveWeatherAPI(manual = false) {
         icon.classList.add('rotate-anim');
     }
     try {
-        const [resBundang, resGwangju] = await Promise.all([
+        const [resB, resG] = await Promise.all([
             fetch('https://api.open-meteo.com/v1/forecast?latitude=37.3827&longitude=127.1189&current=temperature_2m,weather_code&models=ecmwf_ifs&timezone=Asia%2FSeoul'),
             fetch('https://api.open-meteo.com/v1/forecast?latitude=37.4089&longitude=127.2564&current=temperature_2m,weather_code&models=ecmwf_ifs&timezone=Asia%2FSeoul')
         ]);
-        const dataB = await resBundang.json();
-        const dataG = await resGwangju.json();
+        const dataB = await resB.json();
+        const dataG = await resG.json();
         const tempB = Math.round(dataB.current.temperature_2m);
         const wB = interpretWMO(dataB.current.weather_code);
         const tempG = Math.round(dataG.current.temperature_2m);
@@ -124,97 +126,18 @@ function updateHeroClock() {
     document.getElementById('hero-clock').innerText = timeStr;
     document.getElementById('hero-date').innerText = dateStr;
     document.getElementById('global-header-clock').innerText = timeStr;
-    
+
     const shortToday = `${month}.${day} (${days[now.getDay()]})`;
     const homeTodayEl = document.getElementById('home-today-date-text');
     const calTodayEl = document.getElementById('calendar-today-date-text');
-    if(homeTodayEl) homeTodayEl.innerText = shortToday;
-    if(calTodayEl) calTodayEl.innerText = shortToday;
+    if (homeTodayEl) homeTodayEl.innerText = shortToday;
+    if (calTodayEl) calTodayEl.innerText = shortToday;
 }
 setInterval(updateHeroClock, 1000);
 updateHeroClock();
 
 /* ==========================================================================
-   [THEME & VIEW SWITCHER] 3대 테마 및 통나무집 서재 공간 전환
-   ========================================================================== */
-function switchTheme(themeName, shouldSync=true) {
-    state.theme = themeName;
-    const isStudy = document.getElementById('view-assets')?.classList.contains('active');
-    document.body.className = 'theme-' + themeName + (isStudy ? ' in-study-room' : '') + ' selection:bg-[var(--primary)] selection:text-[var(--primary-text)]';
-
-    ['burgundy', 'cosmic', 'forest'].forEach(t => {
-        const btn = document.getElementById('btn-theme-' + t);
-        if(btn) {
-            if(t === themeName) btn.className = "px-3 py-1 rounded-full font-bold text-[11px] transition-all theme-btn-active";
-            else { btn.className = "px-3 py-1 rounded-full font-bold text-[11px] transition-all text-[var(--text-sub)] hover:text-[var(--primary)]"; btn.style.backgroundColor = 'transparent'; }
-        }
-    });
-
-    const heroBadge = document.querySelector('.furnace-hero span.tracking-widest');
-    const heroDesc = document.querySelector('.furnace-hero p.text-xs');
-    const heroContainer = document.querySelector('.furnace-hero');
-
-    if(heroContainer) {
-        let aurora = heroContainer.querySelector('.forest-aurora-glow');
-        if (!aurora) {
-            aurora = document.createElement('div');
-            aurora.className = 'forest-aurora-glow';
-            heroContainer.prepend(aurora);
-        }
-    }
-
-    if (themeName === 'forest') {
-        if(heroBadge) heroBadge.innerText = "🍃 Sabbath & Sanctuary Forest";
-        if(heroDesc) heroDesc.innerText = "“푸른 풀밭과 쉴 만한 물가, 영혼을 소생시키시는 고요한 안식의 숲”";
-    } else {
-        if(heroBadge) heroBadge.innerText = "Spiritual Furnace Control Tower";
-        if(heroDesc) heroDesc.innerText = "“하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라”";
-    }
-
-    if(shouldSync) syncToCloud();
-}
-
-function switchView(viewId, evt) {
-    document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('.nav-tab').forEach(t => t.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap");
-    document.getElementById('view-' + viewId).classList.add('active');
-    
-    if(evt && evt.currentTarget) {
-        evt.currentTarget.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs";
-    }
-
-    const headerBadge = document.querySelector('header span.primary-badge');
-    const headerSub = document.querySelector('header span.text-xs.font-bold');
-
-    let cabinGlow = document.getElementById('cabin-lamp-glow');
-    if (!cabinGlow) {
-        cabinGlow = document.createElement('div');
-        cabinGlow.id = 'cabin-lamp-glow';
-        document.body.prepend(cabinGlow);
-    }
-
-    let windShimmer = document.getElementById('forest-wind-shimmer');
-    if (!windShimmer) {
-        windShimmer = document.createElement('div');
-        windShimmer.id = 'forest-wind-shimmer';
-        document.body.prepend(windShimmer);
-    }
-
-    if (viewId === 'assets') {
-        document.body.classList.add('in-study-room');
-        if(headerBadge) headerBadge.innerText = "🕯️ THE CABIN SANCTUARY";
-        if(headerSub) headerSub.innerText = "사역의 소음을 멈추고 말씀과 사색에 머무는 깊은 숲속 서재";
-    } else {
-        document.body.classList.remove('in-study-room');
-        if(headerBadge) headerBadge.innerText = "Control Center";
-        if(headerSub) headerSub.innerText = "예수를 닮아가는 남편, 아빠, 목사 '임예창'";
-    }
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-/* ==========================================================================
-   [THEOLOGY & NEWS] 교회사 내러티브 & 네이버 뉴스 브리프
+   [TODAY REFLECTION & LIVE NEWS]
    ========================================================================== */
 function initTheologyNarrative() {
     const now = new Date();
@@ -254,7 +177,7 @@ function forwardNarrativeToStudy() {
     const now = new Date();
     const timeStr = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-    state.thoughts.unshift({
+    window.state.thoughts.unshift({
         id: 'th_' + Date.now(),
         cat: '신학스토리',
         stage: '숙성',
@@ -264,21 +187,69 @@ function forwardNarrativeToStudy() {
         content: content
     });
     renderThoughts();
-    syncToCloud();
+    window.syncToCloud();
     closeModal('theology-detail-modal');
+}
+
+async function fetchLiveNaverNews(manual = false) {
+    const icon = document.getElementById('news-refresh-icon');
+    if (icon && manual) {
+        icon.classList.remove('rotate-anim');
+        void icon.offsetWidth;
+        icon.classList.add('rotate-anim');
+    }
+    try {
+        const targetRss = encodeURIComponent('https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko');
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${targetRss}`);
+        const data = await res.json();
+        if (data && data.items && data.items.length > 0) {
+            const cats = ['정치·정책', '사회·이슈', '노동·경제', 'IT·테크', '생활·교통', '연예·문화', '스포츠·건강', '국제·외교'];
+            liveNaverNewsList = data.items.slice(0, 8).map((item, idx) => {
+                const rawTitle = item.title.replace(/<[^>]*>?/gm, '').trim();
+                const parts = rawTitle.split(' - ');
+                return {
+                    id: 'live_n_' + idx,
+                    cat: cats[idx % cats.length],
+                    title: parts[0],
+                    source: parts[1] || '네이버 뉴스',
+                    url: item.link,
+                    summary: [`실시간 헤드라인: ${parts[0]}`, `출처 매체: ${parts[1] || '뉴스 포털'}`]
+                };
+            });
+        }
+    } catch (e) {}
+    renderNewsAccordion();
 }
 
 function renderNewsAccordion() {
     const container = document.getElementById('news-accordion-container');
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
+    const list = (liveNaverNewsList.length > 0) ? liveNaverNewsList : [
+        { id: 'n1', cat: '사회·정책', title: '1인 가구 청년 고립 방지 맞춤형 안전망 전국 확대', source: '네이버 뉴스', url: 'https://news.naver.com', summary: ['청년 지원 프로그램 가동'] }
+    ];
 
-    activeNewsList.forEach(item => {
+    list.forEach(item => {
         const isOpen = openAccordionId === item.id;
         const div = document.createElement('div');
         div.className = "bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl overflow-hidden transition-all shadow-xs";
-        let summaryHtml = isOpen ? `<div class="px-4 pb-4 pt-2 border-t border-[var(--border-color)] bg-[var(--primary-light)] space-y-2 text-xs"><span class="font-bold text-[var(--primary)] block">🔥 실시간 3줄 핵심 요약:</span><ul class="list-disc list-inside space-y-1 text-[var(--text-main)] font-medium">${item.summary.map(s => `<li>${s}</li>`).join('')}</ul></div>` : '';
-        div.innerHTML = `<div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-[var(--primary-light)] transition-colors" onclick="toggleNewsAccordion('${item.id}')"><div class="flex items-center gap-2.5 overflow-hidden flex-1 mr-2"><span class="text-[10px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full shrink-0">${item.cat}</span><h4 class="text-xs sm:text-sm font-bold text-[var(--text-main)] truncate">${item.title}</h4></div><div class="flex items-center gap-3 shrink-0"><a href="${item.url}" target="_blank" onclick="event.stopPropagation()" class="text-[10px] font-mono-code text-[var(--text-sub)] hover:text-[var(--primary)] font-bold flex items-center gap-0.5"><span>${item.source}</span><span>↗</span></a><span class="text-xs text-[var(--text-sub)] font-bold transition-transform ${isOpen ? 'rotate-180' : ''}">▼</span></div></div>${summaryHtml}`;
+        let summaryHtml = isOpen ? `
+            <div class="px-4 pb-4 pt-2 border-t border-[var(--border-color)] bg-[var(--primary-light)] space-y-2 text-xs">
+                <span class="font-bold text-[var(--primary)] block">🔥 실시간 헤드라인 브리프:</span>
+                <ul class="list-disc list-inside space-y-1 text-[var(--text-main)] font-medium">${item.summary.map(s => `<li>${s}</li>`).join('')}</ul>
+            </div>` : '';
+
+        div.innerHTML = `
+            <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-[var(--primary-light)] transition-colors" onclick="toggleNewsAccordion('${item.id}')">
+                <div class="flex items-center gap-2.5 overflow-hidden flex-1 mr-2">
+                    <span class="text-[10px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full shrink-0">${item.cat}</span>
+                    <h4 class="text-xs sm:text-sm font-bold text-[var(--text-main)] truncate">${item.title}</h4>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <a href="${item.url}" target="_blank" onclick="event.stopPropagation()" class="text-[10px] font-mono-code text-[var(--text-sub)] hover:text-[var(--primary)] font-bold"><span>${item.source} ↗</span></a>
+                    <span class="text-xs text-[var(--text-sub)] font-bold transition-transform ${isOpen ? 'rotate-180' : ''}">▼</span>
+                </div>
+            </div>${summaryHtml}`;
         container.appendChild(div);
     });
 }
@@ -288,23 +259,16 @@ function toggleNewsAccordion(id) {
     renderNewsAccordion();
 }
 
-function refreshNaverNews(manual=false) {
-    const icon = document.getElementById('news-refresh-icon');
-    if(icon && manual) {
-        icon.classList.remove('rotate-anim');
-        void icon.offsetWidth;
-        icon.classList.add('rotate-anim');
-    }
-    activeNewsList = [...masterNaverNewsPool].sort(() => Math.random() - 0.5);
-    renderNewsAccordion();
+function refreshNaverNews(manual = false) {
+    fetchLiveNaverNews(manual);
 }
 
 /* ==========================================================================
-   [SCHEDULE & TODOS] 주간 일정표 및 오늘의 걸음
+   [SCHEDULE, TODOS, PROJECTS & MEMOS]
    ========================================================================== */
 function renderWeeklyGrid() {
     const container = document.getElementById('weekly-grid-view');
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
     const daysInfo = [
         { key: 'mon', name: '월', date: '8.24' }, { key: 'tue', name: '화', date: '8.25' },
@@ -317,7 +281,7 @@ function renderWeeklyGrid() {
         const dayBox = document.createElement('div');
         dayBox.className = `bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full ${d.isToday ? 'border-2 border-[var(--primary)] shadow-sm' : 'border border-[var(--border-color)]'}`;
         let schedHtml = '';
-        (state.weekly[d.key] || []).sort((a,b)=>a.time.localeCompare(b.time)).forEach(item => {
+        (window.state.weekly[d.key] || []).sort((a,b)=>a.time.localeCompare(b.time)).forEach(item => {
             schedHtml += `
                 <div class="bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] leading-snug group relative">
                     <div class="flex justify-between items-start">
@@ -335,28 +299,28 @@ function renderWeeklyGrid() {
 function addQuickScheduleFromHome() {
     const day = document.getElementById('quick-sched-day').value;
     const inputVal = document.getElementById('quick-sched-input').value.trim();
-    if(!inputVal) return;
+    if (!inputVal) return;
     let time = "10:00", text = inputVal;
     const parts = inputVal.split(' ');
-    if(parts.length > 1 && parts[0].includes(':')) { time = parts[0]; text = parts.slice(1).join(' '); }
+    if (parts.length > 1 && parts[0].includes(':')) { time = parts[0]; text = parts.slice(1).join(' '); }
 
-    state.weekly[day] = state.weekly[day] || [];
-    state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
+    window.state.weekly[day] = window.state.weekly[day] || [];
+    window.state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
 
     if (day === 'fri') {
         let inferredCat = '사역';
-        if(text.includes('심방')) inferredCat = '심방';
-        else if(text.includes('회의')) inferredCat = '회의';
-        else if(text.includes('가정')) inferredCat = '가정';
-        state.todos.push({ id: 't_' + Date.now(), time, cat: inferredCat, text, status: '진행' });
+        if (text.includes('심방')) inferredCat = '심방';
+        else if (text.includes('회의')) inferredCat = '회의';
+        else if (text.includes('가정')) inferredCat = '가정';
+        window.state.todos.push({ id: 't_' + Date.now(), time, cat: inferredCat, text, status: '진행' });
     }
-    renderWeeklyGrid(); renderTodos(); renderHomeTodos(); syncToCloud();
+    renderWeeklyGrid(); renderTodos(); renderHomeTodos(); window.syncToCloud();
     document.getElementById('quick-sched-input').value = '';
 }
 
 function deleteWeekly(day, id) {
-    state.weekly[day] = state.weekly[day].filter(i => i.id !== id);
-    renderWeeklyGrid(); syncToCloud();
+    window.state.weekly[day] = window.state.weekly[day].filter(i => i.id !== id);
+    renderWeeklyGrid(); window.syncToCloud();
 }
 
 function openGoogleCalendar() {
@@ -366,11 +330,11 @@ function openGoogleCalendar() {
 function renderHomeTodos() {
     const container = document.getElementById('home-todo-preview');
     const badge = document.getElementById('home-todo-badge');
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
-    const pending = state.todos.filter(t => t.status === '진행');
-    if(badge) badge.innerText = pending.length;
-    if(pending.length === 0) {
+    const pending = window.state.todos.filter(t => t.status === '진행');
+    if (badge) badge.innerText = pending.length;
+    if (pending.length === 0) {
         container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-1">등록된 걸음이 없습니다.</p>`;
         return;
     }
@@ -384,9 +348,9 @@ function renderHomeTodos() {
 
 function renderTodos() {
     const container = document.getElementById('todo-checklist-container');
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
-    state.todos.forEach(item => {
+    window.state.todos.forEach(item => {
         const div = document.createElement('div');
         div.className = "p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between group";
         div.innerHTML = `
@@ -411,33 +375,30 @@ function addTodoInline() {
     const time = document.getElementById('todo-time-input').value || '10:00';
     const cat = document.getElementById('todo-cat-select').value;
     const text = document.getElementById('todo-input-bar').value.trim();
-    if(!text) return;
-    state.todos.push({ id: 't_' + Date.now(), time, cat, text, status: '진행' });
-    renderTodos(); syncToCloud();
+    if (!text) return;
+    window.state.todos.push({ id: 't_' + Date.now(), time, cat, text, status: '진행' });
+    renderTodos(); window.syncToCloud();
     document.getElementById('todo-input-bar').value = '';
 }
 
 function updateTodoStatus(id, status) {
-    const t = state.todos.find(item => item.id === id);
-    if(t) { t.status = status; renderTodos(); syncToCloud(); }
+    const t = window.state.todos.find(item => item.id === id);
+    if (t) { t.status = status; renderTodos(); window.syncToCloud(); }
 }
 
 function deleteTodo(id) {
-    state.todos = state.todos.filter(t => t.id !== id);
-    renderTodos(); syncToCloud();
+    window.state.todos = window.state.todos.filter(t => t.id !== id);
+    renderTodos(); window.syncToCloud();
 }
 
-/* ==========================================================================
-   [PROJECTS & MEMOS] 사역현황 및 회의록
-   ========================================================================== */
 function renderProjects() {
     const activeGrid = document.getElementById('active-projects-grid');
     const completedGrid = document.getElementById('completed-projects-grid');
-    if(!activeGrid || !completedGrid) return;
+    if (!activeGrid || !completedGrid) return;
     activeGrid.innerHTML = ''; completedGrid.innerHTML = '';
 
-    const activeProjects = state.projects.filter(p => !p.completed);
-    const completedProjects = state.projects.filter(p => p.completed);
+    const activeProjects = window.state.projects.filter(p => !p.completed);
+    const completedProjects = window.state.projects.filter(p => p.completed);
     let totalRates = 0;
 
     activeProjects.forEach(p => {
@@ -496,80 +457,80 @@ function renderProjects() {
 
     const overallRate = activeProjects.length > 0 ? Math.round(totalRates / activeProjects.length) : 100;
     const overallBadge = document.getElementById('proj-overall-progress');
-    if(overallBadge) overallBadge.innerText = `진척도 ${overallRate}%`;
+    if (overallBadge) overallBadge.innerText = `진척도 ${overallRate}%`;
 }
 
 function addNewProject() {
     const title = prompt("새 사역 프로젝트 명칭:");
-    if(!title) return;
-    state.projects.push({ id: 'p_' + Date.now(), title, start: '2026.08.28', end: '2026.09.10', completed: false, subtasks: [{ id: 'st_' + Date.now(), text: '초기 기획 수립', done: false }] });
-    renderProjects(); syncToCloud();
+    if (!title) return;
+    window.state.projects.push({ id: 'p_' + Date.now(), title, start: '2026.08.28', end: '2026.09.10', completed: false, subtasks: [{ id: 'st_' + Date.now(), text: '초기 기획 수립', done: false }] });
+    renderProjects(); window.syncToCloud();
 }
 
 function handleSubTaskEnter(projectId, inputEl, event) {
     if (event.key === 'Enter' && !event.isComposing) {
         const text = inputEl.value.trim();
-        if(!text) return;
-        const p = state.projects.find(item => item.id === projectId);
-        if(p) {
+        if (!text) return;
+        const p = window.state.projects.find(item => item.id === projectId);
+        if (p) {
             p.subtasks.push({ id: 'st_' + Date.now(), text, done: false });
             inputEl.value = '';
-            renderProjects(); syncToCloud();
+            renderProjects(); window.syncToCloud();
         }
     }
 }
 
 function updateSubTaskText(projectId, subtaskId, newText) {
-    const p = state.projects.find(item => item.id === projectId);
-    if(p) {
+    const p = window.state.projects.find(item => item.id === projectId);
+    if (p) {
         const st = p.subtasks.find(s => s.id === subtaskId);
-        if(st && newText.trim()) { st.text = newText.trim(); syncToCloud(); }
+        if (st && newText.trim()) { st.text = newText.trim(); window.syncToCloud(); }
     }
 }
 
 function updateProjectTitle(projectId, newTitle) {
-    const p = state.projects.find(item => item.id === projectId);
-    if(p && newTitle.trim()) { p.title = newTitle.trim(); syncToCloud(); }
+    const p = window.state.projects.find(item => item.id === projectId);
+    if (p && newTitle.trim()) { p.title = newTitle.trim(); window.syncToCloud(); }
 }
 
 function toggleSubTask(projectId, subtaskId) {
-    const p = state.projects.find(item => item.id === projectId);
-    if(p) {
+    const p = window.state.projects.find(item => item.id === projectId);
+    if (p) {
         const st = p.subtasks.find(s => s.id === subtaskId);
-        if(st) { st.done = !st.done; renderProjects(); syncToCloud(); }
+        if (st) { st.done = !st.done; renderProjects(); window.syncToCloud(); }
     }
 }
 
 function deleteSubTask(projectId, subtaskId) {
-    const p = state.projects.find(item => item.id === projectId);
-    if(p) {
+    const p = window.state.projects.find(item => item.id === projectId);
+    if (p) {
         p.subtasks = p.subtasks.filter(s => s.id !== subtaskId);
-        renderProjects(); syncToCloud();
+        renderProjects(); window.syncToCloud();
     }
 }
 
 function toggleProjectComplete(id) {
-    const p = state.projects.find(item => item.id === id);
-    if(p) { p.completed = !p.completed; renderProjects(); syncToCloud(); }
+    const p = window.state.projects.find(item => item.id === id);
+    if (p) { p.completed = !p.completed; renderProjects(); window.syncToCloud(); }
 }
 
 function deleteProject(id) {
-    if(confirm("이 사역을 삭제하시겠습니까?")) {
-        state.projects = state.projects.filter(p => p.id !== id);
-        renderProjects(); syncToCloud();
+    if (confirm("이 사역을 삭제하시겠습니까?")) {
+        window.state.projects = window.state.projects.filter(p => p.id !== id);
+        renderProjects(); window.syncToCloud();
     }
 }
 
 function renderMemos() {
     const list = document.getElementById('memo-archive-list');
-    if(!list) return;
+    if (!list) return;
     list.innerHTML = '';
     const query = (document.getElementById('memo-search-input')?.value || '').toLowerCase();
 
-    state.memos.forEach(m => {
+    window.state.memos.forEach(m => {
         const matchCat = (currentMemoCat === '전체' || m.cat === currentMemoCat);
         const matchQuery = !query || m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query);
-        if(!matchCat || !matchQuery) return;
+        if (!matchCat || !matchQuery) return;
 
         const div = document.createElement('div');
         div.className = "p-5 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl shadow-xs space-y-1 group";
@@ -591,9 +552,9 @@ function saveTodayMemo() {
     const cat = document.getElementById('memo-cat-select').value;
     const title = document.getElementById('memo-title-input').value.trim() || '회의 및 사역 메모';
     const content = document.getElementById('today-memo-input').value.trim();
-    if(!content) return;
-    state.memos.unshift({ id: 'm_' + Date.now(), cat, title, date: '2026.08.28', content });
-    renderMemos(); syncToCloud();
+    if (!content) return;
+    window.state.memos.unshift({ id: 'm_' + Date.now(), cat, title, date: '2026.08.28', content });
+    renderMemos(); window.syncToCloud();
     document.getElementById('memo-title-input').value = '';
     document.getElementById('today-memo-input').value = '';
 }
@@ -601,7 +562,7 @@ function saveTodayMemo() {
 function filterMemoCat(cat) {
     currentMemoCat = cat;
     document.querySelectorAll('#memo-cat-filter .memo-filter-btn').forEach(btn => {
-        if((cat==='전체' && btn.innerText==='전체보기') || btn.innerText === cat) {
+        if ((cat==='전체' && btn.innerText==='전체보기') || btn.innerText === cat) {
             btn.className = "memo-filter-btn px-4 py-2 rounded-full text-xs font-black primary-badge whitespace-nowrap";
         } else {
             btn.className = "memo-filter-btn px-4 py-2 rounded-full text-xs font-bold text-[var(--text-sub)] bg-[var(--primary-light)] whitespace-nowrap";
@@ -611,52 +572,13 @@ function filterMemoCat(cat) {
 }
 
 function deleteMemo(id) {
-    state.memos = state.memos.filter(m => m.id !== id);
-    renderMemos(); syncToCloud();
+    window.state.memos = window.state.memos.filter(m => m.id !== id);
+    renderMemos(); window.syncToCloud();
 }
 
 /* ==========================================================================
-   [STUDY ROOM] 생각의 서재 (타임스탬프, 인라인 퇴고, 모달 무음 동기화)
+   [STUDY ROOM ARCHIVE & MODAL]
    ========================================================================== */
-function adjustThoughtZoom(delta) {
-    state.thoughtZoom = Math.max(0.85, Math.min(1.4, state.thoughtZoom + delta));
-    applyThoughtZoomUI(); syncToCloud();
-}
-
-function applyThoughtZoomUI() {
-    document.documentElement.style.setProperty('--thought-zoom', state.thoughtZoom);
-    const ind = document.getElementById('font-scale-indicator');
-    if(ind) ind.innerText = `${Math.round(state.thoughtZoom * 100)}%`;
-}
-
-function checkSelection() {
-    const sel = window.getSelection();
-    const toolbar = document.getElementById('selection-toolbar');
-    if (!sel.isCollapsed && sel.toString().trim().length > 0) {
-        const range = sel.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        toolbar.style.top = `${window.scrollY + rect.top - 42}px`;
-        toolbar.style.left = `${window.scrollX + rect.left + (rect.width / 2) - 100}px`;
-        toolbar.style.display = 'flex';
-    } else {
-        toolbar.style.display = 'none';
-    }
-}
-
-function formatSelection(command, value = null) {
-    document.execCommand(command, false, value);
-    document.getElementById('selection-toolbar').style.display = 'none';
-}
-
-function handleEditorInstantMarkdown(el, event) {
-    if (event.key === ' ') {
-        const text = el.innerText;
-        if (text.startsWith('# ')) document.execCommand('formatBlock', false, '<h1>');
-        else if (text.startsWith('## ')) document.execCommand('formatBlock', false, '<h2>');
-        else if (text.startsWith('> ')) document.execCommand('formatBlock', false, '<blockquote>');
-    }
-}
-
 function applyThoughtTemplate(type) {
     const titleInput = document.getElementById('thought-title');
     const editor = document.getElementById('thought-editor-content');
@@ -677,14 +599,14 @@ function applyThoughtTemplate(type) {
 
 function renderThoughts() {
     const grid = document.getElementById('thought-card-grid');
-    if(!grid) return;
+    if (!grid) return;
     grid.innerHTML = '';
 
-    state.thoughts.forEach(th => {
+    window.state.thoughts.forEach(th => {
         const stage = th.stage || '착상';
         let stageDot = '🌱';
-        if(stage === '숙성') stageDot = '📖';
-        if(stage === '결실') stageDot = '✨';
+        if (stage === '숙성') stageDot = '📖';
+        if (stage === '결실') stageDot = '✨';
 
         const createdText = th.createdAt || '2026.08.28 15:58';
         const isModified = th.updatedAt && th.updatedAt !== th.createdAt;
@@ -713,13 +635,13 @@ function renderThoughts() {
 }
 
 function updateCardThoughtTitle(id, newTitle) {
-    if(!newTitle.trim()) return;
-    const t = state.thoughts.find(item => item.id === id);
-    if(t) {
+    if (!newTitle.trim()) return;
+    const t = window.state.thoughts.find(item => item.id === id);
+    if (t) {
         t.title = newTitle.trim();
         const now = new Date();
         t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        renderThoughts(); syncToCloud();
+        renderThoughts(); window.syncToCloud();
     }
 }
 
@@ -727,20 +649,20 @@ function addThoughtCard() {
     const stage = document.getElementById('thought-stage-select').value;
     const title = document.getElementById('thought-title').value.trim();
     const content = document.getElementById('thought-editor-content').innerHTML.trim();
-    if(!title || !content) return;
+    if (!title || !content) return;
     const now = new Date();
     const timeStr = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-    state.thoughts.unshift({ id: 'th_' + Date.now(), cat: '서재기록', stage, title, createdAt: timeStr, updatedAt: timeStr, content });
-    renderThoughts(); syncToCloud();
+    window.state.thoughts.unshift({ id: 'th_' + Date.now(), cat: '서재기록', stage, title, createdAt: timeStr, updatedAt: timeStr, content });
+    renderThoughts(); window.syncToCloud();
     document.getElementById('thought-title').value = '';
     document.getElementById('thought-editor-content').innerHTML = '';
 }
 
 function openThoughtModal(id) {
     currentActiveThoughtId = id;
-    const thought = state.thoughts.find(t => t.id === id);
-    if(!thought) return;
+    const thought = window.state.thoughts.find(t => t.id === id);
+    if (!thought) return;
     document.getElementById('modal-tag').innerText = `#${thought.cat || '서재'}`;
     document.getElementById('modal-thought-stage-select').value = thought.stage || '착상';
     document.getElementById('modal-thought-title').innerText = thought.title;
@@ -749,19 +671,19 @@ function openThoughtModal(id) {
 }
 
 function closeThoughtModal() {
-    if(currentActiveThoughtId) {
+    if (currentActiveThoughtId) {
         const titleEl = document.getElementById('modal-thought-title');
         const contentEl = document.getElementById('modal-text');
         const stageEl = document.getElementById('modal-thought-stage-select');
-        if(titleEl && contentEl) {
-            const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
-            if(t) {
+        if (titleEl && contentEl) {
+            const t = window.state.thoughts.find(item => item.id === currentActiveThoughtId);
+            if (t) {
                 t.title = titleEl.innerText.trim() || t.title;
                 t.content = contentEl.innerHTML.trim() || t.content;
-                if(stageEl) t.stage = stageEl.value;
+                if (stageEl) t.stage = stageEl.value;
                 const now = new Date();
                 t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-                renderThoughts(); syncToCloud();
+                renderThoughts(); window.syncToCloud();
             }
         }
     }
@@ -770,72 +692,44 @@ function closeThoughtModal() {
 }
 
 function updateModalThoughtStage(newStage) {
-    if(!currentActiveThoughtId) return;
-    const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
-    if(t) {
+    if (!currentActiveThoughtId) return;
+    const t = window.state.thoughts.find(item => item.id === currentActiveThoughtId);
+    if (t) {
         t.stage = newStage;
         const now = new Date();
         t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        renderThoughts(); syncToCloud();
+        renderThoughts(); window.syncToCloud();
     }
-}
-
-function updateModalThoughtTitle(newTitle) {
-    if(!currentActiveThoughtId || !newTitle.trim()) return;
-    const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
-    if(t) {
-        t.title = newTitle.trim();
-        const now = new Date();
-        t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        renderThoughts(); syncToCloud();
-    }
-}
-
-function updateModalThoughtContent(newContent) {
-    if(!currentActiveThoughtId || !newContent.trim()) return;
-    const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
-    if(t) {
-        t.content = newContent.trim();
-        const now = new Date();
-        t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        renderThoughts(); syncToCloud();
-    }
-}
-
-function forwardCurrentThoughtToSermon() {
-    if(!currentActiveThoughtId) return;
-    forwardToSermonIdea(currentActiveThoughtId);
-    closeThoughtModal();
 }
 
 function forwardToSermonIdea(id) {
-    const thought = state.thoughts.find(t => t.id === id);
-    if(!thought) return;
+    const thought = window.state.thoughts.find(t => t.id === id);
+    if (!thought) return;
     const plainText = thought.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
     const formattedIdea = `[서재 착상: ${thought.title}]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 단계: ${thought.stage || '착상'}\n🕒 기록: ${thought.createdAt || '2026.08.28 15:58'}\n📜 본문/내용: ${plainText}`;
 
-    state.memos.unshift({
+    window.state.memos.unshift({
         id: 'm_' + Date.now(),
         cat: '설교 아이디어',
         title: `[서재 착상] ${thought.title}`,
         date: '2026.08.28',
         content: formattedIdea
     });
-    renderMemos(); syncToCloud();
+    renderMemos(); window.syncToCloud();
 }
 
 function deleteThought(id) {
-    state.thoughts = state.thoughts.filter(t => t.id !== id);
-    renderThoughts(); syncToCloud();
+    window.state.thoughts = window.state.thoughts.filter(t => t.id !== id);
+    renderThoughts(); window.syncToCloud();
 }
 
 function openFabModal() { document.getElementById('fab-modal').classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 function submitFab() {
     const text = document.getElementById('fab-input').value.trim();
-    if(!text) return;
-    state.todos.push({ id: 't_' + Date.now(), time: '12:00', cat: '사역', text, status: '진행' });
-    renderTodos(); syncToCloud();
+    if (!text) return;
+    window.state.todos.push({ id: 't_' + Date.now(), time: '12:00', cat: '사역', text, status: '진행' });
+    renderTodos(); window.syncToCloud();
     closeModal('fab-modal');
 }
 
@@ -843,10 +737,10 @@ function submitFab() {
    [INITIALIZATION]
    ========================================================================== */
 initTheologyNarrative();
-renderNewsAccordion();
+fetchLiveNaverNews();
 renderWeeklyGrid();
-switchTheme(state.theme, false);
-applyThoughtZoomUI();
+if (typeof switchTheme === 'function') switchTheme(window.state.theme, false);
+if (typeof applyThoughtZoomUI === 'function') applyThoughtZoomUI();
 renderTodos();
 renderHomeTodos();
 renderProjects();
