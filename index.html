@@ -113,7 +113,7 @@
         }
         .modal-overlay.show { display: flex; }
         .modal-content {
-            background: var(--card-bg); border-radius: 24px; padding: 28px; max-width: 620px; width: 92%;
+            background: var(--card-bg); border-radius: 24px; padding: 28px; max-width: 640px; width: 92%;
             box-shadow: 0 30px 60px rgba(0,0,0,0.4); border: 1px solid var(--border-color);
         }
 
@@ -128,25 +128,48 @@
         .fab-btn:hover { transform: scale(1.08); }
         @media (min-width: 768px) { .fab-btn { bottom: 40px; right: 40px; } }
 
+        /* 생각의 서재 드래그 플로팅 버블 툴바 */
+        #selection-toolbar {
+            position: absolute; display: none; z-index: 80;
+            background: rgba(15, 12, 28, 0.94); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 12px;
+            padding: 4px 6px; gap: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #selection-toolbar button {
+            color: #ffffff; font-size: 11px; font-weight: 800; padding: 4px 8px;
+            border-radius: 6px; transition: background 0.15s;
+        }
+        #selection-toolbar button:hover { background: var(--primary); color: var(--primary-text); }
+
+        /* 생각의 서재 본문 서식용 */
+        .thought-body h1 { font-size: 1.25rem; font-weight: 900; color: var(--text-main); margin: 0.5rem 0 0.25rem 0; }
+        .thought-body h2 { font-size: 1.05rem; font-weight: 800; color: var(--primary); margin: 0.4rem 0 0.2rem 0; }
+        .thought-body mark { background: rgba(255, 214, 0, 0.3); color: inherit; padding: 0 4px; border-radius: 4px; }
+
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
     </style>
 </head>
 <body class="theme-forest selection:bg-[var(--primary)] selection:text-[var(--primary-text)]">
 
-    <!-- 상단 헤더 -->
+    <!-- 상단 헤더 (전체 화면 공통: 상시 상황 인식 바 포함) -->
     <header class="bg-[var(--nav-bg)] backdrop-blur-2xl border-b border-[var(--border-color)] px-4 md:px-10 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-xs transition-colors duration-300">
-        <div class="flex items-center gap-3 md:gap-6">
+        <div class="flex items-center gap-3 md:gap-5">
             <span class="text-[10px] md:text-xs font-mono-code font-black tracking-widest uppercase primary-badge px-3.5 py-1.5 rounded-full shadow-xs">Control Center</span>
-            <div class="h-4 w-[1px] bg-[var(--border-color)] hidden md:block"></div>
-            <span class="text-xs font-bold text-[var(--text-sub)]">예수를 닮아가는 남편, 아빠, 목사 '임예창'</span>
+            <div class="h-4 w-[1px] bg-[var(--border-color)] hidden sm:block"></div>
+            <span class="text-xs font-bold text-[var(--text-sub)] hidden lg:inline">예수를 닮아가는 남편, 아빠, 목사 '임예창'</span>
         </div>
-        <div class="flex items-center gap-2 md:gap-4 text-xs">
-            <div id="cloud-sync-status" class="bg-[var(--card-bg)] px-3 py-1.5 rounded-full border border-[var(--border-color)] text-[var(--text-sub)] flex items-center gap-1.5 font-bold">
-                <span class="w-2 h-2 rounded-full bg-emerald-400" id="sync-dot"></span>
-                <span id="sync-text">동기화 완료</span>
+
+        <!-- 글로벌 상황 인식 (모든 메뉴 상시 고정) -->
+        <div class="flex items-center gap-2 md:gap-4 text-xs font-mono-code font-bold text-[var(--text-main)]">
+            <div class="bg-[var(--card-bg)] px-3 py-1.5 rounded-full border border-[var(--border-color)] flex items-center gap-2 shadow-2xs">
+                <span id="global-header-clock" class="text-[var(--primary)] font-black">00:00:00</span>
+                <span class="text-[var(--text-sub)] opacity-50">|</span>
+                <span id="global-header-weather" class="text-[11px] truncate">☀️ 분당 26°C · 경기광주 25°C</span>
             </div>
-            <div class="flex items-center bg-[var(--card-bg)] px-2 py-1 rounded-full border border-[var(--border-color)]">
+
+            <!-- 테마 선택 버튼 그룹 -->
+            <div class="flex items-center bg-[var(--card-bg)] px-2 py-1 rounded-full border border-[var(--border-color)] shadow-2xs">
                 <button onclick="switchTheme('burgundy')" id="btn-theme-burgundy" class="px-3 py-1 rounded-full font-bold text-[11px] transition-all">버건디</button>
                 <button onclick="switchTheme('cosmic')" id="btn-theme-cosmic" class="px-3 py-1 rounded-full font-bold text-[11px] transition-all">코스믹</button>
                 <button onclick="switchTheme('forest')" id="btn-theme-forest" class="px-3 py-1 rounded-full font-bold text-[11px] transition-all">포레스트</button>
@@ -184,7 +207,7 @@
                                 <span id="weather-gwangju" class="font-bold text-emerald-300 text-xs">☁️ 위성 수신중...</span>
                             </div>
                         </div>
-                        <button onclick="fetchLiveWeatherAPI(true)" title="노르웨이 기상청 실시간 데이터 갱신" class="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 active:scale-95 flex items-center justify-center shrink-0">
+                        <button onclick="fetchLiveWeatherAPI(true)" title="기상 데이터 갱신" class="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20 active:scale-95 flex items-center justify-center shrink-0">
                             <svg id="weather-refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
@@ -229,31 +252,29 @@
                 </div>
             </div>
 
-            <!-- 홈 화면: 오늘의 할일 미니 위젯 -->
+            <!-- 홈 화면: 오늘의 걸음 (날짜 일체화 & 미니 위젯) -->
             <div class="glass-card p-5 md:p-6 space-y-3 border-l-4 border-l-[var(--primary)]">
                 <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-mono-code font-black text-[var(--primary)] uppercase tracking-wider">오늘의 할일 요약</span>
-                        <span id="home-todo-badge" class="text-[10px] font-mono-code px-2 py-0.5 rounded-full bg-[var(--primary-light)] text-[var(--primary)] font-bold">진행 0건</span>
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-sm font-black text-[var(--text-main)]">오늘의 걸음 · <span id="home-today-date-text" class="text-[var(--primary)]">8.28 (금)</span></span>
+                        <span id="home-todo-badge" class="text-[10px] font-mono-code px-2 py-0.5 rounded-full primary-badge font-black">0</span>
                     </div>
                     <button onclick="switchView('calendar', event)" class="text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">전체 관리 ➔</button>
                 </div>
                 <div id="home-todo-preview" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs"></div>
             </div>
 
-            <!-- 주간 일정표 (이번주 날짜 명시 + 요일별 작은 숫자 일자) -->
+            <!-- 주간 일정표 (주간 범위 명시 + 일자 숫자 표기 + 시간/내용 일괄 입력) -->
             <div class="glass-card p-5 md:p-6 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-3 gap-2">
                     <div class="flex items-center gap-3">
                         <h3 class="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">주간 일정표</h3>
                         <span id="weekly-range-header" class="text-[11px] font-mono-code font-bold bg-[var(--primary-light)] text-[var(--primary)] px-2.5 py-0.5 rounded-lg">8.24(월) ~ 8.30(일)</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="openGoogleCalendar()" class="px-3 py-1.5 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl text-[11px] font-bold text-[var(--text-main)] hover:border-[var(--primary)] transition-all flex items-center gap-1">
-                            <span>🔄 구글 캘린더 연동</span>
-                            <span>↗</span>
-                        </button>
-                    </div>
+                    <button onclick="openGoogleCalendar()" class="px-3 py-1.5 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl text-[11px] font-bold text-[var(--text-main)] hover:border-[var(--primary)] transition-all flex items-center gap-1">
+                        <span>🔄 구글 캘린더 연동</span>
+                        <span>↗</span>
+                    </button>
                 </div>
                 
                 <div class="p-3 bg-[var(--primary-light)] rounded-xl border border-[var(--border-color)] flex flex-col sm:flex-row gap-2">
@@ -262,25 +283,25 @@
                         <option value="tue">화요일</option>
                         <option value="wed">수요일</option>
                         <option value="thu">목요일</option>
-                        <option value="fri">금요일</option>
+                        <option value="fri" selected>금요일</option>
                         <option value="sat">토요일</option>
                         <option value="sun">일요일</option>
                     </select>
-                    <input type="text" id="quick-sched-input" placeholder="입력 형식 예: 14:00 교역자 회의 (시간과 내용 함께 입력 후 엔터)" class="flex-1 p-2 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addQuickScheduleFromHome()">
-                    <button onclick="addQuickScheduleFromHome()" class="px-4 py-2 primary-badge text-xs font-black rounded-lg">일정 등록</button>
+                    <input type="text" id="quick-sched-input" placeholder="14:00 교역자 회의 (시간과 내용을 입력 후 엔터)" class="flex-1 p-2 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addQuickScheduleFromHome()">
+                    <button onclick="addQuickScheduleFromHome()" class="px-4 py-2 primary-badge text-xs font-black rounded-lg">등록</button>
                 </div>
 
                 <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 650px; overflow-x: auto;" id="weekly-grid-view"></div>
             </div>
 
-            <!-- 네이버 뉴스 전용 6대 브리프 아코디언 (기호 전용 새로고침 버튼) -->
+            <!-- 네이버 뉴스 전용 6대 브리프 (기호 전용 회전 새로고침) -->
             <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                     <div class="flex items-center gap-3">
                         <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full">Naver News Brief</span>
                         <h3 class="text-sm font-black text-[var(--text-main)]">네이버 뉴스 조회수·댓글 상위 6대 이슈</h3>
                     </div>
-                    <button onclick="refreshNaverNews(true)" title="네이버 뉴스 실시간 갱신" class="p-2.5 rounded-xl bg-[var(--primary-light)] hover:bg-[var(--primary)] hover:text-white text-[var(--primary)] transition-all border border-[var(--border-color)] flex items-center justify-center shrink-0">
+                    <button onclick="refreshNaverNews(true)" title="뉴스 데이터 갱신" class="p-2.5 rounded-xl bg-[var(--primary-light)] hover:bg-[var(--primary)] hover:text-white text-[var(--primary)] transition-all border border-[var(--border-color)] flex items-center justify-center shrink-0">
                         <svg id="news-refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
@@ -296,11 +317,9 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
                         <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Task Pipeline</span>
-                        <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">오늘의 할일 및 사역 일정</h2>
+                        <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">오늘의 걸음 · <span id="calendar-today-date-text" class="text-[var(--primary)]">8.28 (금)</span></h2>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="openGoogleCalendar()" class="px-4 py-2 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl text-xs font-bold text-[var(--text-main)] hover:border-[var(--primary)] transition-all">구글 캘린더 바로가기 ↗</button>
-                    </div>
+                    <button onclick="openGoogleCalendar()" class="px-4 py-2 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl text-xs font-bold text-[var(--text-main)] hover:border-[var(--primary)] transition-all">구글 캘린더 전체화면 ↗</button>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
@@ -311,7 +330,7 @@
                         <option value="사역">사역</option>
                         <option value="가정">가정</option>
                     </select>
-                    <input type="text" id="todo-input-bar" placeholder="할일 및 일정 내용을 입력하세요 (엔터 등록)" class="sm:col-span-6 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-semibold" onkeypress="if(event.key==='Enter') addTodoInline()">
+                    <input type="text" id="todo-input-bar" placeholder="할일 및 일정 내용을 입력하세요" class="sm:col-span-6 p-3 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-semibold" onkeypress="if(event.key==='Enter') addTodoInline()">
                     <button onclick="addTodoInline()" class="sm:col-span-2 px-4 py-3 primary-badge text-xs font-black rounded-xl hover:opacity-85 transition-all">등록</button>
                 </div>
 
@@ -320,8 +339,8 @@
 
             <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-4">
-                    <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">구글 통합 캘린더 연동 뷰</h2>
-                    <span class="text-xs text-[var(--text-sub)] font-bold">실시간 연동 완료</span>
+                    <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">통합 캘린더</h2>
+                    <span class="text-xs text-[var(--text-sub)] font-bold">실시간 연동</span>
                 </div>
                 <div class="rounded-2xl overflow-hidden border border-[var(--border-color)] shadow-inner bg-black/10">
                     <iframe id="google-calendar-iframe" class="w-full h-[580px] md:h-[680px] bg-[var(--card-bg)]" src="https://calendar.google.com/calendar/embed?src=imyooeun0107%40gmail.com&ctz=Asia%2FSeoul&mode=MONTH"></iframe>
@@ -329,7 +348,7 @@
             </div>
         </section>
 
-        <!-- ================= [3] 사역현황 (진행 중 + 완료 아카이브 복구) ================= -->
+        <!-- ================= [3] 사역현황 (경작 중 & 갈무리 아카이브) ================= -->
         <section id="view-dashboard" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -338,23 +357,23 @@
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">사역현황</h2>
                     </div>
                     <div class="flex items-center gap-3">
-                        <span id="proj-overall-progress" class="text-xs font-mono-code font-bold bg-[var(--primary-light)] text-[var(--primary)] px-3.5 py-1.5 rounded-full border border-[var(--border-color)]">전체 진척도 100%</span>
-                        <button onclick="addNewProject()" class="px-4 py-2 primary-badge text-xs font-black rounded-xl hover:opacity-85">+ 새 프로젝트</button>
+                        <span id="proj-overall-progress" class="text-xs font-mono-code font-bold bg-[var(--primary-light)] text-[var(--primary)] px-3.5 py-1.5 rounded-full border border-[var(--border-color)]">진척도 100%</span>
+                        <button onclick="addNewProject()" class="px-4 py-2 primary-badge text-xs font-black rounded-xl hover:opacity-85">+ 새 사역</button>
                     </div>
                 </div>
 
                 <div class="flex justify-between items-center pt-2">
-                    <h3 class="text-sm font-bold text-[var(--text-main)]">진행 중인 핵심 프로젝트 (항목 클릭 수정 & 엔터 추가)</h3>
-                    <span class="text-xs text-[var(--text-sub)] font-semibold">텍스트를 누르면 그 자리에서 즉시 수정됩니다</span>
+                    <h3 class="text-sm font-bold text-[var(--text-main)]">경작 중인 사역</h3>
+                    <span class="text-xs text-[var(--text-sub)] font-semibold">마감일자 순</span>
                 </div>
                 <div id="active-projects-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
 
-                <h3 class="text-sm font-bold text-[var(--text-sub)] pt-6 border-t border-[var(--border-color)]">완료된 사역 아카이브</h3>
+                <h3 class="text-sm font-bold text-[var(--text-sub)] pt-6 border-t border-[var(--border-color)]">갈무리된 열매 아카이브</h3>
                 <div id="completed-projects-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-85"></div>
             </div>
         </section>
 
-        <!-- ================= [4] 회의록 (6대 카테고리 필터 복구) ================= -->
+        <!-- ================= [4] 회의록 (6대 카테고리 필터링) ================= -->
         <section id="view-meetings" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -362,10 +381,10 @@
                         <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Notes & Pipeline</span>
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">회의록 및 퀵메모</h2>
                     </div>
-                    <input type="text" id="memo-search-input" placeholder="회의록 실시간 검색..." oninput="renderMemos()" class="p-2.5 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-semibold">
+                    <input type="text" id="memo-search-input" placeholder="실시간 검색..." oninput="renderMemos()" class="p-2.5 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-semibold">
                 </div>
 
-                <!-- 6대 카테고리 필터 탭 복구 -->
+                <!-- 6대 카테고리 필터 탭 -->
                 <div class="flex gap-2 overflow-x-auto pb-2" id="memo-cat-filter">
                     <button onclick="filterMemoCat('전체')" class="memo-filter-btn px-4 py-2 rounded-full text-xs font-bold primary-badge whitespace-nowrap">전체보기</button>
                     <button onclick="filterMemoCat('교회 공통')" class="memo-filter-btn px-4 py-2 rounded-full text-xs font-bold text-[var(--text-sub)] bg-[var(--primary-light)] whitespace-nowrap">교회 공통</button>
@@ -397,7 +416,7 @@
             </div>
         </section>
 
-        <!-- ================= [5] 생각의 서재 (전문 팝업 및 바로가기 복구) ================= -->
+        <!-- ================= [5] 생각의 서재 (드래그 서식 에디터 + 스마트 템플릿) ================= -->
         <section id="view-assets" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -406,6 +425,8 @@
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">생각의 서재</h2>
                     </div>
                 </div>
+
+                <!-- 7대 리서치 툴 -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3">
                     <a href="https://www.thegospelcoalition.org" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all bg-[var(--primary-light)]">
                         <div class="w-8 h-8 rounded-xl bg-[var(--primary)] text-black flex items-center justify-center font-black text-xs shrink-0">TGC</div>
@@ -437,24 +458,44 @@
                     </a>
                 </div>
 
+                <!-- 퀵 템플릿 태그 칩 & WYSIWYG 에디터 -->
                 <div class="p-6 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl space-y-3 mt-6">
-                    <input type="text" id="thought-title" placeholder="출처 및 주제 태그 (예: 팀켈러, 고통에 답하다)" class="w-full p-3 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-bold">
-                    <textarea id="thought-content" rows="3" placeholder="깊이 묵상한 문장이나 신학적 통찰을 기록하세요..." class="w-full p-3 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-medium"></textarea>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs font-black text-[var(--primary)] uppercase tracking-wider block">묵상 및 착상 에디터</span>
+                        <div class="flex flex-wrap gap-1.5 text-xs font-bold" id="thought-quick-chips">
+                            <button onclick="applyThoughtTemplate('설교착상')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#설교착상</button>
+                            <button onclick="applyThoughtTemplate('묵상기록')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#묵상기록</button>
+                            <button onclick="applyThoughtTemplate('독서기록')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#독서기록</button>
+                            <button onclick="applyThoughtTemplate('기도제목')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#기도제목</button>
+                        </div>
+                    </div>
+
+                    <input type="text" id="thought-title" placeholder="출처, 도서명 또는 주제 태그" class="w-full p-3 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-bold">
+                    
+                    <!-- contenteditable 본문 에디터 (드래그 서식 툴바 연동) -->
+                    <div id="thought-editor-content" contenteditable="true" class="w-full min-h-[120px] p-4 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-medium leading-relaxed thought-body" onmouseup="checkSelection()" onkeyup="checkSelection()"></div>
+
                     <div class="flex justify-end">
-                        <button onclick="addThoughtCard()" class="px-5 py-2 primary-badge text-xs font-black rounded-xl">서재에 박제</button>
+                        <button onclick="addThoughtCard()" class="px-5 py-2.5 primary-badge text-xs font-black rounded-xl">서재에 박제</button>
                     </div>
                 </div>
 
                 <div class="flex justify-between items-center pt-2">
                     <h3 class="text-sm font-bold text-[var(--text-main)]">서재 아카이브</h3>
-                    <span class="text-xs text-[var(--text-sub)] font-semibold">카드를 누르면 전문 팝업이 열립니다</span>
+                    <span class="text-xs text-[var(--text-sub)] font-semibold">최신순</span>
                 </div>
                 <div id="thought-card-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </div>
         </section>
     </main>
 
-    <!-- 하단 고정 네비게이션 -->
+    <!-- 좌측 하단 조용한 클라우드 상태 인디케이터 (Silent Cloud Anchor) -->
+    <div id="cloud-sync-status-dock" class="fixed bottom-4 left-4 z-40 bg-[var(--card-bg)]/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-[var(--border-color)] text-[var(--text-sub)] flex items-center gap-2 text-[10px] font-mono-code font-bold opacity-75 hover:opacity-100 transition-opacity">
+        <span class="w-2 h-2 rounded-full bg-emerald-400" id="sync-dot"></span>
+        <span id="sync-text">Cloud Synced</span>
+    </div>
+
+    <!-- 하단 고정 네비게이션 바 -->
     <nav class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 bg-[var(--nav-bg)] backdrop-blur-2xl border border-[var(--border-color)] px-3 py-2.5 rounded-full flex gap-1.5 shadow-2xl z-50 max-w-[95vw] overflow-x-auto transition-colors duration-300">
         <button onclick="switchView('home', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs">홈</button>
         <button onclick="switchView('calendar', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">일정</button>
@@ -464,6 +505,15 @@
     </nav>
 
     <div class="fab-btn" onclick="openFabModal()" title="빠른 입력">+</div>
+
+    <!-- 플로팅 서식 버블 툴바 (드래그 시 노출) -->
+    <div id="selection-toolbar">
+        <button onclick="formatSelection('bold')">B</button>
+        <button onclick="formatSelection('italic')">I</button>
+        <button onclick="formatSelection('formatBlock', '<h1>')">H1</button>
+        <button onclick="formatSelection('formatBlock', '<h2>')">H2</button>
+        <button onclick="formatSelection('hiliteColor', 'rgba(255, 214, 0, 0.4)')">Pen</button>
+    </div>
 
     <!-- 모달 창들 -->
     <!-- 1. 신학 내러티브 심층 모달 -->
@@ -491,13 +541,19 @@
         </div>
     </div>
 
-    <!-- 2. 생각의 서재 전문 확인 모달 -->
-    <div id="thought-modal" class="modal-overlay" onclick="closeModal('thought-modal')">
+    <!-- 2. 생각의 서재 라이브 편집 & 전문 모달 -->
+    <div id="thought-modal" class="modal-overlay" onclick="closeThoughtModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <span id="modal-tag" class="text-[10px] font-mono-code primary-badge font-black px-3 py-1 rounded-full">태그</span>
-            <div id="modal-text" class="text-base font-bold text-[var(--text-main)] mt-4 leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto"></div>
-            <div class="mt-6 flex justify-end">
-                <button onclick="closeModal('thought-modal')" class="px-4 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] font-bold text-xs rounded-xl text-[var(--text-main)]">닫기</button>
+            <div class="flex justify-between items-center mb-3">
+                <span id="modal-tag" class="text-[10px] font-mono-code primary-badge font-black px-3 py-1 rounded-full">태그</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="forwardCurrentThoughtToSermon()" class="text-xs font-bold text-[var(--primary)] hover:underline">➔ 설교 아이디어로 전송</button>
+                </div>
+            </div>
+            <h3 id="modal-thought-title" contenteditable="true" onblur="updateModalThoughtTitle(this.innerText)" class="text-base font-black text-[var(--text-main)] mb-3 outline-none border-b border-transparent focus:border-[var(--primary)]"></h3>
+            <div id="modal-text" contenteditable="true" onblur="updateModalThoughtContent(this.innerHTML)" class="text-xs text-[var(--text-main)] leading-relaxed min-h-[160px] max-h-[50vh] overflow-y-auto bg-[var(--primary-light)] p-4 rounded-xl outline-none thought-body"></div>
+            <div class="mt-6 flex justify-end gap-2">
+                <button onclick="closeThoughtModal()" class="px-4 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] font-bold text-xs rounded-xl text-[var(--text-main)]">닫기</button>
             </div>
         </div>
     </div>
@@ -521,7 +577,7 @@
     </div>
 
     <script>
-        /* Firebase 연동 */
+        /* Firebase 연동 엔진 */
         const firebaseConfig = {
             apiKey: "AIzaSyAI5ZHYd_Mi7JogsgZAYsBERsbPMD5m544",
             authDomain: "wwjd-hub.firebaseapp.com",
@@ -569,8 +625,12 @@
                 const tempG = Math.round(dataG.current.temperature_2m);
                 const wG = interpretWMO(dataG.current.weather_code);
 
-                document.getElementById('weather-bundang').innerText = `${wB.icon} 분당 ${tempB}°C ${wB.text}`;
-                document.getElementById('weather-gwangju').innerText = `${wG.icon} 경기광주 ${tempG}°C ${wG.text}`;
+                const textB = `${wB.icon} 분당 ${tempB}°C ${wB.text}`;
+                const textG = `${wG.icon} 경기광주 ${tempG}°C ${wG.text}`;
+
+                document.getElementById('weather-bundang').innerText = textB;
+                document.getElementById('weather-gwangju').innerText = textG;
+                document.getElementById('global-header-weather').innerText = `${wB.icon} 분당 ${tempB}°C · 경기광주 ${tempG}°C`;
 
                 const commentEl = document.getElementById('weather-comment');
                 if (wG.text.includes("비") || wG.text.includes("소나기") || wB.text.includes("비")) {
@@ -596,7 +656,7 @@
             {
                 era: "초대 교부 시대 (Patristic Era)",
                 author: "터툴리안 (Tertullian, c. 160–225)",
-                work: "『이단자들에 대한 규정 (De Praescriptione Haereticorum)』",
+                work: "『이단자들에 대한 규정』",
                 question: "로마라는 거대한 다원주의 제국 문화 속에서, 교회는 독자적 복음의 순수성을 지킬 것인가, 세상 철학과 타협할 것인가?",
                 declaration: "“아테네가 예루살렘과 무슨 상관이 있으며, 아카데미가 교회와 무슨 상관이 있는가? 우리의 가르침은 솔로몬의 주랑에서 온 것이지 플라톤의 학원에서 온 것이 아니다.”",
                 history: "당시 헬라 철학자들과 영지주의자들은 기독교를 단지 '플라톤 철학의 한 분파'로 희석시켜 로마 사회에 타협적으로 안착시키려 했습니다. 터툴리안의 일갈은 학문을 멸시한 것이 아니라, 복음의 십자가 사건이 세속 지적 프레임에 흡수되어 무력화되는 것을 막기 위한 목숨 건 신앙적 저항이었습니다.",
@@ -605,7 +665,7 @@
             {
                 era: "종교개혁 시대 (Reformation Era)",
                 author: "마르틴 루터 (Martin Luther, 1483–1546)",
-                work: "『하이델베르크 논제 (Heidelberg Disputation, 1518)』",
+                work: "『하이델베르크 논제』",
                 question: "인간은 자신의 선행과 종교적 열심으로 죽음과 심판의 공포를 이겨낼 수 있는가? 참된 평안의 근거는 어디에 있는가?",
                 declaration: "“영광의 신학자는 악을 선이라 부르고 선을 악이라 부른다. 그러나 십자가의 신학자는 사물을 있는 그대로 부른다. 참된 하나님은 번영의 정상에서가 아니라 십자가의 수치와 고난 속에서만 발견된다.”",
                 history: "당시 로마 가톨릭 스콜라 신학은 인간의 이성과 업적을 쌓아 하나님께 도달할 수 있다는 '영광의 신학'을 가르쳤습니다. 루터는 인간의 의가 완전히 파산 선고를 받는 십자가 밑에서만 값없는 은혜가 시작된다고 선언했습니다.",
@@ -614,7 +674,7 @@
             {
                 era: "근대 저항 & 제자도 (Modern Resistance)",
                 author: "디트리히 본회퍼 (Dietrich Bonhoeffer, 1906–1945)",
-                work: "『나를 따르라 (The Cost of Discipleship, 1937)』",
+                work: "『나를 따르라』",
                 question: "국가 이데올로기와 전체주의가 교회를 집어삼킬 때, 그리스도인은 국가의 시민으로 순응할 것인가, 십자가를 지고 저항할 것인가?",
                 declaration: "“값싼 은혜는 교회의 치명적인 원수다. 회개 없는 용서, 공동체적 규율 없는 세례, 십자가 없는 제자도다. 그리스도께서 사람을 부르실 때, 그분은 와서 죽으라고 명하신다.”",
                 history: "독일 교회의 대다수가 히틀러를 찬양할 때, 본회퍼는 고백교회를 세우고 참된 제자도를 실천하며 순교했습니다.",
@@ -623,7 +683,7 @@
             {
                 era: "후기 현대 & 문화 변증 (Contemporary Apologetics)",
                 author: "팀 켈러 (Timothy Keller, 1950–2023)",
-                work: "『내가 만든 신 (Counterfeit Gods, 2009)』",
+                work: "『내가 만든 신』",
                 question: "전통 도덕과 기독교 교리를 거부하는 고학력·무종교 세속 도시인들에게, 복음은 어떻게 여전히 유효한 진리이자 해답이 되는가?",
                 declaration: "“우상이란 무엇인가? 하나님보다 더 중요한 그 어떤 것이다. 그것이 없으면 내 인생이 무의미하다고 느끼게 만드는 바로 그것이다. 복음은 종교적 도덕주의와 세속적 상대주의 둘 다를 파괴하는 제3의 길이다.”",
                 history: "팀 켈러는 뉴욕 맨해튼 중심가에서 현대인들의 마음속 우상을 해체하며 십자가 복음의 타당성을 설득력 있게 변증했습니다.",
@@ -632,9 +692,9 @@
             {
                 era: "청교도 성화 신학 (Puritan Classic)",
                 author: "존 오웬 (John Owen, 1616–1683)",
-                work: "『죄 죽이기 (Of the Mortification of Sin, 1656)』",
+                work: "『죄 죽이기』",
                 question: "칭의를 얻은 신자는 어떻게 일상 속에서 여전히 끈질기게 역사하는 죄의 잔재와 싸워 승리할 수 있는가?",
-                declaration: "“죄를 죽이라. 그렇지 않으면 죄가 당신을 죽일 것이다. (Be killing sin or it will be killing you.) 은혜는 죄를 가볍게 여기는 핑계가 아니라, 죄의 뿌리를 뽑아내는 성령의 능력이다.”",
+                declaration: "“죄를 죽이라. 그렇지 않으면 죄가 당신을 죽일 것이다. 은혜는 죄를 가볍게 여기는 핑계가 아니라, 죄의 뿌리를 뽑아내는 성령의 능력이다.”",
                 history: "존 오웬은 성령의 능력에 힘입어 내면의 숨은 죄를 매일 직면하고 다루는 것만이 영혼의 참된 생명력을 유지하는 유일한 길임을 선포했습니다.",
                 contemporary: "습관적인 영적 무기력과 죄책감에 갇힌 청년들에게, 우리는 단순한 결단이 아닌 '성령 안에서 죄를 직면하고 다루는 실질적인 은혜의 원리'를 가르치고 있는가?"
             }
@@ -688,7 +748,6 @@
             });
             renderThoughts();
             syncToCloud();
-            alert("생각의 서재에 신학 내러티브가 안전하게 박제되었습니다.");
             closeModal('theology-detail-modal');
         }
 
@@ -721,7 +780,6 @@
             const icon = document.getElementById('news-refresh-icon');
             if(icon && manual) { icon.classList.remove('rotate-anim'); void icon.offsetWidth; icon.classList.add('rotate-anim'); }
             renderNewsAccordion();
-            if(manual) alert("네이버 뉴스 실시간 트렌드(조회수·댓글 순)가 갱신되었습니다.");
         }
 
         /* 기본 데이터셋 */
@@ -763,9 +821,15 @@
             thoughts: [{ id: 'th1', cat: '설교착상', title: '팀켈러 일과 영성', content: '복음은 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 거룩한 소명의 자리로 변화시킨다.' }]
         };
 
+        let currentActiveThoughtId = null;
+
         function syncToCloud() {
+            const dot = document.getElementById('sync-dot');
+            if(dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
             localStorage.setItem('yc_theme', state.theme);
-            appDocRef.set(state, { merge: true }).catch(err => console.error(err));
+            appDocRef.set(state, { merge: true })
+                .then(() => { if(dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400"; })
+                .catch(err => { if(dot) dot.className = "w-2 h-2 rounded-full bg-red-500"; });
         }
 
         appDocRef.onSnapshot((doc) => {
@@ -814,13 +878,17 @@
             const month = now.getMonth() + 1;
             const day = now.getDate();
             const days = ['일', '월', '화', '수', '목', '금', '토'];
-            document.getElementById('hero-clock').innerText = now.toTimeString().split(' ')[0];
-            document.getElementById('hero-date').innerText = `${year}년 ${month}월 ${day}일 (${days[now.getDay()]})`;
+            const timeStr = now.toTimeString().split(' ')[0];
+            const dateStr = `${year}년 ${month}월 ${day}일 (${days[now.getDay()]})`;
+
+            document.getElementById('hero-clock').innerText = timeStr;
+            document.getElementById('hero-date').innerText = dateStr;
+            document.getElementById('global-header-clock').innerText = timeStr;
         }
         setInterval(updateHeroClock, 1000);
         updateHeroClock();
 
-        /* 주간 일정표 렌더링 */
+        /* 주간 일정표 */
         function renderWeeklyGrid() {
             const container = document.getElementById('weekly-grid-view');
             if(!container) return;
@@ -866,7 +934,7 @@
         function addQuickScheduleFromHome() {
             const day = document.getElementById('quick-sched-day').value;
             const inputVal = document.getElementById('quick-sched-input').value.trim();
-            if(!inputVal) { alert("시간과 내용을 함께 입력해주세요 (예: 14:00 교역자 회의)"); return; }
+            if(!inputVal) return;
 
             let time = "10:00";
             let text = inputVal;
@@ -879,20 +947,13 @@
             state.weekly[day] = state.weekly[day] || [];
             state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
 
-            state.todos.push({
-                id: 't_' + Date.now(),
-                time,
-                cat: '사역',
-                text,
-                status: '진행'
-            });
+            state.todos.push({ id: 't_' + Date.now(), time, cat: '사역', text, status: '진행' });
 
             renderWeeklyGrid();
             renderTodos();
             renderHomeTodos();
             syncToCloud();
             document.getElementById('quick-sched-input').value = '';
-            alert("일정이 주간 일정표와 할일 목록에 성공적으로 연동 등록되었습니다!");
         }
 
         function deleteWeekly(day, id) {
@@ -911,10 +972,10 @@
             if(!container) return;
             container.innerHTML = '';
             const pending = state.todos.filter(t => t.status === '진행');
-            if(badge) badge.innerText = `진행 ${pending.length}건`;
+            if(badge) badge.innerText = pending.length;
 
             if(pending.length === 0) {
-                container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-1">등록된 진행 중인 할일이 없습니다.</p>`;
+                container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-1">등록된 걸음이 없습니다.</p>`;
                 return;
             }
 
@@ -944,7 +1005,7 @@
                             <option value="진행" ${item.status === '진행' ? 'selected' : ''}>진행</option>
                             <option value="완료" ${item.status === '완료' ? 'selected' : ''}>완료</option>
                         </select>
-                        <button onclick="deleteTodo('${item.id}')" class="text-[11px] text-red-400 font-bold px-1">삭제</button>
+                        <button onclick="deleteTodo('${item.id}')" class="text-[11px] text-red-400 font-bold px-1">✕</button>
                     </div>`;
                 container.appendChild(div);
             });
@@ -973,7 +1034,7 @@
             syncToCloud();
         }
 
-        /* 사역현황: 진행 중 & 완료 아카이브 분리 렌더링 */
+        /* 사역현황: 호버 기반 UI 노출 & 키보드 연속 입력 */
         function renderProjects() {
             const activeGrid = document.getElementById('active-projects-grid');
             const completedGrid = document.getElementById('completed-projects-grid');
@@ -994,45 +1055,45 @@
                 let subtasksHtml = '';
                 subtasks.forEach(st => {
                     subtasksHtml += `
-                        <div class="flex items-center gap-2 py-1">
+                        <div class="flex items-center gap-2 py-1 group/task">
                             <input type="checkbox" ${st.done ? 'checked' : ''} onchange="toggleSubTask('${p.id}', '${st.id}')" class="accent-[var(--primary)] rounded">
-                            <span contenteditable="true" onblur="updateSubTaskText('${p.id}', '${st.id}', this.innerText)" class="${st.done ? 'line-through text-[var(--text-sub)] opacity-60' : 'text-[var(--text-main)]'} font-medium flex-1 outline-none border-b border-transparent focus:border-[var(--primary)]">${st.text}</span>
-                            <button onclick="deleteSubTask('${p.id}', '${st.id}')" class="text-[10px] text-red-400 font-bold">✕</button>
+                            <span contenteditable="true" onblur="updateSubTaskText('${p.id}', '${st.id}', this.innerText)" class="${st.done ? 'line-through text-[var(--text-sub)] opacity-60' : 'text-[var(--text-main)]'} font-medium flex-1 outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${st.text}</span>
+                            <button onclick="deleteSubTask('${p.id}', '${st.id}')" class="text-[10px] text-red-400 opacity-0 group-hover/task:opacity-100 transition-opacity font-bold">✕</button>
                         </div>`;
                 });
 
                 const card = document.createElement('div');
-                card.className = "glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-[var(--primary)]";
+                card.className = "glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-[var(--primary)] group";
                 card.innerHTML = `
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
                             <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-[var(--primary-light)] px-2.5 py-1 rounded-full text-[var(--primary)]">진행중 (${rate}%)</span>
-                            <div class="flex items-center gap-1.5">
+                            <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button onclick="deleteProject('${p.id}')" class="text-[11px] text-red-400 font-bold">삭제</button>
                             </div>
                         </div>
-                        <h4 contenteditable="true" onblur="updateProjectTitle('${p.id}', this.innerText)" class="font-black text-base text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)]">${p.title}</h4>
+                        <h4 contenteditable="true" onblur="updateProjectTitle('${p.id}', this.innerText)" class="font-black text-base text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${p.title}</h4>
                         <div class="space-y-1.5 pt-2 border-t border-[var(--border-color)]">
-                            <span class="text-xs font-bold text-[var(--text-sub)] block">실행 과업 (클릭 수정 / 아래 엔터 추가)</span>
+                            <span class="text-xs font-bold text-[var(--text-sub)] block">실행 과업</span>
                             <div class="space-y-1 text-xs">${subtasksHtml}</div>
-                            <input type="text" placeholder="+ 새 과업 입력 후 엔터" class="w-full mt-2 p-2 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl text-xs font-semibold outline-none focus:border-[var(--primary)]" onkeypress="if(event.key==='Enter') addSubTaskByEnter('${p.id}', this)">
+                            <input type="text" placeholder="+ 새 과업 입력 후 Enter" class="w-full mt-2 p-2 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl text-xs font-semibold outline-none focus:border-[var(--primary)]" onkeypress="if(event.key==='Enter') addSubTaskByEnter('${p.id}', this)">
                         </div>
                     </div>
                     <div class="pt-2">
-                        <button onclick="toggleProjectComplete('${p.id}')" class="w-full py-2 bg-[var(--bg-color)] border border-[var(--border-color)] text-xs font-bold rounded-xl text-[var(--text-main)] hover:bg-emerald-600 hover:text-white transition-all">✅ 프로젝트 완료 처리</button>
+                        <button onclick="toggleProjectComplete('${p.id}')" class="w-full py-2.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-xs font-bold rounded-xl text-[var(--text-main)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all">🌱 사역 갈무리</button>
                     </div>`;
                 activeGrid.appendChild(card);
             });
 
             completedProjects.forEach(p => {
                 const card = document.createElement('div');
-                card.className = "glass-card p-5 space-y-2 border-t-4 border-t-gray-600 bg-black/20";
+                card.className = "glass-card p-5 space-y-2 border-t-4 border-t-gray-600 bg-black/20 group";
                 card.innerHTML = `
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-gray-800 text-gray-400 px-2.5 py-1 rounded-full">완료됨</span>
-                        <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-gray-800 text-gray-400 px-2.5 py-1 rounded-full">갈무리됨</span>
+                        <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onclick="toggleProjectComplete('${p.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">되돌리기</button>
-                            <button onclick="deleteProject('${p.id}')" class="text-[11px] text-red-400 hover:text-red-300 font-bold">삭제</button>
+                            <button onclick="deleteProject('${p.id}')" class="text-[11px] text-red-400 font-bold">삭제</button>
                         </div>
                     </div>
                     <h4 class="font-bold text-base text-[var(--text-main)]">${p.title}</h4>
@@ -1042,11 +1103,11 @@
 
             const overallRate = activeProjects.length > 0 ? Math.round(totalRates / activeProjects.length) : 100;
             const overallBadge = document.getElementById('proj-overall-progress');
-            if(overallBadge) overallBadge.innerText = `전체 진척도 ${overallRate}%`;
+            if(overallBadge) overallBadge.innerText = `진척도 ${overallRate}%`;
         }
 
         function addNewProject() {
-            const title = prompt("새 프로젝트 이름을 입력하세요:");
+            const title = prompt("새 사역 프로젝트 명칭:");
             if(!title) return;
             state.projects.push({ id: 'p_' + Date.now(), title, start: '2026.08.28', end: '2026.09.10', completed: false, subtasks: [{ id: 'st_' + Date.now(), text: '초기 기획 수립', done: false }] });
             renderProjects();
@@ -1105,14 +1166,14 @@
         }
 
         function deleteProject(id) {
-            if(confirm("이 프로젝트를 삭제하시겠습니까?")) {
+            if(confirm("이 사역을 삭제하시겠습니까?")) {
                 state.projects = state.projects.filter(p => p.id !== id);
                 renderProjects();
                 syncToCloud();
             }
         }
 
-        /* 회의록 관리 (6대 카테고리 필터링) */
+        /* 회의록 관리 */
         let currentMemoCat = '전체';
 
         function renderMemos() {
@@ -1127,13 +1188,13 @@
                 if(!matchCat || !matchQuery) return;
 
                 const div = document.createElement('div');
-                div.className = "p-5 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl shadow-xs space-y-1";
+                div.className = "p-5 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl shadow-xs space-y-1 group";
                 div.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-[10px] primary-badge font-black px-2.5 py-0.5 rounded-full">${m.cat}</span>
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] text-[var(--text-sub)] font-mono-code">${m.date}</span>
-                            <button onclick="deleteMemo('${m.id}')" class="text-[11px] text-red-400 font-bold">삭제</button>
+                            <button onclick="deleteMemo('${m.id}')" class="text-[11px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold">✕</button>
                         </div>
                     </div>
                     <h4 class="font-bold text-xs text-[var(--text-main)]">${m.title}</h4>
@@ -1154,7 +1215,6 @@
             syncToCloud();
             document.getElementById('memo-title-input').value = '';
             document.getElementById('today-memo-input').value = '';
-            alert("회의록에 저장되었습니다.");
         }
 
         function filterMemoCat(cat) {
@@ -1170,14 +1230,49 @@
         }
 
         function deleteMemo(id) {
-            if(confirm("이 회의록을 삭제하시겠습니까?")) {
-                state.memos = state.memos.filter(m => m.id !== id);
-                renderMemos();
-                syncToCloud();
+            state.memos = state.memos.filter(m => m.id !== id);
+            renderMemos();
+            syncToCloud();
+        }
+
+        /* 생각의 서재: 드래그 서식 & 라이브 편집 모달 */
+        function checkSelection() {
+            const sel = window.getSelection();
+            const toolbar = document.getElementById('selection-toolbar');
+            if (!sel.isCollapsed && sel.toString().trim().length > 0) {
+                const range = sel.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                toolbar.style.top = `${window.scrollY + rect.top - 42}px`;
+                toolbar.style.left = `${window.scrollX + rect.left + (rect.width / 2) - 100}px`;
+                toolbar.style.display = 'flex';
+            } else {
+                toolbar.style.display = 'none';
             }
         }
 
-        /* 생각의 서재 (전문 확인 모달 및 설교 아이디어 전송 복구) */
+        function formatSelection(command, value = null) {
+            document.execCommand(command, false, value);
+            document.getElementById('selection-toolbar').style.display = 'none';
+        }
+
+        function applyThoughtTemplate(type) {
+            const titleInput = document.getElementById('thought-title');
+            const editor = document.getElementById('thought-editor-content');
+            if (type === '설교착상') {
+                titleInput.value = "[본문 및 설교 가제]";
+                editor.innerHTML = "<h1>1. 중심 메시지 (화두)</h1><p>여기에 메시지를 기록하세요</p><h2>2. 현장 적용 질문</h2><p>* 질문 1:</p>";
+            } else if (type === '독서기록') {
+                titleInput.value = "[도서명 · 저자]";
+                editor.innerHTML = "<h2>기억할 문장</h2><p>“문장을 입력하세요”</p><h2>목회적 통찰</h2><p>깨달음을 기록하세요</p>";
+            } else if (type === '묵상기록') {
+                titleInput.value = "오늘의 말씀 묵상";
+                editor.innerHTML = "<h1>본문 관찰</h1><p>내용을 입력하세요</p><h2>삶의 결단</h2><p>기도 제목 및 적용</p>";
+            } else if (type === '기도제목') {
+                titleInput.value = "중보 및 공동체 기도제목";
+                editor.innerHTML = "<p>1. </p><p>2. </p>";
+            }
+        }
+
         function renderThoughts() {
             const grid = document.getElementById('thought-card-grid');
             if(!grid) return;
@@ -1185,17 +1280,17 @@
 
             state.thoughts.forEach(th => {
                 const div = document.createElement('div');
-                div.className = "glass-card p-6 space-y-4 cursor-pointer hover:border-[var(--primary)] transition-all flex flex-col justify-between";
+                div.className = "glass-card p-6 space-y-4 cursor-pointer hover:border-[var(--primary)] transition-all flex flex-col justify-between group";
                 div.onclick = function() { openThoughtModal(th.id); };
                 div.innerHTML = `
                     <div>
                         <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-mono-code primary-badge font-black uppercase px-3 py-1 rounded-full">${th.cat} | ${th.title}</span>
-                            <button onclick="event.stopPropagation(); deleteThought('${th.id}')" class="text-[11px] text-red-400 font-bold">삭제</button>
+                            <span class="text-[10px] font-mono-code primary-badge font-black uppercase px-3 py-1 rounded-full">${th.cat || '서재'} | ${th.title}</span>
+                            <button onclick="event.stopPropagation(); deleteThought('${th.id}')" class="text-[11px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold">✕</button>
                         </div>
-                        <h4 class="font-bold text-base text-[var(--text-main)] mt-3 line-clamp-3 leading-relaxed">"${th.content}"</h4>
+                        <div class="text-xs text-[var(--text-main)] mt-3 line-clamp-3 leading-relaxed thought-body font-medium">${th.content}</div>
                     </div>
-                    <button class="text-xs font-bold text-[var(--text-sub)] text-left hover:text-[var(--primary)] pt-2 border-t border-[var(--border-color)]" onclick="event.stopPropagation(); forwardToSermonIdea('${th.id}')">➔ 설교 아이디어 회의록으로 즉시 전송</button>
+                    <button class="text-xs font-bold text-[var(--text-sub)] text-left hover:text-[var(--primary)] pt-2 border-t border-[var(--border-color)]" onclick="event.stopPropagation(); forwardToSermonIdea('${th.id}')">➔ 설교 아이디어로 전송</button>
                 `;
                 grid.appendChild(div);
             });
@@ -1203,23 +1298,47 @@
 
         function addThoughtCard() {
             const title = document.getElementById('thought-title').value.trim();
-            const content = document.getElementById('thought-content').value.trim();
-            if(!title || !content) { alert("출처와 내용을 모두 입력하세요."); return; }
+            const content = document.getElementById('thought-editor-content').innerHTML.trim();
+            if(!title || !content) return;
 
-            state.thoughts.unshift({ id: 'th_' + Date.now(), cat: '묵상기록', title, content });
+            state.thoughts.unshift({ id: 'th_' + Date.now(), cat: '서재기록', title, content });
             renderThoughts();
             syncToCloud();
             document.getElementById('thought-title').value = '';
-            document.getElementById('thought-content').value = '';
-            alert("생각의 서재에 박제되었습니다.");
+            document.getElementById('thought-editor-content').innerHTML = '';
         }
 
         function openThoughtModal(id) {
+            currentActiveThoughtId = id;
             const thought = state.thoughts.find(t => t.id === id);
             if(!thought) return;
-            document.getElementById('modal-tag').innerText = `${thought.cat} | ${thought.title}`;
-            document.getElementById('modal-text').innerText = thought.content;
+            document.getElementById('modal-tag').innerText = `${thought.cat || '서재'} | 태그`;
+            document.getElementById('modal-thought-title').innerText = thought.title;
+            document.getElementById('modal-text').innerHTML = thought.content;
             document.getElementById('thought-modal').classList.add('show');
+        }
+
+        function closeThoughtModal() {
+            document.getElementById('thought-modal').classList.remove('show');
+            currentActiveThoughtId = null;
+        }
+
+        function updateModalThoughtTitle(newTitle) {
+            if(!currentActiveThoughtId || !newTitle.trim()) return;
+            const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
+            if(t) { t.title = newTitle.trim(); renderThoughts(); syncToCloud(); }
+        }
+
+        function updateModalThoughtContent(newContent) {
+            if(!currentActiveThoughtId || !newContent.trim()) return;
+            const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
+            if(t) { t.content = newContent.trim(); renderThoughts(); syncToCloud(); }
+        }
+
+        function forwardCurrentThoughtToSermon() {
+            if(!currentActiveThoughtId) return;
+            forwardToSermonIdea(currentActiveThoughtId);
+            closeThoughtModal();
         }
 
         function forwardToSermonIdea(id) {
@@ -1230,19 +1349,16 @@
                 cat: '설교 아이디어',
                 title: `[서재 착상] ${thought.title}`,
                 date: '2026.08.28',
-                content: thought.content
+                content: thought.content.replace(/<[^>]*>?/gm, '')
             });
             renderMemos();
             syncToCloud();
-            alert("회의록의 [설교 아이디어] 탭으로 즉시 전송되었습니다.");
         }
 
         function deleteThought(id) {
-            if(confirm("이 서재 카드를 삭제하시겠습니까?")) {
-                state.thoughts = state.thoughts.filter(t => t.id !== id);
-                renderThoughts();
-                syncToCloud();
-            }
+            state.thoughts = state.thoughts.filter(t => t.id !== id);
+            renderThoughts();
+            syncToCloud();
         }
 
         function openFabModal() { document.getElementById('fab-modal').classList.add('show'); }
@@ -1254,7 +1370,6 @@
             renderTodos();
             syncToCloud();
             closeModal('fab-modal');
-            alert("할일에 추가되었습니다.");
         }
 
         /* 초기 실행 */
