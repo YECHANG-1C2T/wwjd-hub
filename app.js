@@ -173,7 +173,7 @@ function forwardNarrativeToStudy() {
     closeModal('theology-detail-modal');
 }
 
-/* 네이버 뉴스 8대 브리프 (연예·문화 & 스포츠·건강 확장) */
+/* 네이버 뉴스 8대 브리프 */
 const masterNaverNewsPool = [
     { id: 'n1', cat: '정치·정책', title: '정기국회 돌입… 청년 주거 및 필수 민생 법안 우선 심사 착수', summary: ['여야, 취약계층 필수 복지 예산안 우선 심의 합의', '전세사기 특별법 후속 대책 및 보증금 회수 지원 범위 확대 논의', '상임위별 주요 쟁점 조율 및 공청회 일정 확정'], source: '네이버 뉴스', url: 'https://news.naver.com/section/100' },
     { id: 'n2', cat: '사회·이슈', title: '1인 가구 급증에 지자체 고립 방지 맞춤형 생활 안전망 확대', summary: ['청년 및 중장년 1인 가구 대상 심리 상담 거점 센터 증설', '고립 은둔 청년 조기 발굴 및 사회 복귀 밀착 프로그램 가동', '주민센터 연계 안부 확인 서비스 전국 네트워크 구축'], source: '네이버 뉴스', url: 'https://news.daum.net/society' },
@@ -293,8 +293,10 @@ appDocRef.onSnapshot((doc) => {
 });
 
 function switchTheme(themeName, shouldSync=true) {
-    document.body.className = 'theme-' + themeName + (document.getElementById('view-assets')?.classList.contains('active') ? ' in-study-room' : '') + ' selection:bg-[var(--primary)] selection:text-[var(--primary-text)]';
     state.theme = themeName;
+    const isStudy = document.getElementById('view-assets')?.classList.contains('active');
+    document.body.className = 'theme-' + themeName + (isStudy ? ' in-study-room' : '') + ' selection:bg-[var(--primary)] selection:text-[var(--primary-text)]';
+
     ['burgundy', 'cosmic', 'forest'].forEach(t => {
         const btn = document.getElementById('btn-theme-' + t);
         if(btn) {
@@ -302,9 +304,32 @@ function switchTheme(themeName, shouldSync=true) {
             else { btn.className = "px-3 py-1 rounded-full font-bold text-[11px] transition-all text-[var(--text-sub)] hover:text-[var(--primary)]"; btn.style.backgroundColor = 'transparent'; }
         }
     });
+
+    const heroBadge = document.querySelector('.furnace-hero span.tracking-widest');
+    const heroDesc = document.querySelector('.furnace-hero p.text-xs');
+    const heroContainer = document.querySelector('.furnace-hero');
+
+    if(heroContainer) {
+        let aurora = heroContainer.querySelector('.forest-aurora-glow');
+        if (!aurora) {
+            aurora = document.createElement('div');
+            aurora.className = 'forest-aurora-glow';
+            heroContainer.prepend(aurora);
+        }
+    }
+
+    if (themeName === 'forest') {
+        if(heroBadge) heroBadge.innerText = "🍃 Sabbath & Sanctuary Forest";
+        if(heroDesc) heroDesc.innerText = "“푸른 풀밭과 쉴 만한 물가, 영혼을 소생시키시는 고요한 안식의 숲”";
+    } else {
+        if(heroBadge) heroBadge.innerText = "Spiritual Furnace Control Tower";
+        if(heroDesc) heroDesc.innerText = "“하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라”";
+    }
+
     if(shouldSync) syncToCloud();
 }
 
+/* 🪵 [공간 탈바꿈] 탭 전환 시 통나무집 서재(Cabin) 완벽 변신 */
 function switchView(viewId, evt) {
     document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap");
@@ -314,11 +339,25 @@ function switchView(viewId, evt) {
         evt.currentTarget.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs";
     }
 
-    // 생각의 서재 진입 시 공간 조명 감쇄 연출
+    const headerBadge = document.querySelector('header span.primary-badge');
+    const headerSub = document.querySelector('header span.text-xs.font-bold');
+
+    // 통나무집 전용 조명 앰비언트 주입
+    let cabinGlow = document.getElementById('cabin-lamp-glow');
+    if (!cabinGlow) {
+        cabinGlow = document.createElement('div');
+        cabinGlow.id = 'cabin-lamp-glow';
+        document.body.prepend(cabinGlow);
+    }
+
     if (viewId === 'assets') {
         document.body.classList.add('in-study-room');
+        if(headerBadge) headerBadge.innerText = "🕯️ THE CABIN SANCTUARY";
+        if(headerSub) headerSub.innerText = "사역의 소음을 멈추고 말씀과 사색에 머무는 깊은 숲속 서재";
     } else {
         document.body.classList.remove('in-study-room');
+        if(headerBadge) headerBadge.innerText = "Control Center";
+        if(headerSub) headerSub.innerText = "예수를 닮아가는 남편, 아빠, 목사 '임예창'";
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -868,7 +907,6 @@ function forwardToSermonIdea(id) {
     const thought = state.thoughts.find(t => t.id === id);
     if(!thought) return;
     
-    // 구조적 개요 포맷 변환
     const plainText = thought.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
     const formattedIdea = `[서재 착상: ${thought.title}]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 단계: ${thought.stage || '착상'}\n📜 본문/내용: ${plainText}`;
 
