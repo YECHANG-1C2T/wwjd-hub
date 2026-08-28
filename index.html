@@ -187,7 +187,43 @@
                 </div>
             </div>
 
-            <!-- 홈 화면: 오늘의 할일 미니 위젯 추가 -->
+            <!-- 🏛️ [Today Reflection : 교회사 5대 시대별 심층 내러티브 엔진] -->
+            <div class="glass-card p-6 md:p-7 border-l-4 border-l-[var(--primary)] space-y-4">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-mono-code font-extrabold text-[var(--primary)] uppercase tracking-wider">Today Reflection</span>
+                        <span id="theology-era-badge" class="text-[10px] font-mono-code px-2.5 py-0.5 rounded-full bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--border-color)] font-bold">시대별 신학 내러티브</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="rotateTheologyNarrative()" class="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] text-[11px] font-bold rounded-xl transition-all hover:bg-[var(--primary-light)]">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            다른 시대·관점
+                        </button>
+                        <button onclick="openNarrativeDetailModal()" class="px-3 py-1.5 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] text-[11px] font-bold rounded-xl hover:border-[var(--primary)] transition-all">전체 스토리 ➔</button>
+                        <button onclick="forwardNarrativeToStudy()" class="px-3.5 py-1.5 primary-badge text-[11px] font-black rounded-xl shadow-xs hover:opacity-85 transition-all">서재로 전송</button>
+                    </div>
+                </div>
+
+                <!-- 당대의 역사적 딜레마 -->
+                <div class="bg-[var(--primary-light)] p-3 rounded-xl border border-[var(--border-color)]">
+                    <span class="text-[10px] font-mono-code font-bold text-[var(--primary)] block mb-0.5">📜 당대의 역사적 딜레마</span>
+                    <p id="theology-question" class="text-xs font-bold text-[var(--text-main)] leading-relaxed"></p>
+                </div>
+
+                <!-- 핵심 선언 -->
+                <div>
+                    <h3 id="theology-declaration" class="text-base md:text-lg font-black text-[var(--text-main)] leading-relaxed"></h3>
+                    <p id="theology-source" class="text-xs text-[var(--text-sub)] font-mono-code font-bold mt-1"></p>
+                </div>
+
+                <!-- 2026년을 향한 사역적 질문 -->
+                <div class="pt-2 border-t border-[var(--border-color)] flex items-start gap-2">
+                    <span class="text-xs shrink-0 font-bold text-amber-400">👉 2026 사역적 질문:</span>
+                    <p id="theology-contemporary" class="text-xs font-semibold text-[var(--text-sub)] leading-snug"></p>
+                </div>
+            </div>
+
+            <!-- 홈 화면: 오늘의 할일 미니 위젯 -->
             <div class="glass-card p-5 md:p-6 space-y-3 border-l-4 border-l-[var(--primary)]">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-2">
@@ -196,12 +232,10 @@
                     </div>
                     <button onclick="switchView('calendar', event)" class="text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">전체 관리 ➔</button>
                 </div>
-                <div id="home-todo-preview" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
-                    <!-- 동적 렌더링 -->
-                </div>
+                <div id="home-todo-preview" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs"></div>
             </div>
 
-            <!-- 주간 일정표 (요청사항 반영: 이번주 날짜 명시 + 요일별 작은 숫자 일자) -->
+            <!-- 주간 일정표 (이번주 날짜 명시 + 요일별 작은 숫자 일자) -->
             <div class="glass-card p-5 md:p-6 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-3 gap-2">
                     <div class="flex items-center gap-3">
@@ -216,7 +250,7 @@
                     </div>
                 </div>
                 
-                <!-- 한 줄 일정 입력 바 (시간 + 내용 한 번에 기입) -->
+                <!-- 시간 + 내용 일괄 입력 바 -->
                 <div class="p-3 bg-[var(--primary-light)] rounded-xl border border-[var(--border-color)] flex flex-col sm:flex-row gap-2">
                     <select id="quick-sched-day" class="p-2 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-bold outline-none">
                         <option value="mon">월요일</option>
@@ -227,16 +261,14 @@
                         <option value="sat">토요일</option>
                         <option value="sun">일요일</option>
                     </select>
-                    <input type="text" id="quick-sched-input" placeholder="입력 형식 예: 14:00 교역자 회의 (시간과 내용 한 번에 입력 후 엔터)" class="flex-1 p-2 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addQuickScheduleFromHome()">
+                    <input type="text" id="quick-sched-input" placeholder="입력 형식 예: 14:00 교역자 회의 (시간과 내용 함께 입력 후 엔터)" class="flex-1 p-2 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addQuickScheduleFromHome()">
                     <button onclick="addQuickScheduleFromHome()" class="px-4 py-2 primary-badge text-xs font-black rounded-lg">일정 등록</button>
                 </div>
 
-                <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 650px; overflow-x: auto;" id="weekly-grid-view">
-                    <!-- 동적 렌더링 -->
-                </div>
+                <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 650px; overflow-x: auto;" id="weekly-grid-view"></div>
             </div>
 
-            <!-- 네이버 뉴스 전용 6대 브리프 아코디언 (우측 상단 새로고침 및 조회수/댓글 기준 선별) -->
+            <!-- 네이버 뉴스 전용 6대 브리프 아코디언 -->
             <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                     <div class="flex items-center gap-3">
@@ -404,7 +436,34 @@
 
     <div class="fab-btn" onclick="openFabModal()" title="빠른 입력">+</div>
 
-    <!-- 모달 -->
+    <!-- 신학 내러티브 심층 모달 -->
+    <div id="theology-detail-modal" class="modal-overlay" onclick="closeModal('theology-detail-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-3">
+                <span id="modal-theology-era" class="text-[10px] font-mono-code primary-badge font-black px-3 py-1 rounded-full">시대구분</span>
+                <span id="modal-theology-author" class="text-xs text-[var(--text-sub)] font-mono-code font-bold">인물 및 저작</span>
+            </div>
+            <h3 id="modal-theology-title" class="text-base font-black text-[var(--text-main)] mb-3">선언 전문</h3>
+            
+            <div class="space-y-3 max-h-[55vh] overflow-y-auto pr-1 text-xs leading-relaxed">
+                <div class="p-3 bg-[var(--primary-light)] rounded-xl border border-[var(--border-color)]">
+                    <b class="text-[var(--primary)] block mb-1">📜 역사적·문화적 배경</b>
+                    <p id="modal-theology-history" class="text-[var(--text-main)]"></p>
+                </div>
+                <div class="p-3 bg-[var(--card-bg)] rounded-xl border border-[var(--border-color)]">
+                    <b class="text-amber-400 block mb-1">👉 2026 사역적 적용 및 설교 착상</b>
+                    <p id="modal-theology-apply" class="text-[var(--text-main)] font-medium"></p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2">
+                <button onclick="forwardNarrativeToStudy()" class="px-4 py-2 primary-badge font-bold text-xs rounded-xl">서재로 복사</button>
+                <button onclick="closeModal('theology-detail-modal')" class="px-4 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] font-bold text-xs rounded-xl text-[var(--text-main)]">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAB 빠른 입력 모달 -->
     <div id="fab-modal" class="modal-overlay" onclick="closeModal('fab-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3 class="font-black text-lg text-[var(--text-main)] mb-4">빠른 입력</h3>
@@ -437,7 +496,108 @@
         const db = firebase.firestore();
         const appDocRef = db.collection('ministry_data').doc('master_workspace');
 
-        /* 네이버 뉴스 조회수·댓글 기준 6대 브리프 데이터셋 */
+        /* 🏛️ 교회사 5대 시대별 심층 내러티브 데이터셋 */
+        const masterTheologyNarratives = [
+            {
+                era: "초대 교부 시대 (Patristic Era)",
+                author: "터툴리안 (Tertullian, c. 160–225)",
+                work: "『이단자들에 대한 규정 (De Praescriptione Haereticorum)』",
+                question: "로마라는 거대한 다원주의 제국 문화 속에서, 교회는 독자적 복음의 순수성을 지킬 것인가, 세상 철학과 타협할 것인가?",
+                declaration: "“아테네가 예루살렘과 무슨 상관이 있으며, 아카데미가 교회와 무슨 상관이 있는가? 우리의 가르침은 솔로몬의 주랑에서 온 것이지 플라톤의 학원에서 온 것이 아니다.”",
+                history: "당시 헬라 철학자들과 영지주의자들은 기독교를 단지 '플라톤 철학의 한 분파'로 희석시켜 로마 사회에 타협적으로 안착시키려 했습니다. 터툴리안의 과격해 보이는 일갈은 학문을 멸시한 것이 아니라, 복음의 십자가 사건이 세속 지적 프레임에 흡수되어 무력화되는 것을 막기 위한 목숨 건 신앙적 저항이었습니다.",
+                contemporary: "알고리즘과 세속 자본주의 문화가 청년들의 세계관을 지배할 때, 우리는 복음의 '거룩한 낯섦'을 선포하고 있는가, 아니면 세상에 어필하기 위해 복음을 지나치게 길들였는가?"
+            },
+            {
+                era: "종교개혁 시대 (Reformation Era)",
+                author: "마르틴 루터 (Martin Luther, 1483–1546)",
+                work: "『하이델베르크 논제 (Heidelberg Disputation, 1518)』",
+                question: "인간은 자신의 선행과 종교적 열심으로 죽음과 심판의 공포를 이겨낼 수 있는가? 참된 평안의 근거는 어디에 있는가?",
+                declaration: "“영광의 신학자는 악을 선이라 부르고 선을 악이라 부른다. 그러나 십자가의 신학자는 사물을 있는 그대로 부른다. 참된 하나님은 번영의 정상에서가 아니라 십자가의 수치와 고난 속에서만 발견된다.”",
+                history: "당시 로마 가톨릭 스콜라 신학은 인간의 이성과 업적을 쌓아 하나님께 도달할 수 있다는 '영광의 신학'을 가르쳤습니다. 루터는 인간의 의가 완전히 파산 선고를 받는 십자가 밑에서만 값없는 은혜가 시작된다고 선언했습니다.",
+                contemporary: "자기계발과 '갓생' 강박에 짓눌려 끝없이 자신을 증명해야 하는 번아웃 세대 청년들에게, 우리는 또 다른 종교적 과업을 얹어주고 있는가, 아니면 십자가의 완전한 쉼을 선포하는가?"
+            },
+            {
+                era: "근대 저항 & 제자도 (Modern Resistance)",
+                author: "디트리히 본회퍼 (Dietrich Bonhoeffer, 1906–1945)",
+                work: "『나를 따르라 (The Cost of Discipleship, 1937)』",
+                question: "국가 이데올로기와 전체주의가 교회를 집어삼킬 때, 그리스도인은 국가의 시민으로 순응할 것인가, 십자가를 지고 저항할 것인가?",
+                declaration: "“값싼 은혜는 교회의 치명적인 원수다. 회개 없는 용서, 공동체적 규율 없는 세례, 십자가 없는 제자도다. 그리스도께서 사람을 부르실 때, 그분은 와서 죽으라고 명하신다.”",
+                history: "독일 교회의 대다수가 히틀러를 찬양할 때, 본회퍼는 고백교회를 세우고 참된 제자도를 실천하며 순교했습니다.",
+                contemporary: "우리의 사역은 청년들에게 삶의 위로와 감정적 힐링만을 제공하는 '값싼 은혜'의 소비처인가, 아니면 세상의 주류 가치관을 거슬러 대가를 치르는 '참된 제자도'의 훈련장인가?"
+            },
+            {
+                era: "후기 현대 & 문화 변증 (Contemporary Apologetics)",
+                author: "팀 켈러 (Timothy Keller, 1950–2023)",
+                work: "『내가 만든 신 (Counterfeit Gods, 2009)』",
+                question: "전통 도덕과 기독교 교리를 거부하는 고학력·무종교 세속 도시인들에게, 복음은 어떻게 여전히 유효한 진리이자 해답이 되는가?",
+                declaration: "“우상이란 무엇인가? 하나님보다 더 중요한 그 어떤 것이다. 그것이 없으면 내 인생이 무의미하다고 느끼게 만드는 바로 그것이다. 복음은 종교적 도덕주의와 세속적 상대주의 둘 다를 파괴하는 제3의 길이다.”",
+                history: "팀 켈러는 뉴욕 맨해튼 중심가에서 현대인들의 마음속 우상을 해체하며 십자가 복음의 타당성을 설득력 있게 변증했습니다.",
+                contemporary: "청년들이 겪는 불안과 인정 갈급함의 뿌리에는 어떤 현대적 우상이 자리 잡고 있는가? 우리는 그 마음 깊은 곳의 우상을 복음으로 분별해 주고 있는가?"
+            },
+            {
+                era: "청교도 성화 신학 (Puritan Classic)",
+                author: "존 오웬 (John Owen, 1616–1683)",
+                work: "『죄 죽이기 (Of the Mortification of Sin, 1656)』",
+                question: "칭의를 얻은 신자는 어떻게 일상 속에서 여전히 끈질기게 역사하는 죄의 잔재와 싸워 승리할 수 있는가?",
+                declaration: "“죄를 죽이라. 그렇지 않으면 죄가 당신을 죽일 것이다. (Be killing sin or it will be killing you.) 은혜는 죄를 가볍게 여기는 핑계가 아니라, 죄의 뿌리를 뽑아내는 성령의 능력이다.”",
+                history: "존 오웬은 성령의 능력에 힘입어 내면의 숨은 죄를 매일 직면하고 다루는 것만이 영혼의 참된 생명력을 유지하는 유일한 길임을 선포했습니다.",
+                contemporary: "습관적인 영적 무기력과 죄책감에 갇힌 청년들에게, 우리는 단순한 결단이 아닌 '성령 안에서 죄를 직면하고 다루는 실질적인 은혜의 원리'를 가르치고 있는가?"
+            }
+        ];
+
+        let activeNarrativeIdx = 0;
+
+        function initTheologyNarrative() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            const dayOfYear = Math.floor(diff / oneDay);
+            activeNarrativeIdx = dayOfYear % masterTheologyNarratives.length;
+            renderTheologyNarrative();
+        }
+
+        function rotateTheologyNarrative() {
+            activeNarrativeIdx = (activeNarrativeIdx + 1) % masterTheologyNarratives.length;
+            renderTheologyNarrative();
+        }
+
+        function renderTheologyNarrative() {
+            const item = masterTheologyNarratives[activeNarrativeIdx];
+            document.getElementById('theology-era-badge').innerText = item.era;
+            document.getElementById('theology-question').innerText = item.question;
+            document.getElementById('theology-declaration').innerText = item.declaration;
+            document.getElementById('theology-source').innerText = `— ${item.author} · ${item.work}`;
+            document.getElementById('theology-contemporary').innerText = item.contemporary;
+        }
+
+        function openNarrativeDetailModal() {
+            const item = masterTheologyNarratives[activeNarrativeIdx];
+            document.getElementById('modal-theology-era').innerText = item.era;
+            document.getElementById('modal-theology-author').innerText = `${item.author} | ${item.work}`;
+            document.getElementById('modal-theology-title').innerText = item.declaration;
+            document.getElementById('modal-theology-history').innerText = item.history;
+            document.getElementById('modal-theology-apply').innerText = item.contemporary;
+            document.getElementById('theology-detail-modal').classList.add('show');
+        }
+
+        function forwardNarrativeToStudy() {
+            const item = masterTheologyNarratives[activeNarrativeIdx];
+            const content = `[역사적 질문]\n${item.question}\n\n[선언]\n${item.declaration}\n- ${item.author} (${item.work})\n\n[역사적 배경]\n${item.history}\n\n[사역적 질문]\n${item.contemporary}`;
+            
+            state.thoughts.unshift({
+                id: 'th_' + Date.now(),
+                cat: '신학스토리',
+                title: `${item.author} - ${item.era}`,
+                content: content
+            });
+            renderThoughts();
+            syncToCloud();
+            alert("생각의 서재에 신학 내러티브가 안전하게 박제되었습니다.");
+            closeModal('theology-detail-modal');
+        }
+
+        /* 네이버 뉴스 6대 브리프 */
         const naverNewsBriefs = [
             { id: 'n1', cat: '정치·정책', title: '정기국회 돌입… 민생 입법 및 예산안 심사 본격 착수', summary: ['여야, 청년 주거 안정 및 필수 복지 예산안 우선 심의 합의', '전세사기 후속 대책 및 보증금 지원 범위 확대 논의 속도', '상임위별 주요 현안 질의 및 공청회 일정 확정'], source: '네이버 뉴스', url: 'https://news.naver.com/section/100' },
             { id: 'n2', cat: '사회·이슈', title: '1인 가구 급증에 지자체 고립 방지 안전망 대폭 강화', summary: ['청년 및 중장년 1인 가구 대상 맞춤형 심리 상담 센터 증설', '고립 은둔 청년 조기 발굴 및 사회 복귀 프로그램 가동', '주민센터 연계 안부 확인 서비스 전국 확대'], source: '다음 뉴스', url: 'https://news.daum.net/society' },
@@ -469,7 +629,7 @@
             if(manual) alert("네이버 뉴스 실시간 트렌드(조회수·댓글 순)가 갱신되었습니다.");
         }
 
-        /* 기본 상태 데이터셋 */
+        /* 기본 데이터셋 */
         const defaultWeekly = {
             mon: [{ id: 'w1', time: '10:00', text: '교역자 회의' }, { id: 'w2', time: '14:00', text: '광주 심방' }],
             tue: [{ id: 'w3', time: '19:30', text: '리더 1on1 미팅' }],
@@ -565,13 +725,12 @@
         setInterval(updateHeroClock, 1000);
         updateHeroClock();
 
-        /* 주간 일정표 렌더링 (날짜 명시 + 작은 숫자 일자) */
+        /* 주간 일정표 렌더링 */
         function renderWeeklyGrid() {
             const container = document.getElementById('weekly-grid-view');
             if(!container) return;
             container.innerHTML = '';
 
-            // 이번 주 월~일 날짜 계산 (기준일: 2026.08.28 금요일)
             const daysInfo = [
                 { key: 'mon', name: '월', date: '8.24' },
                 { key: 'tue', name: '화', date: '8.25' },
@@ -609,13 +768,12 @@
             });
         }
 
-        /* 홈 화면에서 시간+내용 한 번에 기입하여 주간일정 & 투두에 동시 반영 */
+        /* 홈 화면에서 시간+내용 일괄 입력 */
         function addQuickScheduleFromHome() {
             const day = document.getElementById('quick-sched-day').value;
             const inputVal = document.getElementById('quick-sched-input').value.trim();
             if(!inputVal) { alert("시간과 내용을 함께 입력해주세요 (예: 14:00 교역자 회의)"); return; }
 
-            // 시간 추출 (첫 5글자가 HH:MM 형태이거나 공백 분기 처리)
             let time = "10:00";
             let text = inputVal;
             const parts = inputVal.split(' ');
@@ -624,11 +782,9 @@
                 text = parts.slice(1).join(' ');
             }
 
-            // 주간 일정에 추가
             state.weekly[day] = state.weekly[day] || [];
             state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
 
-            // 일정/투두 메뉴와도 연동되도록 오늘의 할일에 동시 반영
             state.todos.push({
                 id: 't_' + Date.now(),
                 time,
@@ -725,7 +881,7 @@
             syncToCloud();
         }
 
-        /* 사역현황: 항목 직접 수정 가능 & 엔터 추가 */
+        /* 사역현황: 인라인 수정 & 엔터 추가 */
         function renderProjects() {
             const grid = document.getElementById('active-projects-grid');
             if(!grid) return;
@@ -879,6 +1035,7 @@
         }
 
         /* 초기 실행 */
+        initTheologyNarrative();
         renderNewsAccordion();
         renderWeeklyGrid();
         switchTheme(state.theme, false);
