@@ -8,14 +8,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     
-    <!-- Firebase CDN SDK (v9 compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap');
 
-        /* 1. 🩸 클래식 버건디 */
+        /* 1. 🩸 클래식 버건디 (Light) */
         body.theme-burgundy {
             --bg-color: #f7f5f2;
             --card-bg: rgba(255, 255, 255, 0.96);
@@ -31,7 +30,7 @@
             --gif-opacity: 0.35;
         }
 
-        /* 2. 🌌 코스믹 네온 */
+        /* 2. 🌌 코스믹 네온 (Dark) */
         body.theme-cosmic {
             --bg-color: #0d0b18;
             --card-bg: rgba(23, 20, 42, 0.9);
@@ -47,7 +46,7 @@
             --gif-opacity: 0.55;
         }
 
-        /* 3. 🌲 쥬얼 세이지 포레스트 */
+        /* 3. 🌲 쥬얼 세이지 포레스트 (Dark) */
         body.theme-forest {
             --bg-color: #122119;
             --card-bg: rgba(22, 38, 29, 0.92);
@@ -141,10 +140,21 @@
         }
         #selection-toolbar button:hover { background: var(--primary); color: var(--primary-text); }
 
-        /* 생각의 서재 본문 서식용 */
-        .thought-body h1 { font-size: 1.25rem; font-weight: 900; color: var(--text-main); margin: 0.5rem 0 0.25rem 0; }
-        .thought-body h2 { font-size: 1.05rem; font-weight: 800; color: var(--primary); margin: 0.4rem 0 0.2rem 0; }
-        .thought-body mark { background: rgba(255, 214, 0, 0.3); color: inherit; padding: 0 4px; border-radius: 4px; }
+        /* 생각의 서재 본문 서식 스케일 */
+        .thought-body h1 { font-size: 1.25rem; font-weight: 900; color: var(--text-main); margin: 0.6rem 0 0.3rem 0; line-height: 1.35; }
+        .thought-body h2 { font-size: 1.05rem; font-weight: 800; color: var(--primary); margin: 0.5rem 0 0.25rem 0; line-height: 1.35; }
+        .thought-body b, .thought-body strong { font-weight: 900; color: var(--text-main); }
+        .thought-body mark { background: rgba(255, 214, 0, 0.35); color: inherit; padding: 1px 4px; border-radius: 4px; }
+
+        /* 노이즈 제로: 모바일 및 터치 디바이스 호버 대응 */
+        @media (hover: hover) {
+            .hover-reveal-action { opacity: 0; transition: opacity 0.2s ease; }
+            .group:hover .hover-reveal-action,
+            .group\/task:hover .hover-reveal-action { opacity: 1; }
+        }
+        @media (hover: none) {
+            .hover-reveal-action { opacity: 0.35; }
+        }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
@@ -152,7 +162,6 @@
 </head>
 <body class="theme-forest selection:bg-[var(--primary)] selection:text-[var(--primary-text)]">
 
-    <!-- 상단 헤더 (전체 화면 공통: 상시 상황 인식 바 포함) -->
     <header class="bg-[var(--nav-bg)] backdrop-blur-2xl border-b border-[var(--border-color)] px-4 md:px-10 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-xs transition-colors duration-300">
         <div class="flex items-center gap-3 md:gap-5">
             <span class="text-[10px] md:text-xs font-mono-code font-black tracking-widest uppercase primary-badge px-3.5 py-1.5 rounded-full shadow-xs">Control Center</span>
@@ -160,7 +169,6 @@
             <span class="text-xs font-bold text-[var(--text-sub)] hidden lg:inline">예수를 닮아가는 남편, 아빠, 목사 '임예창'</span>
         </div>
 
-        <!-- 글로벌 상황 인식 (모든 메뉴 상시 고정) -->
         <div class="flex items-center gap-2 md:gap-4 text-xs font-mono-code font-bold text-[var(--text-main)]">
             <div class="bg-[var(--card-bg)] px-3 py-1.5 rounded-full border border-[var(--border-color)] flex items-center gap-2 shadow-2xs">
                 <span id="global-header-clock" class="text-[var(--primary)] font-black">00:00:00</span>
@@ -168,7 +176,6 @@
                 <span id="global-header-weather" class="text-[11px] truncate">☀️ 분당 26°C · 경기광주 25°C</span>
             </div>
 
-            <!-- 테마 선택 버튼 그룹 -->
             <div class="flex items-center bg-[var(--card-bg)] px-2 py-1 rounded-full border border-[var(--border-color)] shadow-2xs">
                 <button onclick="switchTheme('burgundy')" id="btn-theme-burgundy" class="px-3 py-1 rounded-full font-bold text-[11px] transition-all">버건디</button>
                 <button onclick="switchTheme('cosmic')" id="btn-theme-cosmic" class="px-3 py-1 rounded-full font-bold text-[11px] transition-all">코스믹</button>
@@ -179,7 +186,6 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-10 space-y-6 md:space-y-8">
 
-        <!-- ================= [1] 홈 화면 ================= -->
         <section id="view-home" class="page-view active space-y-6 md:space-y-8">
             <div class="furnace-hero text-white p-6 sm:p-8 md:p-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <img src="fire-bg.gif" alt="Spiritual Flame" class="hero-gif absolute top-0 left-0 w-full h-full object-cover z-0 pointer-events-none">
@@ -189,7 +195,6 @@
                     <p class="text-xs sm:text-sm text-emerald-200/90 font-medium tracking-wide break-keep">"하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라"</p>
                 </div>
                 
-                <!-- 우측 기상청 패널 (실시간 Open-Meteo ECMWF 연동 & 기호 전용 새로고침 버튼) -->
                 <div class="relative z-10 bg-black/45 backdrop-blur-2xl px-6 py-5 rounded-3xl border border-white/20 text-right w-full lg:w-auto shadow-2xl shrink-0 space-y-3">
                     <div>
                         <span id="hero-clock" class="text-4xl sm:text-5xl font-mono-code font-black block tracking-tight drop-shadow-sm" style="color: var(--hero-clock-color);">00:00:00</span>
@@ -219,7 +224,6 @@
                 </div>
             </div>
 
-            <!-- 🏛️ [Today Reflection : 교회사 5대 시대별 심층 내러티브 엔진] -->
             <div class="glass-card p-6 md:p-7 border-l-4 border-l-[var(--primary)] space-y-4">
                 <div class="flex flex-wrap justify-between items-center gap-2">
                     <div class="flex items-center gap-2">
@@ -252,7 +256,6 @@
                 </div>
             </div>
 
-            <!-- 홈 화면: 오늘의 걸음 (날짜 일체화 & 미니 위젯) -->
             <div class="glass-card p-5 md:p-6 space-y-3 border-l-4 border-l-[var(--primary)]">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-2.5">
@@ -264,7 +267,6 @@
                 <div id="home-todo-preview" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs"></div>
             </div>
 
-            <!-- 주간 일정표 (주간 범위 명시 + 일자 숫자 표기 + 시간/내용 일괄 입력) -->
             <div class="glass-card p-5 md:p-6 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-3 gap-2">
                     <div class="flex items-center gap-3">
@@ -283,23 +285,22 @@
                         <option value="tue">화요일</option>
                         <option value="wed">수요일</option>
                         <option value="thu">목요일</option>
-                        <option value="fri" selected>금요일</option>
+                        <option value="fri" selected>금요일 (오늘)</option>
                         <option value="sat">토요일</option>
                         <option value="sun">일요일</option>
                     </select>
-                    <input type="text" id="quick-sched-input" placeholder="14:00 교역자 회의 (시간과 내용을 입력 후 엔터)" class="flex-1 p-2 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addQuickScheduleFromHome()">
+                    <input type="text" id="quick-sched-input" placeholder="14:00 교역자 회의" class="flex-1 p-2 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addQuickScheduleFromHome()">
                     <button onclick="addQuickScheduleFromHome()" class="px-4 py-2 primary-badge text-xs font-black rounded-lg">등록</button>
                 </div>
 
                 <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 650px; overflow-x: auto;" id="weekly-grid-view"></div>
             </div>
 
-            <!-- 네이버 뉴스 전용 6대 브리프 (기호 전용 회전 새로고침) -->
             <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                     <div class="flex items-center gap-3">
                         <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full">Naver News Brief</span>
-                        <h3 class="text-sm font-black text-[var(--text-main)]">네이버 뉴스 조회수·댓글 상위 6대 이슈</h3>
+                        <h3 class="text-sm font-black text-[var(--text-main)]">네이버 뉴스 조회수·댓글 상위 8대 이슈</h3>
                     </div>
                     <button onclick="refreshNaverNews(true)" title="뉴스 데이터 갱신" class="p-2.5 rounded-xl bg-[var(--primary-light)] hover:bg-[var(--primary)] hover:text-white text-[var(--primary)] transition-all border border-[var(--border-color)] flex items-center justify-center shrink-0">
                         <svg id="news-refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -311,7 +312,6 @@
             </div>
         </section>
 
-        <!-- ================= [2] 일정 화면 ================= -->
         <section id="view-calendar" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -339,7 +339,7 @@
 
             <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-4">
-                    <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">통합 캘린더</h2>
+                    <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">통합 사역 캘린더</h2>
                     <span class="text-xs text-[var(--text-sub)] font-bold">실시간 연동</span>
                 </div>
                 <div class="rounded-2xl overflow-hidden border border-[var(--border-color)] shadow-inner bg-black/10">
@@ -348,7 +348,6 @@
             </div>
         </section>
 
-        <!-- ================= [3] 사역현황 (경작 중 & 갈무리 아카이브) ================= -->
         <section id="view-dashboard" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -373,7 +372,6 @@
             </div>
         </section>
 
-        <!-- ================= [4] 회의록 (6대 카테고리 필터링) ================= -->
         <section id="view-meetings" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -384,7 +382,6 @@
                     <input type="text" id="memo-search-input" placeholder="실시간 검색..." oninput="renderMemos()" class="p-2.5 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-semibold">
                 </div>
 
-                <!-- 6대 카테고리 필터 탭 -->
                 <div class="flex gap-2 overflow-x-auto pb-2" id="memo-cat-filter">
                     <button onclick="filterMemoCat('전체')" class="memo-filter-btn px-4 py-2 rounded-full text-xs font-bold primary-badge whitespace-nowrap">전체보기</button>
                     <button onclick="filterMemoCat('교회 공통')" class="memo-filter-btn px-4 py-2 rounded-full text-xs font-bold text-[var(--text-sub)] bg-[var(--primary-light)] whitespace-nowrap">교회 공통</button>
@@ -416,7 +413,6 @@
             </div>
         </section>
 
-        <!-- ================= [5] 생각의 서재 (드래그 서식 에디터 + 스마트 템플릿) ================= -->
         <section id="view-assets" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -426,7 +422,6 @@
                     </div>
                 </div>
 
-                <!-- 7대 리서치 툴 -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3">
                     <a href="https://www.thegospelcoalition.org" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all bg-[var(--primary-light)]">
                         <div class="w-8 h-8 rounded-xl bg-[var(--primary)] text-black flex items-center justify-center font-black text-xs shrink-0">TGC</div>
@@ -458,7 +453,6 @@
                     </a>
                 </div>
 
-                <!-- 퀵 템플릿 태그 칩 & WYSIWYG 에디터 -->
                 <div class="p-6 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl space-y-3 mt-6">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <span class="text-xs font-black text-[var(--primary)] uppercase tracking-wider block">묵상 및 착상 에디터</span>
@@ -472,7 +466,6 @@
 
                     <input type="text" id="thought-title" placeholder="출처, 도서명 또는 주제 태그" class="w-full p-3 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-bold">
                     
-                    <!-- contenteditable 본문 에디터 (드래그 서식 툴바 연동) -->
                     <div id="thought-editor-content" contenteditable="true" class="w-full min-h-[120px] p-4 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-medium leading-relaxed thought-body" onmouseup="checkSelection()" onkeyup="checkSelection()"></div>
 
                     <div class="flex justify-end">
@@ -489,13 +482,11 @@
         </section>
     </main>
 
-    <!-- 좌측 하단 조용한 클라우드 상태 인디케이터 (Silent Cloud Anchor) -->
-    <div id="cloud-sync-status-dock" class="fixed bottom-4 left-4 z-40 bg-[var(--card-bg)]/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-[var(--border-color)] text-[var(--text-sub)] flex items-center gap-2 text-[10px] font-mono-code font-bold opacity-75 hover:opacity-100 transition-opacity">
+    <div id="cloud-sync-status-dock" class="fixed bottom-4 left-4 z-40 bg-[var(--card-bg)]/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-[var(--border-color)] text-[var(--text-sub)] flex items-center gap-2 text-[10px] font-mono-code font-bold opacity-75 hover:opacity-100 transition-opacity shadow-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-400" id="sync-dot"></span>
         <span id="sync-text">Cloud Synced</span>
     </div>
 
-    <!-- 하단 고정 네비게이션 바 -->
     <nav class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 bg-[var(--nav-bg)] backdrop-blur-2xl border border-[var(--border-color)] px-3 py-2.5 rounded-full flex gap-1.5 shadow-2xl z-50 max-w-[95vw] overflow-x-auto transition-colors duration-300">
         <button onclick="switchView('home', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs">홈</button>
         <button onclick="switchView('calendar', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">일정</button>
@@ -506,7 +497,6 @@
 
     <div class="fab-btn" onclick="openFabModal()" title="빠른 입력">+</div>
 
-    <!-- 플로팅 서식 버블 툴바 (드래그 시 노출) -->
     <div id="selection-toolbar">
         <button onclick="formatSelection('bold')">B</button>
         <button onclick="formatSelection('italic')">I</button>
@@ -515,8 +505,6 @@
         <button onclick="formatSelection('hiliteColor', 'rgba(255, 214, 0, 0.4)')">Pen</button>
     </div>
 
-    <!-- 모달 창들 -->
-    <!-- 1. 신학 내러티브 심층 모달 -->
     <div id="theology-detail-modal" class="modal-overlay" onclick="closeModal('theology-detail-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
@@ -541,14 +529,11 @@
         </div>
     </div>
 
-    <!-- 2. 생각의 서재 라이브 편집 & 전문 모달 -->
     <div id="thought-modal" class="modal-overlay" onclick="closeThoughtModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
                 <span id="modal-tag" class="text-[10px] font-mono-code primary-badge font-black px-3 py-1 rounded-full">태그</span>
-                <div class="flex items-center gap-2">
-                    <button onclick="forwardCurrentThoughtToSermon()" class="text-xs font-bold text-[var(--primary)] hover:underline">➔ 설교 아이디어로 전송</button>
-                </div>
+                <button onclick="forwardCurrentThoughtToSermon()" class="text-xs font-bold text-[var(--primary)] hover:underline">➔ 설교 아이디어로 전송</button>
             </div>
             <h3 id="modal-thought-title" contenteditable="true" onblur="updateModalThoughtTitle(this.innerText)" class="text-base font-black text-[var(--text-main)] mb-3 outline-none border-b border-transparent focus:border-[var(--primary)]"></h3>
             <div id="modal-text" contenteditable="true" onblur="updateModalThoughtContent(this.innerHTML)" class="text-xs text-[var(--text-main)] leading-relaxed min-h-[160px] max-h-[50vh] overflow-y-auto bg-[var(--primary-light)] p-4 rounded-xl outline-none thought-body"></div>
@@ -558,13 +543,12 @@
         </div>
     </div>
 
-    <!-- 3. FAB 빠른 입력 모달 -->
     <div id="fab-modal" class="modal-overlay" onclick="closeModal('fab-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3 class="font-black text-lg text-[var(--text-main)] mb-4">빠른 입력</h3>
             <div class="space-y-3">
                 <select id="fab-type" class="w-full p-3 text-sm bg-[var(--primary-light)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl font-bold outline-none">
-                    <option value="todo">오늘의 할일 추가</option>
+                    <option value="todo">오늘의 걸음 추가</option>
                     <option value="memo">회의록 퀵메모 추가</option>
                 </select>
                 <textarea id="fab-input" rows="3" placeholder="내용을 입력하세요..." class="w-full p-4 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-sm outline-none font-medium"></textarea>
@@ -738,7 +722,7 @@
 
         function forwardNarrativeToStudy() {
             const item = masterTheologyNarratives[activeNarrativeIdx];
-            const content = `[역사적 질문]\n${item.question}\n\n[선언]\n${item.declaration}\n- ${item.author} (${item.work})\n\n[역사적 배경]\n${item.history}\n\n[사역적 질문]\n${item.contemporary}`;
+            const content = `<h1>[역사적 질문]</h1><p>${item.question}</p><h2>[선언]</h2><p>${item.declaration}</p><p>- ${item.author} (${item.work})</p><h2>[역사적 배경]</h2><p>${item.history}</p><h2>[사역적 질문]</h2><p>${item.contemporary}</p>`;
             
             state.thoughts.unshift({
                 id: 'th_' + Date.now(),
@@ -751,34 +735,50 @@
             closeModal('theology-detail-modal');
         }
 
-        /* 네이버 뉴스 6대 브리프 (기호 전용 회전 새로고침) */
-        const naverNewsBriefs = [
-            { id: 'n1', cat: '정치·정책', title: '정기국회 돌입… 민생 입법 및 예산안 심사 본격 착수', summary: ['여야, 청년 주거 안정 및 필수 복지 예산안 우선 심의 합의', '전세사기 후속 대책 및 보증금 지원 범위 확대 논의 속도', '상임위별 주요 현안 질의 및 공청회 일정 확정'], source: '네이버 뉴스', url: 'https://news.naver.com/section/100' },
-            { id: 'n2', cat: '사회·이슈', title: '1인 가구 급증에 지자체 고립 방지 안전망 대폭 강화', summary: ['청년 및 중장년 1인 가구 대상 맞춤형 심리 상담 센터 증설', '고립 은둔 청년 조기 발굴 및 사회 복귀 프로그램 가동', '주민센터 연계 안부 확인 서비스 전국 확대'], source: '다음 뉴스', url: 'https://news.daum.net/society' },
-            { id: 'n3', cat: '노동·경제', title: '유연근무제 확산 속 워라밸과 조직 생산성 균형 모색', summary: ['대기업·공공기관 중심 시차출퇴근제 및 원격근무 정착 추세', '2030 직장인의 조직 몰입도와 유연성 확보 간 상관관계 분석', '성과 중심 평가 체계 개편 및 비대면 협업 툴 고도화'], source: '사회종합', url: 'https://news.naver.com/section/102' },
-            { id: 'n4', cat: '외교·안보', title: '글로벌 공급망 재편 속 다자간 경제 안보 협력 강화', summary: ['주요국 핵심 광물 및 공급망 안정화 협의체 본격 가동', '국제 정세 변동에 따른 지정학적 리스크 선제적 관리', '글로벌 탄소 감축 정책 관련 다자간 대화 진전'], source: '외교안보', url: 'https://news.naver.com/section/104' },
-            { id: 'n5', cat: 'IT·테크', title: '생성형 AI 일상화에 따른 디지털 윤리 가이드라인 발표', summary: ['업무 생산성 향상에 따른 AI 리터러시 교육 수요 급증', '딥페이크 및 디지털 범죄 예방 처벌 기준 대폭 강화', '플랫폼 사업자 책임성 제고 및 알고리즘 투명성 확보'], source: 'IT·테크', url: 'https://news.naver.com/section/105' },
-            { id: 'n6', cat: '생활·교통', title: '광역 대중교통 통합 할인 카드 이용률 가파른 증가세', summary: ['K-패스 및 기후동행카드 이용자 편의성 대폭 개선', '수도권 심야 버스·지하철 연계 노선 정비 완료', '친환경 모빌리티 인프라 확충 및 보행자 중심 도로 설계'], source: '생활정보', url: 'https://news.naver.com/section/103' }
+        /* 네이버 뉴스 8대 브리프 데이터셋 (연예·문화 & 스포츠·건강 확장) */
+        const masterNaverNewsPool = [
+            { id: 'n1', cat: '정치·정책', title: '정기국회 돌입… 청년 주거 및 필수 민생 법안 우선 심사 착수', summary: ['여야, 취약계층 필수 복지 예산안 우선 심의 합의', '전세사기 특별법 후속 대책 및 보증금 회수 지원 범위 확대 논의', '상임위별 주요 쟁점 조율 및 공청회 일정 확정'], source: '네이버 뉴스', url: 'https://news.naver.com/section/100' },
+            { id: 'n2', cat: '사회·이슈', title: '1인 가구 급증에 지자체 고립 방지 맞춤형 생활 안전망 확대', summary: ['청년 및 중장년 1인 가구 대상 심리 상담 거점 센터 증설', '고립 은둔 청년 조기 발굴 및 사회 복귀 밀착 프로그램 가동', '주민센터 연계 안부 확인 서비스 전국 네트워크 구축'], source: '네이버 뉴스', url: 'https://news.daum.net/society' },
+            { id: 'n3', cat: '노동·경제', title: '유연근무제 확산과 일하는 방식 변화… 2030 워라밸 균형 모색', summary: ['대기업·공공기관 중심 시차출퇴근제 및 원격근무 정착 추세', '조직 몰입도와 개인 자율성 간의 새로운 생산성 균형점 분석', '성과 중심 평가 체계 개편 및 비대면 협업 툴 활용 역량 부각'], source: '네이버 뉴스', url: 'https://news.naver.com/section/102' },
+            { id: 'n4', cat: '외교·안보', title: '글로벌 통상 환경 재편과 다자간 핵심 공급망 안보 협력 강화', summary: ['주요국 핵심 광물 및 공급망 안정화 협의체 본격 가동', '국제 정세 변동에 따른 지정학적 리스크 선제적 관리 집중', '글로벌 기후 협약 및 탄소 감축 정책 관련 다자간 대화 진전'], source: '네이버 뉴스', url: 'https://news.naver.com/section/104' },
+            { id: 'n5', cat: 'IT·테크', title: '생성형 AI 일상화에 따른 디지털 윤리 및 플랫폼 안전 표준화', summary: ['업무 생산성 향상에 따른 AI 리터러시 교육 수요 급증', '딥페이크 및 디지털 범죄 예방을 위한 법적 처벌 기준 대폭 강화', '플랫폼 사업자 책임성 제고 및 알고리즘 투명성 가이드라인 제정'], source: '네이버 뉴스', url: 'https://news.naver.com/section/105' },
+            { id: 'n6', cat: '생활·교통', title: '광역 대중교통 통합 할인 카드 이용률 증가와 인프라 개편', summary: ['K-패스 및 기후동행카드 이용 편의성 대폭 개선', '수도권 심야 버스·지하철 연계 노선 정비 및 환승 시설 확충', '친환경 모빌리티 인프라 구축과 보행자 중심 도로 설계 확대'], source: '네이버 뉴스', url: 'https://news.naver.com/section/103' },
+            { id: 'n7', cat: '연예·문화', title: 'K-콘텐츠 글로벌 흥행 지속과 청년 세대 텍스트·문화 소비 트렌드', summary: ['글로벌 OTT 플랫폼 내 한국 드라마·영화 랭킹 최상위권 유지', '숏폼 미디어 유행 속 긴 호흡의 독서 및 텍스트 힙(Text-Hip) 문화 부상', '독립 서점 및 소모임 기반 문화 살롱 커뮤니티 확산세 지속'], source: '네이버 뉴스', url: 'https://news.naver.com/section/106' },
+            { id: 'n8', cat: '스포츠·건강', title: '해외파 태극전사 유럽 리그 맹활약 및 생활 체육 러닝 열풍', summary: ['손흥민·이강인 등 주요 해외파 주말 리그 공격포인트 달성 소식', '청년층 중심의 도심 크루 러닝 및 생활 스포츠 참여율 최고치 기록', '바른 자세 및 멘탈 웰니스 중심의 건강 루틴 트렌드 형성'], source: '네이버 뉴스', url: 'https://news.naver.com/section/107' }
         ];
 
+        let activeNewsList = [...masterNaverNewsPool];
         let openAccordionId = null;
+
         function renderNewsAccordion() {
             const container = document.getElementById('news-accordion-container');
             if(!container) return;
             container.innerHTML = '';
-            naverNewsBriefs.forEach(item => {
+
+            activeNewsList.forEach(item => {
                 const isOpen = openAccordionId === item.id;
                 const div = document.createElement('div');
                 div.className = "bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl overflow-hidden transition-all shadow-xs";
-                let summaryHtml = isOpen ? `<div class="px-4 pb-4 pt-2 border-t border-[var(--border-color)] bg-[var(--primary-light)] space-y-2 text-xs"><span class="font-bold text-[var(--primary)] block">🔥 조회수·댓글 상위 핵심 요약:</span><ul class="list-disc list-inside space-y-1 text-[var(--text-main)] font-medium">${item.summary.map(s => `<li>${s}</li>`).join('')}</ul></div>` : '';
+                let summaryHtml = isOpen ? `<div class="px-4 pb-4 pt-2 border-t border-[var(--border-color)] bg-[var(--primary-light)] space-y-2 text-xs"><span class="font-bold text-[var(--primary)] block">🔥 실시간 3줄 핵심 요약:</span><ul class="list-disc list-inside space-y-1 text-[var(--text-main)] font-medium">${item.summary.map(s => `<li>${s}</li>`).join('')}</ul></div>` : '';
                 div.innerHTML = `<div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-[var(--primary-light)] transition-colors" onclick="toggleNewsAccordion('${item.id}')"><div class="flex items-center gap-2.5 overflow-hidden flex-1 mr-2"><span class="text-[10px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full shrink-0">${item.cat}</span><h4 class="text-xs sm:text-sm font-bold text-[var(--text-main)] truncate">${item.title}</h4></div><div class="flex items-center gap-3 shrink-0"><a href="${item.url}" target="_blank" onclick="event.stopPropagation()" class="text-[10px] font-mono-code text-[var(--text-sub)] hover:text-[var(--primary)] font-bold flex items-center gap-0.5"><span>${item.source}</span><span>↗</span></a><span class="text-xs text-[var(--text-sub)] font-bold transition-transform ${isOpen ? 'rotate-180' : ''}">▼</span></div></div>${summaryHtml}`;
                 container.appendChild(div);
             });
         }
-        function toggleNewsAccordion(id) { openAccordionId = (openAccordionId === id) ? null : id; renderNewsAccordion(); }
+
+        function toggleNewsAccordion(id) {
+            openAccordionId = (openAccordionId === id) ? null : id;
+            renderNewsAccordion();
+        }
+
         function refreshNaverNews(manual=false) {
             const icon = document.getElementById('news-refresh-icon');
-            if(icon && manual) { icon.classList.remove('rotate-anim'); void icon.offsetWidth; icon.classList.add('rotate-anim'); }
+            if(icon && manual) {
+                icon.classList.remove('rotate-anim');
+                void icon.offsetWidth;
+                icon.classList.add('rotate-anim');
+            }
+            // 다이내믹 셔플
+            activeNewsList = [...masterNaverNewsPool].sort(() => Math.random() - 0.5);
             renderNewsAccordion();
         }
 
@@ -818,7 +818,7 @@
             todos: defaultTodos,
             projects: defaultProjects,
             memos: [{ id: 'm1', cat: '교회 공통', title: '하반기 목회 계획', date: '2026.08.28', content: '소그룹 모임 장소 재배치 논의 완료.' }],
-            thoughts: [{ id: 'th1', cat: '설교착상', title: '팀켈러 일과 영성', content: '복음은 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 거룩한 소명의 자리로 변화시킨다.' }]
+            thoughts: [{ id: 'th1', cat: '설교착상', title: '팀켈러 일과 영성', content: '<h1>소명으로서의 일터</h1><p>복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 <mark>거룩한 소명의 자리</mark>로 변화시킨다.</p>' }]
         };
 
         let currentActiveThoughtId = null;
@@ -884,11 +884,17 @@
             document.getElementById('hero-clock').innerText = timeStr;
             document.getElementById('hero-date').innerText = dateStr;
             document.getElementById('global-header-clock').innerText = timeStr;
+            
+            const shortToday = `${month}.${day} (${days[now.getDay()]})`;
+            const homeTodayEl = document.getElementById('home-today-date-text');
+            const calTodayEl = document.getElementById('calendar-today-date-text');
+            if(homeTodayEl) homeTodayEl.innerText = shortToday;
+            if(calTodayEl) calTodayEl.innerText = shortToday;
         }
         setInterval(updateHeroClock, 1000);
         updateHeroClock();
 
-        /* 주간 일정표 */
+        /* 주간 일정표 렌더링 */
         function renderWeeklyGrid() {
             const container = document.getElementById('weekly-grid-view');
             if(!container) return;
@@ -899,14 +905,15 @@
                 { key: 'tue', name: '화', date: '8.25' },
                 { key: 'wed', name: '수', date: '8.26' },
                 { key: 'thu', name: '목', date: '8.27' },
-                { key: 'fri', name: '금', date: '8.28' },
+                { key: 'fri', name: '금', date: '8.28', isToday: true },
                 { key: 'sat', name: '토', date: '8.29' },
                 { key: 'sun', name: '일', date: '8.30' }
             ];
 
             daysInfo.forEach(d => {
                 const dayBox = document.createElement('div');
-                dayBox.className = "bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full border border-[var(--border-color)]";
+                const todayHighlight = d.isToday ? 'border-2 border-[var(--primary)] shadow-sm' : 'border border-[var(--border-color)]';
+                dayBox.className = `bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full ${todayHighlight}`;
                 
                 let schedHtml = '';
                 (state.weekly[d.key] || []).sort((a,b)=>a.time.localeCompare(b.time)).forEach(item => {
@@ -914,7 +921,7 @@
                         <div class="bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] leading-snug group relative">
                             <div class="flex justify-between items-start">
                                 <b class="text-[var(--primary)] font-mono-code font-bold text-[10px]">${item.time}</b>
-                                <button onclick="deleteWeekly('${d.key}', '${item.id}')" class="text-[9px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                                <button onclick="deleteWeekly('${d.key}', '${item.id}')" class="text-[9px] text-red-400 hover-reveal-action font-bold">✕</button>
                             </div>
                             <span class="font-bold text-[11px] text-[var(--text-main)] block mt-0.5">${item.text}</span>
                         </div>`;
@@ -922,7 +929,7 @@
 
                 dayBox.innerHTML = `
                     <div class="text-center pb-1 border-b border-[var(--border-color)]">
-                        <span class="font-black text-[var(--primary)] block text-xs">${d.name}</span>
+                        <span class="font-black text-[var(--primary)] block text-xs">${d.name} ${d.isToday ? '📍' : ''}</span>
                         <span class="text-[10px] font-mono-code text-[var(--text-sub)] font-bold">${d.date}</span>
                     </div>
                     <div class="flex-1 space-y-1.5">${schedHtml}</div>
@@ -931,6 +938,7 @@
             });
         }
 
+        /* 지능형 요일 분기 라우팅 (선택한 요일이 '오늘(금)'일 때만 오늘의 걸음에 동시 반영) */
         function addQuickScheduleFromHome() {
             const day = document.getElementById('quick-sched-day').value;
             const inputVal = document.getElementById('quick-sched-input').value.trim();
@@ -944,10 +952,19 @@
                 text = parts.slice(1).join(' ');
             }
 
+            // 주간 일정표에는 무조건 해당 요일에 등록
             state.weekly[day] = state.weekly[day] || [];
             state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
 
-            state.todos.push({ id: 't_' + Date.now(), time, cat: '사역', text, status: '진행' });
+            // 오늘(금요일 - 'fri')인 경우에만 오늘의 걸음(state.todos)에 동시 등록
+            if (day === 'fri') {
+                let inferredCat = '사역';
+                if(text.includes('심방')) inferredCat = '심방';
+                else if(text.includes('회의')) inferredCat = '회의';
+                else if(text.includes('가정')) inferredCat = '가정';
+
+                state.todos.push({ id: 't_' + Date.now(), time, cat: inferredCat, text, status: '진행' });
+            }
 
             renderWeeklyGrid();
             renderTodos();
@@ -987,13 +1004,14 @@
             });
         }
 
+        /* 오늘의 걸음(투두) 호버 삭제 UI 적용 */
         function renderTodos() {
             const container = document.getElementById('todo-checklist-container');
             if(!container) return;
             container.innerHTML = '';
             state.todos.forEach(item => {
                 const div = document.createElement('div');
-                div.className = "p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between";
+                div.className = "p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between group";
                 div.innerHTML = `
                     <div class="flex items-center gap-2.5 flex-1 mr-2 overflow-hidden">
                         <span class="text-xs font-mono-code font-bold text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">${item.time}</span>
@@ -1005,7 +1023,7 @@
                             <option value="진행" ${item.status === '진행' ? 'selected' : ''}>진행</option>
                             <option value="완료" ${item.status === '완료' ? 'selected' : ''}>완료</option>
                         </select>
-                        <button onclick="deleteTodo('${item.id}')" class="text-[11px] text-red-400 font-bold px-1">✕</button>
+                        <button onclick="deleteTodo('${item.id}')" class="text-[11px] text-red-400 font-bold px-1 hover-reveal-action">✕</button>
                     </div>`;
                 container.appendChild(div);
             });
@@ -1034,7 +1052,7 @@
             syncToCloud();
         }
 
-        /* 사역현황: 호버 기반 UI 노출 & 키보드 연속 입력 */
+        /* 사역현황: 경작 중 & 갈무리 아카이브 & 연속 키보드 입력 & 호버 UI */
         function renderProjects() {
             const activeGrid = document.getElementById('active-projects-grid');
             const completedGrid = document.getElementById('completed-projects-grid');
@@ -1058,7 +1076,7 @@
                         <div class="flex items-center gap-2 py-1 group/task">
                             <input type="checkbox" ${st.done ? 'checked' : ''} onchange="toggleSubTask('${p.id}', '${st.id}')" class="accent-[var(--primary)] rounded">
                             <span contenteditable="true" onblur="updateSubTaskText('${p.id}', '${st.id}', this.innerText)" class="${st.done ? 'line-through text-[var(--text-sub)] opacity-60' : 'text-[var(--text-main)]'} font-medium flex-1 outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${st.text}</span>
-                            <button onclick="deleteSubTask('${p.id}', '${st.id}')" class="text-[10px] text-red-400 opacity-0 group-hover/task:opacity-100 transition-opacity font-bold">✕</button>
+                            <button onclick="deleteSubTask('${p.id}', '${st.id}')" class="text-[10px] text-red-400 hover-reveal-action font-bold">✕</button>
                         </div>`;
                 });
 
@@ -1068,7 +1086,7 @@
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
                             <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-[var(--primary-light)] px-2.5 py-1 rounded-full text-[var(--primary)]">진행중 (${rate}%)</span>
-                            <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="flex items-center gap-1.5 hover-reveal-action">
                                 <button onclick="deleteProject('${p.id}')" class="text-[11px] text-red-400 font-bold">삭제</button>
                             </div>
                         </div>
@@ -1076,7 +1094,7 @@
                         <div class="space-y-1.5 pt-2 border-t border-[var(--border-color)]">
                             <span class="text-xs font-bold text-[var(--text-sub)] block">실행 과업</span>
                             <div class="space-y-1 text-xs">${subtasksHtml}</div>
-                            <input type="text" placeholder="+ 새 과업 입력 후 Enter" class="w-full mt-2 p-2 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl text-xs font-semibold outline-none focus:border-[var(--primary)]" onkeypress="if(event.key==='Enter') addSubTaskByEnter('${p.id}', this)">
+                            <input type="text" placeholder="+ 새 과업 입력 후 Enter" class="w-full mt-2 p-2 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl text-xs font-semibold outline-none focus:border-[var(--primary)]" onkeydown="handleSubTaskEnter('${p.id}', this, event)">
                         </div>
                     </div>
                     <div class="pt-2">
@@ -1091,7 +1109,7 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-gray-800 text-gray-400 px-2.5 py-1 rounded-full">갈무리됨</span>
-                        <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="flex items-center gap-1.5 hover-reveal-action">
                             <button onclick="toggleProjectComplete('${p.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">되돌리기</button>
                             <button onclick="deleteProject('${p.id}')" class="text-[11px] text-red-400 font-bold">삭제</button>
                         </div>
@@ -1114,15 +1132,17 @@
             syncToCloud();
         }
 
-        function addSubTaskByEnter(projectId, inputEl) {
-            const text = inputEl.value.trim();
-            if(!text) return;
-            const p = state.projects.find(item => item.id === projectId);
-            if(p) {
-                p.subtasks.push({ id: 'st_' + Date.now(), text, done: false });
-                inputEl.value = '';
-                renderProjects();
-                syncToCloud();
+        function handleSubTaskEnter(projectId, inputEl, event) {
+            if (event.key === 'Enter' && !event.isComposing) {
+                const text = inputEl.value.trim();
+                if(!text) return;
+                const p = state.projects.find(item => item.id === projectId);
+                if(p) {
+                    p.subtasks.push({ id: 'st_' + Date.now(), text, done: false });
+                    inputEl.value = '';
+                    renderProjects();
+                    syncToCloud();
+                }
             }
         }
 
@@ -1173,7 +1193,7 @@
             }
         }
 
-        /* 회의록 관리 */
+        /* 회의록 관리 (6대 카테고리 필터링 & 호버 삭제 UI) */
         let currentMemoCat = '전체';
 
         function renderMemos() {
@@ -1194,7 +1214,7 @@
                         <span class="text-[10px] primary-badge font-black px-2.5 py-0.5 rounded-full">${m.cat}</span>
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] text-[var(--text-sub)] font-mono-code">${m.date}</span>
-                            <button onclick="deleteMemo('${m.id}')" class="text-[11px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold">✕</button>
+                            <button onclick="deleteMemo('${m.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
                         </div>
                     </div>
                     <h4 class="font-bold text-xs text-[var(--text-main)]">${m.title}</h4>
@@ -1286,7 +1306,7 @@
                     <div>
                         <div class="flex justify-between items-center">
                             <span class="text-[10px] font-mono-code primary-badge font-black uppercase px-3 py-1 rounded-full">${th.cat || '서재'} | ${th.title}</span>
-                            <button onclick="event.stopPropagation(); deleteThought('${th.id}')" class="text-[11px] text-red-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold">✕</button>
+                            <button onclick="event.stopPropagation(); deleteThought('${th.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
                         </div>
                         <div class="text-xs text-[var(--text-main)] mt-3 line-clamp-3 leading-relaxed thought-body font-medium">${th.content}</div>
                     </div>
@@ -1319,6 +1339,19 @@
         }
 
         function closeThoughtModal() {
+            if(currentActiveThoughtId) {
+                const titleEl = document.getElementById('modal-thought-title');
+                const contentEl = document.getElementById('modal-text');
+                if(titleEl && contentEl) {
+                    const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
+                    if(t) {
+                        t.title = titleEl.innerText.trim() || t.title;
+                        t.content = contentEl.innerHTML.trim() || t.content;
+                        renderThoughts();
+                        syncToCloud();
+                    }
+                }
+            }
             document.getElementById('thought-modal').classList.remove('show');
             currentActiveThoughtId = null;
         }
@@ -1349,7 +1382,7 @@
                 cat: '설교 아이디어',
                 title: `[서재 착상] ${thought.title}`,
                 date: '2026.08.28',
-                content: thought.content.replace(/<[^>]*>?/gm, '')
+                content: thought.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim()
             });
             renderMemos();
             syncToCloud();
