@@ -8,11 +8,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     
+    <!-- Firebase CDN SDK (v9 compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800;900&display=swap');
 
         /* 1. 🩸 클래식 버건디 (Light) */
         body.theme-burgundy {
@@ -28,6 +29,9 @@
             --hero-bg: linear-gradient(135deg, #3d0a11 0%, #691721 60%, #240509 100%);
             --hero-clock-color: #ffd6dc;
             --gif-opacity: 0.35;
+            --study-bg: #f2ece4;
+            --study-card: #ffffff;
+            --highlight-tint: rgba(217, 119, 6, 0.35);
         }
 
         /* 2. 🌌 코스믹 네온 (Dark) */
@@ -44,6 +48,9 @@
             --hero-bg: linear-gradient(135deg, #1d0a33 0%, #35105e 50%, #10061d 100%);
             --hero-clock-color: #fbcfe8;
             --gif-opacity: 0.55;
+            --study-bg: #090712;
+            --study-card: #151128;
+            --highlight-tint: rgba(255, 214, 0, 0.3);
         }
 
         /* 3. 🌲 쥬얼 세이지 포레스트 (Dark) */
@@ -60,6 +67,9 @@
             --hero-bg: radial-gradient(circle at 65% 45%, #1d4d33 0%, #10291d 75%, #0a1b13 100%);
             --hero-clock-color: #6ee7b7;
             --gif-opacity: 0.38;
+            --study-bg: #0b1510;
+            --study-card: #13241b;
+            --highlight-tint: rgba(255, 214, 0, 0.3);
         }
 
         body {
@@ -69,7 +79,12 @@
             letter-spacing: -0.03em;
             margin: 0;
             padding-bottom: 140px;
-            transition: background-color 0.35s ease, color 0.35s ease;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* 생각의 서재 진입 시 공간 조명 감쇄 (Ambient Dimming) */
+        body.in-study-room {
+            background-color: var(--study-bg);
         }
 
         .font-hero-title { font-weight: 900; letter-spacing: -0.045em; }
@@ -99,21 +114,23 @@
 
         .hero-gif { opacity: var(--gif-opacity); mix-blend-mode: screen; transition: opacity 0.4s ease; }
 
-        .page-view { display: none; opacity: 0; transform: translateY(8px); transition: opacity 0.3s ease, transform 0.3s ease; }
+        .page-view { display: none; opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
         .page-view.active { display: block; opacity: 1; transform: translateY(0); }
 
         .rotate-anim { animation: spinOnce 0.6s ease-in-out; }
         @keyframes spinOnce { 100% { transform: rotate(360deg); } }
 
+        /* 서재 스탠드 조명 비네팅 모달 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.72); backdrop-filter: blur(8px);
+            background: radial-gradient(circle at 50% 45%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.92) 100%);
+            backdrop-filter: blur(14px);
             display: none; justify-content: center; align-items: center; z-index: 100;
         }
         .modal-overlay.show { display: flex; }
         .modal-content {
-            background: var(--card-bg); border-radius: 24px; padding: 28px; max-width: 640px; width: 92%;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4); border: 1px solid var(--border-color);
+            background: var(--card-bg); border-radius: 28px; padding: 32px; max-width: 680px; width: 92%;
+            box-shadow: 0 35px 70px rgba(0,0,0,0.55); border: 1px solid var(--border-color);
         }
 
         .fab-btn {
@@ -127,26 +144,74 @@
         .fab-btn:hover { transform: scale(1.08); }
         @media (min-width: 768px) { .fab-btn { bottom: 40px; right: 40px; } }
 
-        /* 생각의 서재 드래그 플로팅 버블 툴바 */
+        /* 서재 플로팅 캡슐 툴바 */
         #selection-toolbar {
             position: absolute; display: none; z-index: 80;
-            background: rgba(15, 12, 28, 0.94); backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 12px;
-            padding: 4px 6px; gap: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: rgba(15, 12, 28, 0.95); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 14px;
+            padding: 4px 6px; gap: 4px; box-shadow: 0 14px 35px rgba(0,0,0,0.6);
         }
         #selection-toolbar button {
             color: #ffffff; font-size: 11px; font-weight: 800; padding: 4px 8px;
-            border-radius: 6px; transition: background 0.15s;
+            border-radius: 8px; transition: all 0.15s;
         }
         #selection-toolbar button:hover { background: var(--primary); color: var(--primary-text); }
 
-        /* 생각의 서재 본문 서식 스케일 */
-        .thought-body h1 { font-size: 1.25rem; font-weight: 900; color: var(--text-main); margin: 0.6rem 0 0.3rem 0; line-height: 1.35; }
-        .thought-body h2 { font-size: 1.05rem; font-weight: 800; color: var(--primary); margin: 0.5rem 0 0.25rem 0; line-height: 1.35; }
-        .thought-body b, .thought-body strong { font-weight: 900; color: var(--text-main); }
-        .thought-body mark { background: rgba(255, 214, 0, 0.35); color: inherit; padding: 1px 4px; border-radius: 4px; }
+        /* 잉크 브레스 타이포그래피 (Ink-Breath Typography) */
+        .thought-body {
+            font-size: calc(14px * var(--thought-zoom, 1));
+            line-height: 1.75;
+            color: var(--text-main);
+        }
+        .thought-body h1 {
+            font-size: calc(1.35rem * var(--thought-zoom, 1));
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 0.8rem 0 0.4rem 0;
+            line-height: 1.3;
+            letter-spacing: -0.04em;
+        }
+        .thought-body h2 {
+            font-size: calc(1.1rem * var(--thought-zoom, 1));
+            font-weight: 800;
+            color: var(--primary);
+            margin: 0.7rem 0 0.35rem 0;
+            line-height: 1.35;
+            border-left: 3px solid var(--primary);
+            padding-left: 8px;
+        }
+        .thought-body b, .thought-body strong {
+            font-weight: 900;
+            color: var(--text-main);
+        }
+        .thought-body mark {
+            background: linear-gradient(180deg, transparent 45%, var(--highlight-tint) 45%);
+            color: inherit;
+            padding: 0 4px;
+            border-radius: 2px;
+        }
+        .thought-body blockquote {
+            border-left: 3px solid var(--border-color);
+            padding-left: 12px;
+            font-style: italic;
+            color: var(--text-sub);
+            margin: 0.5rem 0;
+        }
 
-        /* 노이즈 제로: 모바일 및 터치 디바이스 호버 대응 */
+        /* 책갈피 리본 뱃지 (Bookmark Ribbon) */
+        .bookmark-ribbon {
+            position: relative;
+            padding: 3px 10px;
+            border-radius: 6px 6px 6px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 노이즈 제로: 마우스 호버 시에만 ✕ 및 액션 노출 */
         @media (hover: hover) {
             .hover-reveal-action { opacity: 0; transition: opacity 0.2s ease; }
             .group:hover .hover-reveal-action,
@@ -162,6 +227,7 @@
 </head>
 <body class="theme-forest selection:bg-[var(--primary)] selection:text-[var(--primary-text)]">
 
+    <!-- 상단 헤더 (상시 글로벌 상황 인식 바) -->
     <header class="bg-[var(--nav-bg)] backdrop-blur-2xl border-b border-[var(--border-color)] px-4 md:px-10 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-xs transition-colors duration-300">
         <div class="flex items-center gap-3 md:gap-5">
             <span class="text-[10px] md:text-xs font-mono-code font-black tracking-widest uppercase primary-badge px-3.5 py-1.5 rounded-full shadow-xs">Control Center</span>
@@ -186,6 +252,7 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-10 space-y-6 md:space-y-8">
 
+        <!-- ================= [1] 홈 화면 ================= -->
         <section id="view-home" class="page-view active space-y-6 md:space-y-8">
             <div class="furnace-hero text-white p-6 sm:p-8 md:p-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <img src="fire-bg.gif" alt="Spiritual Flame" class="hero-gif absolute top-0 left-0 w-full h-full object-cover z-0 pointer-events-none">
@@ -195,6 +262,7 @@
                     <p class="text-xs sm:text-sm text-emerald-200/90 font-medium tracking-wide break-keep">"하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라"</p>
                 </div>
                 
+                <!-- 우측 기상청 패널 (실시간 Open-Meteo ECMWF 연동 & 기호 전용 새로고침) -->
                 <div class="relative z-10 bg-black/45 backdrop-blur-2xl px-6 py-5 rounded-3xl border border-white/20 text-right w-full lg:w-auto shadow-2xl shrink-0 space-y-3">
                     <div>
                         <span id="hero-clock" class="text-4xl sm:text-5xl font-mono-code font-black block tracking-tight drop-shadow-sm" style="color: var(--hero-clock-color);">00:00:00</span>
@@ -224,6 +292,7 @@
                 </div>
             </div>
 
+            <!-- 🏛️ Today Reflection (교회사 5대 시대별 심층 내러티브 엔진) -->
             <div class="glass-card p-6 md:p-7 border-l-4 border-l-[var(--primary)] space-y-4">
                 <div class="flex flex-wrap justify-between items-center gap-2">
                     <div class="flex items-center gap-2">
@@ -256,6 +325,7 @@
                 </div>
             </div>
 
+            <!-- 홈 화면: 오늘의 걸음 (날짜 일체화 & 미니 위젯) -->
             <div class="glass-card p-5 md:p-6 space-y-3 border-l-4 border-l-[var(--primary)]">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-2.5">
@@ -267,6 +337,7 @@
                 <div id="home-todo-preview" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs"></div>
             </div>
 
+            <!-- 주간 일정표 (지능형 요일 분기 & 일자 표기 & 시간/내용 일괄 입력) -->
             <div class="glass-card p-5 md:p-6 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-3 gap-2">
                     <div class="flex items-center gap-3">
@@ -296,6 +367,7 @@
                 <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 650px; overflow-x: auto;" id="weekly-grid-view"></div>
             </div>
 
+            <!-- 네이버 뉴스 8대 브리프 (연예·스포츠 확장 & 다이내믹 셔플 새로고침) -->
             <div class="glass-card p-6 md:p-8 space-y-4">
                 <div class="flex justify-between items-center border-b border-[var(--border-color)] pb-3">
                     <div class="flex items-center gap-3">
@@ -312,6 +384,7 @@
             </div>
         </section>
 
+        <!-- ================= [2] 일정 화면 ================= -->
         <section id="view-calendar" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -348,6 +421,7 @@
             </div>
         </section>
 
+        <!-- ================= [3] 사역현황 (경작 중 & 갈무리 아카이브 & 호버 UI) ================= -->
         <section id="view-dashboard" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -372,6 +446,7 @@
             </div>
         </section>
 
+        <!-- ================= [4] 회의록 (6대 카테고리 필터링 & 호버 UI) ================= -->
         <section id="view-meetings" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -413,15 +488,26 @@
             </div>
         </section>
 
-        <section id="view-assets" class="page-view space-y-6">
+        <!-- ================= [5] 생각의 서재 (공간 연출 & 잉크 브레스 에디터 & 폰트 스케일러) ================= -->
+        <section id="view-assets" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
-                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Study & Research</span>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Sanctuary & Research</span>
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">생각의 서재</h2>
+                    </div>
+                    
+                    <!-- 폰트 스케일러 & 서재 상태 필터 -->
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center bg-[var(--primary-light)] px-2 py-1 rounded-xl border border-[var(--border-color)] text-xs font-mono-code font-bold">
+                            <button onclick="adjustThoughtZoom(-0.05)" class="px-2 py-0.5 hover:text-[var(--primary)] font-black text-sm">A-</button>
+                            <span id="font-scale-indicator" class="px-1.5 text-[11px] text-[var(--primary)]">100%</span>
+                            <button onclick="adjustThoughtZoom(0.05)" class="px-2 py-0.5 hover:text-[var(--primary)] font-black text-sm">A+</button>
+                        </div>
                     </div>
                 </div>
 
+                <!-- 외부 연구 리소스 허브 -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3">
                     <a href="https://www.thegospelcoalition.org" target="_blank" class="glass-card p-3.5 flex items-center gap-2.5 hover:border-[var(--primary)] transition-all bg-[var(--primary-light)]">
                         <div class="w-8 h-8 rounded-xl bg-[var(--primary)] text-black flex items-center justify-center font-black text-xs shrink-0">TGC</div>
@@ -453,40 +539,62 @@
                     </a>
                 </div>
 
-                <div class="p-6 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl space-y-3 mt-6">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-xs font-black text-[var(--primary)] uppercase tracking-wider block">묵상 및 착상 에디터</span>
-                        <div class="flex flex-wrap gap-1.5 text-xs font-bold" id="thought-quick-chips">
-                            <button onclick="applyThoughtTemplate('설교착상')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#설교착상</button>
-                            <button onclick="applyThoughtTemplate('묵상기록')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#묵상기록</button>
-                            <button onclick="applyThoughtTemplate('독서기록')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#독서기록</button>
-                            <button onclick="applyThoughtTemplate('기도제목')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#기도제목</button>
+                <!-- 묵상 및 착상 에디터 -->
+                <div class="p-6 sm:p-7 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-3xl space-y-4 shadow-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-color)] pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black text-[var(--primary)] uppercase tracking-wider">묵상 및 착상 에디터</span>
+                            <select id="thought-stage-select" class="text-[11px] font-bold bg-[var(--card-bg)] text-[var(--text-main)] border border-[var(--border-color)] px-2.5 py-1 rounded-lg outline-none">
+                                <option value="착상">🌱 착상 (Seed)</option>
+                                <option value="숙성">📖 숙성 (Brewing)</option>
+                                <option value="결실">✨ 설교준비 (Harvest)</option>
+                            </select>
+                        </div>
+
+                        <!-- 에디터 상시 고정 서식 툴바 -->
+                        <div class="flex items-center gap-1.5 bg-[var(--card-bg)] px-3 py-1.5 rounded-xl border border-[var(--border-color)] shadow-2xs">
+                            <button onclick="formatSelection('bold')" class="px-2 py-0.5 font-black text-xs hover:text-[var(--primary)]" title="굵게">B</button>
+                            <button onclick="formatSelection('italic')" class="px-2 py-0.5 font-serif italic text-xs hover:text-[var(--primary)]" title="기울임">I</button>
+                            <div class="w-px h-3.5 bg-[var(--border-color)] mx-0.5"></div>
+                            <button onclick="formatSelection('formatBlock', '<h1>')" class="px-2 py-0.5 font-black text-xs hover:text-[var(--primary)]" title="대지 (H1)">H1</button>
+                            <button onclick="formatSelection('formatBlock', '<h2>')" class="px-2 py-0.5 font-bold text-xs hover:text-[var(--primary)]" title="소제목 (H2)">H2</button>
+                            <button onclick="formatSelection('hiliteColor', 'rgba(255, 214, 0, 0.4)')" class="px-2 py-0.5 font-bold text-xs text-amber-400 hover:text-amber-500" title="형광펜">Pen</button>
                         </div>
                     </div>
 
-                    <input type="text" id="thought-title" placeholder="출처, 도서명 또는 주제 태그" class="w-full p-3 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-bold">
+                    <!-- 스마트 템플릿 칩 -->
+                    <div class="flex flex-wrap gap-1.5 text-xs font-bold" id="thought-quick-chips">
+                        <button onclick="applyThoughtTemplate('설교착상')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#설교착상</button>
+                        <button onclick="applyThoughtTemplate('묵상기록')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#묵상기록</button>
+                        <button onclick="applyThoughtTemplate('독서기록')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#독서기록</button>
+                        <button onclick="applyThoughtTemplate('기도제목')" class="px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] hover:border-[var(--primary)]">#기도제목</button>
+                    </div>
+
+                    <input type="text" id="thought-title" placeholder="출처, 도서명 또는 주제 태그" class="w-full p-3.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-2xl text-xs outline-none font-bold">
                     
-                    <div id="thought-editor-content" contenteditable="true" class="w-full min-h-[120px] p-4 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-xs outline-none font-medium leading-relaxed thought-body" onmouseup="checkSelection()" onkeyup="checkSelection()"></div>
+                    <div id="thought-editor-content" contenteditable="true" class="w-full min-h-[140px] p-5 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-2xl outline-none font-medium thought-body" onmouseup="checkSelection()" onkeyup="checkSelection(); handleEditorInstantMarkdown(this, event)"></div>
 
                     <div class="flex justify-end">
-                        <button onclick="addThoughtCard()" class="px-5 py-2.5 primary-badge text-xs font-black rounded-xl">서재에 박제</button>
+                        <button onclick="addThoughtCard()" class="px-6 py-2.5 primary-badge text-xs font-black rounded-xl shadow-xs">서재에 박제</button>
                     </div>
                 </div>
 
                 <div class="flex justify-between items-center pt-2">
                     <h3 class="text-sm font-bold text-[var(--text-main)]">서재 아카이브</h3>
-                    <span class="text-xs text-[var(--text-sub)] font-semibold">최신순</span>
+                    <span class="text-xs text-[var(--text-sub)] font-semibold">숙성순 정렬</span>
                 </div>
                 <div id="thought-card-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </div>
         </section>
     </main>
 
+    <!-- 좌측 하단 조용한 클라우드 상태 인디케이터 (Silent Cloud Anchor) -->
     <div id="cloud-sync-status-dock" class="fixed bottom-4 left-4 z-40 bg-[var(--card-bg)]/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-[var(--border-color)] text-[var(--text-sub)] flex items-center gap-2 text-[10px] font-mono-code font-bold opacity-75 hover:opacity-100 transition-opacity shadow-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-400" id="sync-dot"></span>
         <span id="sync-text">Cloud Synced</span>
     </div>
 
+    <!-- 하단 고정 네비게이션 바 -->
     <nav class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 bg-[var(--nav-bg)] backdrop-blur-2xl border border-[var(--border-color)] px-3 py-2.5 rounded-full flex gap-1.5 shadow-2xl z-50 max-w-[95vw] overflow-x-auto transition-colors duration-300">
         <button onclick="switchView('home', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs">홈</button>
         <button onclick="switchView('calendar', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">일정</button>
@@ -497,6 +605,7 @@
 
     <div class="fab-btn" onclick="openFabModal()" title="빠른 입력">+</div>
 
+    <!-- 플로팅 서식 버블 툴바 (드래그 시 노출) -->
     <div id="selection-toolbar">
         <button onclick="formatSelection('bold')">B</button>
         <button onclick="formatSelection('italic')">I</button>
@@ -505,6 +614,8 @@
         <button onclick="formatSelection('hiliteColor', 'rgba(255, 214, 0, 0.4)')">Pen</button>
     </div>
 
+    <!-- 모달 창들 -->
+    <!-- 1. 신학 내러티브 심층 모달 -->
     <div id="theology-detail-modal" class="modal-overlay" onclick="closeModal('theology-detail-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
@@ -529,20 +640,33 @@
         </div>
     </div>
 
+    <!-- 2. 생각의 서재 라이브 편집 & 스탠드 조명 비네팅 모달 -->
     <div id="thought-modal" class="modal-overlay" onclick="closeThoughtModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-3">
-                <span id="modal-tag" class="text-[10px] font-mono-code primary-badge font-black px-3 py-1 rounded-full">태그</span>
+                <div class="flex items-center gap-2">
+                    <span id="modal-tag" class="bookmark-ribbon primary-badge">#태그</span>
+                    <select id="modal-thought-stage-select" onchange="updateModalThoughtStage(this.value)" class="text-[11px] font-bold bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--border-color)] px-2 py-0.5 rounded-lg outline-none">
+                        <option value="착상">🌱 착상</option>
+                        <option value="숙성">📖 숙성</option>
+                        <option value="결실">✨ 결실</option>
+                    </select>
+                </div>
                 <button onclick="forwardCurrentThoughtToSermon()" class="text-xs font-bold text-[var(--primary)] hover:underline">➔ 설교 아이디어로 전송</button>
             </div>
-            <h3 id="modal-thought-title" contenteditable="true" onblur="updateModalThoughtTitle(this.innerText)" class="text-base font-black text-[var(--text-main)] mb-3 outline-none border-b border-transparent focus:border-[var(--primary)]"></h3>
-            <div id="modal-text" contenteditable="true" onblur="updateModalThoughtContent(this.innerHTML)" class="text-xs text-[var(--text-main)] leading-relaxed min-h-[160px] max-h-[50vh] overflow-y-auto bg-[var(--primary-light)] p-4 rounded-xl outline-none thought-body"></div>
-            <div class="mt-6 flex justify-end gap-2">
-                <button onclick="closeThoughtModal()" class="px-4 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] font-bold text-xs rounded-xl text-[var(--text-main)]">닫기</button>
+            
+            <h3 id="modal-thought-title" contenteditable="true" onblur="updateModalThoughtTitle(this.innerText)" class="text-lg font-black text-[var(--text-main)] mb-3 outline-none border-b border-transparent focus:border-[var(--primary)]"></h3>
+            
+            <div id="modal-text" contenteditable="true" onblur="updateModalThoughtContent(this.innerHTML)" class="min-h-[200px] max-h-[55vh] overflow-y-auto bg-[var(--primary-light)] p-5 rounded-2xl outline-none thought-body"></div>
+            
+            <div class="mt-6 flex justify-between items-center">
+                <span class="text-[11px] text-[var(--text-sub)] font-mono-code font-bold">실시간 무음 자동 저장</span>
+                <button onclick="closeThoughtModal()" class="px-5 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] font-bold text-xs rounded-xl text-[var(--text-main)] hover:border-[var(--primary)]">완료 및 닫기</button>
             </div>
         </div>
     </div>
 
+    <!-- 3. FAB 빠른 입력 모달 -->
     <div id="fab-modal" class="modal-overlay" onclick="closeModal('fab-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3 class="font-black text-lg text-[var(--text-main)] mb-4">빠른 입력</h3>
@@ -727,6 +851,7 @@
             state.thoughts.unshift({
                 id: 'th_' + Date.now(),
                 cat: '신학스토리',
+                stage: '숙성',
                 title: `${item.author} - ${item.era}`,
                 content: content
             });
@@ -735,7 +860,7 @@
             closeModal('theology-detail-modal');
         }
 
-        /* 네이버 뉴스 8대 브리프 데이터셋 (연예·문화 & 스포츠·건강 확장) */
+        /* 네이버 뉴스 8대 브리프 (연예·문화 & 스포츠·건강 확장) */
         const masterNaverNewsPool = [
             { id: 'n1', cat: '정치·정책', title: '정기국회 돌입… 청년 주거 및 필수 민생 법안 우선 심사 착수', summary: ['여야, 취약계층 필수 복지 예산안 우선 심의 합의', '전세사기 특별법 후속 대책 및 보증금 회수 지원 범위 확대 논의', '상임위별 주요 쟁점 조율 및 공청회 일정 확정'], source: '네이버 뉴스', url: 'https://news.naver.com/section/100' },
             { id: 'n2', cat: '사회·이슈', title: '1인 가구 급증에 지자체 고립 방지 맞춤형 생활 안전망 확대', summary: ['청년 및 중장년 1인 가구 대상 심리 상담 거점 센터 증설', '고립 은둔 청년 조기 발굴 및 사회 복귀 밀착 프로그램 가동', '주민센터 연계 안부 확인 서비스 전국 네트워크 구축'], source: '네이버 뉴스', url: 'https://news.daum.net/society' },
@@ -777,7 +902,6 @@
                 void icon.offsetWidth;
                 icon.classList.add('rotate-anim');
             }
-            // 다이내믹 셔플
             activeNewsList = [...masterNaverNewsPool].sort(() => Math.random() - 0.5);
             renderNewsAccordion();
         }
@@ -814,11 +938,12 @@
 
         let state = {
             theme: localStorage.getItem('yc_theme') || 'forest',
+            thoughtZoom: parseFloat(localStorage.getItem('yc_thought_zoom')) || 1.0,
             weekly: defaultWeekly,
             todos: defaultTodos,
             projects: defaultProjects,
             memos: [{ id: 'm1', cat: '교회 공통', title: '하반기 목회 계획', date: '2026.08.28', content: '소그룹 모임 장소 재배치 논의 완료.' }],
-            thoughts: [{ id: 'th1', cat: '설교착상', title: '팀켈러 일과 영성', content: '<h1>소명으로서의 일터</h1><p>복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 <mark>거룩한 소명의 자리</mark>로 변화시킨다.</p>' }]
+            thoughts: [{ id: 'th1', cat: '설교착상', stage: '숙성', title: '팀켈러 일과 영성', content: '<h1>소명으로서의 일터</h1><p>복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 <mark>거룩한 소명의 자리</mark>로 변화시킨다.</p>' }]
         };
 
         let currentActiveThoughtId = null;
@@ -827,6 +952,7 @@
             const dot = document.getElementById('sync-dot');
             if(dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
             localStorage.setItem('yc_theme', state.theme);
+            localStorage.setItem('yc_thought_zoom', state.thoughtZoom);
             appDocRef.set(state, { merge: true })
                 .then(() => { if(dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400"; })
                 .catch(err => { if(dot) dot.className = "w-2 h-2 rounded-full bg-red-500"; });
@@ -841,7 +967,9 @@
                 if(data.memos) state.memos = data.memos;
                 if(data.thoughts) state.thoughts = data.thoughts;
                 if(data.theme) state.theme = data.theme;
+                if(data.thoughtZoom) state.thoughtZoom = data.thoughtZoom;
                 switchTheme(state.theme, false);
+                applyThoughtZoomUI();
                 renderWeeklyGrid();
                 renderTodos();
                 renderHomeTodos();
@@ -852,7 +980,7 @@
         });
 
         function switchTheme(themeName, shouldSync=true) {
-            document.body.className = 'theme-' + themeName + ' selection:bg-[var(--primary)] selection:text-[var(--primary-text)]';
+            document.body.className = 'theme-' + themeName + (document.getElementById('view-assets')?.classList.contains('active') ? ' in-study-room' : '') + ' selection:bg-[var(--primary)] selection:text-[var(--primary-text)]';
             state.theme = themeName;
             ['burgundy', 'cosmic', 'forest'].forEach(t => {
                 const btn = document.getElementById('btn-theme-' + t);
@@ -868,7 +996,18 @@
             document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(t => t.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap");
             document.getElementById('view-' + viewId).classList.add('active');
-            if(evt && evt.currentTarget) evt.currentTarget.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs";
+            
+            if(evt && evt.currentTarget) {
+                evt.currentTarget.className = "nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs";
+            }
+
+            // 생각의 서재 진입 시 공간 조명 감쇄 (Spatial Transition)
+            if (viewId === 'assets') {
+                document.body.classList.add('in-study-room');
+            } else {
+                document.body.classList.remove('in-study-room');
+            }
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -938,7 +1077,7 @@
             });
         }
 
-        /* 지능형 요일 분기 라우팅 (선택한 요일이 '오늘(금)'일 때만 오늘의 걸음에 동시 반영) */
+        /* 지능형 요일 분기 라우팅 (선택한 요일이 '금요일(오늘)'일 때만 오늘의 걸음에 동시 반영) */
         function addQuickScheduleFromHome() {
             const day = document.getElementById('quick-sched-day').value;
             const inputVal = document.getElementById('quick-sched-input').value.trim();
@@ -952,7 +1091,6 @@
                 text = parts.slice(1).join(' ');
             }
 
-            // 주간 일정표에는 무조건 해당 요일에 등록
             state.weekly[day] = state.weekly[day] || [];
             state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
 
@@ -1004,7 +1142,7 @@
             });
         }
 
-        /* 오늘의 걸음(투두) 호버 삭제 UI 적용 */
+        /* 오늘의 걸음 호버 삭제 UI */
         function renderTodos() {
             const container = document.getElementById('todo-checklist-container');
             if(!container) return;
@@ -1255,7 +1393,19 @@
             syncToCloud();
         }
 
-        /* 생각의 서재: 드래그 서식 & 라이브 편집 모달 */
+        /* 생각의 서재 (폰트 스케일러, 드래그 서식, 라이브 모달, 숙성 생애주기) */
+        function adjustThoughtZoom(delta) {
+            state.thoughtZoom = Math.max(0.85, Math.min(1.4, state.thoughtZoom + delta));
+            applyThoughtZoomUI();
+            syncToCloud();
+        }
+
+        function applyThoughtZoomUI() {
+            document.documentElement.style.setProperty('--thought-zoom', state.thoughtZoom);
+            const ind = document.getElementById('font-scale-indicator');
+            if(ind) ind.innerText = `${Math.round(state.thoughtZoom * 100)}%`;
+        }
+
         function checkSelection() {
             const sel = window.getSelection();
             const toolbar = document.getElementById('selection-toolbar');
@@ -1275,12 +1425,25 @@
             document.getElementById('selection-toolbar').style.display = 'none';
         }
 
+        function handleEditorInstantMarkdown(el, event) {
+            if (event.key === ' ') {
+                const text = el.innerText;
+                if (text.startsWith('# ')) {
+                    document.execCommand('formatBlock', false, '<h1>');
+                } else if (text.startsWith('## ')) {
+                    document.execCommand('formatBlock', false, '<h2>');
+                } else if (text.startsWith('> ')) {
+                    document.execCommand('formatBlock', false, '<blockquote>');
+                }
+            }
+        }
+
         function applyThoughtTemplate(type) {
             const titleInput = document.getElementById('thought-title');
             const editor = document.getElementById('thought-editor-content');
             if (type === '설교착상') {
                 titleInput.value = "[본문 및 설교 가제]";
-                editor.innerHTML = "<h1>1. 중심 메시지 (화두)</h1><p>여기에 메시지를 기록하세요</p><h2>2. 현장 적용 질문</h2><p>* 질문 1:</p>";
+                editor.innerHTML = "<h1>1. 중심 메시지 (화두)</h1><p>여기에 선언적 메시지를 기록하세요</p><h2>2. 현장 적용 질문</h2><p>* 질문 1:</p>";
             } else if (type === '독서기록') {
                 titleInput.value = "[도서명 · 저자]";
                 editor.innerHTML = "<h2>기억할 문장</h2><p>“문장을 입력하세요”</p><h2>목회적 통찰</h2><p>깨달음을 기록하세요</p>";
@@ -1299,16 +1462,24 @@
             grid.innerHTML = '';
 
             state.thoughts.forEach(th => {
+                const stage = th.stage || '착상';
+                let stageDot = '🌱';
+                if(stage === '숙성') stageDot = '📖';
+                if(stage === '결실') stageDot = '✨';
+
                 const div = document.createElement('div');
                 div.className = "glass-card p-6 space-y-4 cursor-pointer hover:border-[var(--primary)] transition-all flex flex-col justify-between group";
                 div.onclick = function() { openThoughtModal(th.id); };
                 div.innerHTML = `
                     <div>
                         <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-mono-code primary-badge font-black uppercase px-3 py-1 rounded-full">${th.cat || '서재'} | ${th.title}</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="bookmark-ribbon primary-badge">${stageDot} #${th.cat || '서재'}</span>
+                                <span class="text-xs font-black text-[var(--text-main)] truncate max-w-[200px]">${th.title}</span>
+                            </div>
                             <button onclick="event.stopPropagation(); deleteThought('${th.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
                         </div>
-                        <div class="text-xs text-[var(--text-main)] mt-3 line-clamp-3 leading-relaxed thought-body font-medium">${th.content}</div>
+                        <div class="mt-3 line-clamp-3 leading-relaxed thought-body font-medium">${th.content}</div>
                     </div>
                     <button class="text-xs font-bold text-[var(--text-sub)] text-left hover:text-[var(--primary)] pt-2 border-t border-[var(--border-color)]" onclick="event.stopPropagation(); forwardToSermonIdea('${th.id}')">➔ 설교 아이디어로 전송</button>
                 `;
@@ -1317,11 +1488,12 @@
         }
 
         function addThoughtCard() {
+            const stage = document.getElementById('thought-stage-select').value;
             const title = document.getElementById('thought-title').value.trim();
             const content = document.getElementById('thought-editor-content').innerHTML.trim();
             if(!title || !content) return;
 
-            state.thoughts.unshift({ id: 'th_' + Date.now(), cat: '서재기록', title, content });
+            state.thoughts.unshift({ id: 'th_' + Date.now(), cat: '서재기록', stage, title, content });
             renderThoughts();
             syncToCloud();
             document.getElementById('thought-title').value = '';
@@ -1332,7 +1504,8 @@
             currentActiveThoughtId = id;
             const thought = state.thoughts.find(t => t.id === id);
             if(!thought) return;
-            document.getElementById('modal-tag').innerText = `${thought.cat || '서재'} | 태그`;
+            document.getElementById('modal-tag').innerText = `#${thought.cat || '서재'}`;
+            document.getElementById('modal-thought-stage-select').value = thought.stage || '착상';
             document.getElementById('modal-thought-title').innerText = thought.title;
             document.getElementById('modal-text').innerHTML = thought.content;
             document.getElementById('thought-modal').classList.add('show');
@@ -1342,11 +1515,13 @@
             if(currentActiveThoughtId) {
                 const titleEl = document.getElementById('modal-thought-title');
                 const contentEl = document.getElementById('modal-text');
+                const stageEl = document.getElementById('modal-thought-stage-select');
                 if(titleEl && contentEl) {
                     const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
                     if(t) {
                         t.title = titleEl.innerText.trim() || t.title;
                         t.content = contentEl.innerHTML.trim() || t.content;
+                        if(stageEl) t.stage = stageEl.value;
                         renderThoughts();
                         syncToCloud();
                     }
@@ -1354,6 +1529,12 @@
             }
             document.getElementById('thought-modal').classList.remove('show');
             currentActiveThoughtId = null;
+        }
+
+        function updateModalThoughtStage(newStage) {
+            if(!currentActiveThoughtId) return;
+            const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
+            if(t) { t.stage = newStage; renderThoughts(); syncToCloud(); }
         }
 
         function updateModalThoughtTitle(newTitle) {
@@ -1377,12 +1558,17 @@
         function forwardToSermonIdea(id) {
             const thought = state.thoughts.find(t => t.id === id);
             if(!thought) return;
+            
+            // 구조적 개요 포맷 변환
+            const plainText = thought.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+            const formattedIdea = `[서재 착상: ${thought.title}]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 단계: ${thought.stage || '착상'}\n📜 본문/내용: ${plainText}`;
+
             state.memos.unshift({
                 id: 'm_' + Date.now(),
                 cat: '설교 아이디어',
                 title: `[서재 착상] ${thought.title}`,
                 date: '2026.08.28',
-                content: thought.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim()
+                content: formattedIdea
             });
             renderMemos();
             syncToCloud();
@@ -1410,6 +1596,7 @@
         renderNewsAccordion();
         renderWeeklyGrid();
         switchTheme(state.theme, false);
+        applyThoughtZoomUI();
         renderTodos();
         renderHomeTodos();
         renderProjects();
