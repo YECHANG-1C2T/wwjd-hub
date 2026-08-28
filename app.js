@@ -711,3 +711,144 @@ function renderThoughts() {
         grid.appendChild(div);
     });
 }
+
+function updateCardThoughtTitle(id, newTitle) {
+    if(!newTitle.trim()) return;
+    const t = state.thoughts.find(item => item.id === id);
+    if(t) {
+        t.title = newTitle.trim();
+        const now = new Date();
+        t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        renderThoughts(); syncToCloud();
+    }
+}
+
+function addThoughtCard() {
+    const stage = document.getElementById('thought-stage-select').value;
+    const title = document.getElementById('thought-title').value.trim();
+    const content = document.getElementById('thought-editor-content').innerHTML.trim();
+    if(!title || !content) return;
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    state.thoughts.unshift({ id: 'th_' + Date.now(), cat: '서재기록', stage, title, createdAt: timeStr, updatedAt: timeStr, content });
+    renderThoughts(); syncToCloud();
+    document.getElementById('thought-title').value = '';
+    document.getElementById('thought-editor-content').innerHTML = '';
+}
+
+function openThoughtModal(id) {
+    currentActiveThoughtId = id;
+    const thought = state.thoughts.find(t => t.id === id);
+    if(!thought) return;
+    document.getElementById('modal-tag').innerText = `#${thought.cat || '서재'}`;
+    document.getElementById('modal-thought-stage-select').value = thought.stage || '착상';
+    document.getElementById('modal-thought-title').innerText = thought.title;
+    document.getElementById('modal-text').innerHTML = thought.content;
+    document.getElementById('thought-modal').classList.add('show');
+}
+
+function closeThoughtModal() {
+    if(currentActiveThoughtId) {
+        const titleEl = document.getElementById('modal-thought-title');
+        const contentEl = document.getElementById('modal-text');
+        const stageEl = document.getElementById('modal-thought-stage-select');
+        if(titleEl && contentEl) {
+            const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
+            if(t) {
+                t.title = titleEl.innerText.trim() || t.title;
+                t.content = contentEl.innerHTML.trim() || t.content;
+                if(stageEl) t.stage = stageEl.value;
+                const now = new Date();
+                t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                renderThoughts(); syncToCloud();
+            }
+        }
+    }
+    document.getElementById('thought-modal').classList.remove('show');
+    currentActiveThoughtId = null;
+}
+
+function updateModalThoughtStage(newStage) {
+    if(!currentActiveThoughtId) return;
+    const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
+    if(t) {
+        t.stage = newStage;
+        const now = new Date();
+        t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        renderThoughts(); syncToCloud();
+    }
+}
+
+function updateModalThoughtTitle(newTitle) {
+    if(!currentActiveThoughtId || !newTitle.trim()) return;
+    const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
+    if(t) {
+        t.title = newTitle.trim();
+        const now = new Date();
+        t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        renderThoughts(); syncToCloud();
+    }
+}
+
+function updateModalThoughtContent(newContent) {
+    if(!currentActiveThoughtId || !newContent.trim()) return;
+    const t = state.thoughts.find(item => item.id === currentActiveThoughtId);
+    if(t) {
+        t.content = newContent.trim();
+        const now = new Date();
+        t.updatedAt = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        renderThoughts(); syncToCloud();
+    }
+}
+
+function forwardCurrentThoughtToSermon() {
+    if(!currentActiveThoughtId) return;
+    forwardToSermonIdea(currentActiveThoughtId);
+    closeThoughtModal();
+}
+
+function forwardToSermonIdea(id) {
+    const thought = state.thoughts.find(t => t.id === id);
+    if(!thought) return;
+    const plainText = thought.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+    const formattedIdea = `[서재 착상: ${thought.title}]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 단계: ${thought.stage || '착상'}\n🕒 기록: ${thought.createdAt || '2026.08.28 15:58'}\n📜 본문/내용: ${plainText}`;
+
+    state.memos.unshift({
+        id: 'm_' + Date.now(),
+        cat: '설교 아이디어',
+        title: `[서재 착상] ${thought.title}`,
+        date: '2026.08.28',
+        content: formattedIdea
+    });
+    renderMemos(); syncToCloud();
+}
+
+function deleteThought(id) {
+    state.thoughts = state.thoughts.filter(t => t.id !== id);
+    renderThoughts(); syncToCloud();
+}
+
+function openFabModal() { document.getElementById('fab-modal').classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function submitFab() {
+    const text = document.getElementById('fab-input').value.trim();
+    if(!text) return;
+    state.todos.push({ id: 't_' + Date.now(), time: '12:00', cat: '사역', text, status: '진행' });
+    renderTodos(); syncToCloud();
+    closeModal('fab-modal');
+}
+
+/* ==========================================================================
+   [INITIALIZATION]
+   ========================================================================== */
+initTheologyNarrative();
+renderNewsAccordion();
+renderWeeklyGrid();
+switchTheme(state.theme, false);
+applyThoughtZoomUI();
+renderTodos();
+renderHomeTodos();
+renderProjects();
+renderMemos();
+renderThoughts();
