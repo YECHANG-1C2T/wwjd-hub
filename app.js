@@ -1,16 +1,7 @@
 /* ==========================================================================
    [CORE ENGINE] Firebase 연동 및 상태 관리
+   (Firebase 앱 초기화 및 인증 게이트는 auth.js에서 처리)
    ========================================================================== */
-const firebaseConfig = {
-    apiKey: "AIzaSyAI5ZHYd_Mi7JogsgZAYsBERsbPMD5m544",
-    authDomain: "wwjd-hub.firebaseapp.com",
-    projectId: "wwjd-hub",
-    storageBucket: "wwjd-hub.firebasestorage.app",
-    messagingSenderId: "518785715153",
-    appId: "1:518785715153:web:2fd76cfe4a1aabd6bd2ef0",
-    measurementId: "G-FCN8CSHR7Y"
-};
-firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const appDocRef = db.collection('ministry_data').doc('master_workspace');
 
@@ -40,28 +31,33 @@ window.syncToCloud = function() {
         .catch(() => { if (dot) dot.className = "w-2 h-2 rounded-full bg-red-500"; });
 };
 
-appDocRef.onSnapshot((doc) => {
-    if (doc.exists) {
-        const data = doc.data();
-        if (data.weekly) window.state.weekly = data.weekly;
-        if (data.todos) window.state.todos = data.todos;
-        if (data.projects) window.state.projects = data.projects;
-        if (data.memos) window.state.memos = data.memos;
-        if (data.thoughts) window.state.thoughts = data.thoughts;
-        if (data.theme) window.state.theme = data.theme;
-        if (data.thoughtZoom) window.state.thoughtZoom = data.thoughtZoom;
+let cloudSyncStarted = false;
+function startCloudSync() {
+    if (cloudSyncStarted) return;
+    cloudSyncStarted = true;
+    appDocRef.onSnapshot((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            if (data.weekly) window.state.weekly = data.weekly;
+            if (data.todos) window.state.todos = data.todos;
+            if (data.projects) window.state.projects = data.projects;
+            if (data.memos) window.state.memos = data.memos;
+            if (data.thoughts) window.state.thoughts = data.thoughts;
+            if (data.theme) window.state.theme = data.theme;
+            if (data.thoughtZoom) window.state.thoughtZoom = data.thoughtZoom;
 
-        if (typeof switchTheme === 'function') switchTheme(window.state.theme, false);
-        if (typeof applyThoughtZoomUI === 'function') applyThoughtZoomUI();
+            if (typeof switchTheme === 'function') switchTheme(window.state.theme, false);
+            if (typeof applyThoughtZoomUI === 'function') applyThoughtZoomUI();
 
-        renderWeeklyGrid();
-        renderTodos();
-        renderHomeTodos();
-        renderProjects();
-        renderMemos();
-        renderThoughts();
-    }
-});
+            renderWeeklyGrid();
+            renderTodos();
+            renderHomeTodos();
+            renderProjects();
+            renderMemos();
+            renderThoughts();
+        }
+    });
+}
 
 /* ==========================================================================
    [WEATHER & CLOCK]
