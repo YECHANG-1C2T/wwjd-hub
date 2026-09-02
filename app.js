@@ -11,7 +11,7 @@ window.state = {
     weekly: defaultWeekly,
     todos: defaultTodos,
     projects: defaultProjects,
-    links: [],
+    links: defaultLinks,
     memos: [{ id: 'm1', cat: '교회 공통', title: '하반기 목회 계획', date: '2026.08.28', content: '소그룹 모임 장소 재배치 논의 완료.' }],
     thoughts: [{ id: 'th1', cat: '설교착상', stage: '숙성', title: '팀켈러 일과 영성', createdAt: '2026.08.28 15:58', updatedAt: '2026.08.28 15:58', content: '<h1>소명으로서의 일터</h1><p>복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 <mark>거룩한 소명의 자리</mark>로 변화시킨다.</p>' }]
 };
@@ -42,7 +42,7 @@ function startCloudSync() {
             if (data.weekly) window.state.weekly = data.weekly;
             if (data.todos) window.state.todos = data.todos;
             if (data.projects) window.state.projects = data.projects;
-            if (data.links) window.state.links = data.links;
+            if (data.links && data.links.length > 0) window.state.links = data.links;
             if (data.memos) window.state.memos = data.memos;
             if (data.thoughts) window.state.thoughts = data.thoughts;
             if (data.theme) window.state.theme = data.theme;
