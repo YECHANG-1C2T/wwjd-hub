@@ -279,9 +279,9 @@ function renderNewsAccordion() {
 
         div.innerHTML = `
             <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-[var(--primary-light)] transition-colors" onclick="toggleNewsAccordion('${item.id}')">
-                <div class="flex items-center gap-2.5 overflow-hidden flex-1 mr-2" ${item.summary ? `data-tooltip="${escapeAttr(item.summary)}"` : ''}>
+                <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2" ${item.summary ? `data-tooltip="${escapeAttr(item.summary)}" tabindex="0"` : ''}>
                     <span class="text-[10px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full shrink-0">${item.cat}</span>
-                    <h4 class="text-xs sm:text-sm font-bold text-[var(--text-main)] truncate">${item.title}</h4>
+                    <h4 class="text-sm font-bold text-[var(--text-main)] line-clamp-2 min-w-0" title="${escapeAttr(item.title)}">${item.title}</h4>
                 </div>
                 <div class="flex items-center gap-3 shrink-0">
                     <a href="${item.url}" target="_blank" onclick="event.stopPropagation()" class="text-[10px] font-mono-code text-[var(--text-sub)] hover:text-[var(--primary)] font-bold"><span>${item.source} ↗</span></a>
@@ -408,9 +408,9 @@ function renderHomeTodos() {
         const div = document.createElement('div');
         div.className = "bg-[var(--card-bg)] p-2.5 rounded-xl border border-[var(--border-color)] flex items-center justify-between group";
         div.innerHTML = `
-            <div class="flex items-center gap-2 flex-1 mr-1 overflow-hidden">
+            <div class="flex items-center gap-2 min-w-0 flex-1 mr-1">
                 <span class="text-[10px] font-mono-code font-bold text-[var(--primary)] shrink-0">${t.time}</span>
-                <span contenteditable="true" onclick="event.stopPropagation()" onblur="updateHomeTodoText('${t.id}', this.innerText)" class="font-bold text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text truncate">${t.text}</span>
+                <span contenteditable="true" onclick="event.stopPropagation()" onblur="updateHomeTodoText('${t.id}', this.innerText)" class="font-bold text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text truncate min-w-0" title="${escapeAttr(t.text)}">${t.text}</span>
             </div>
             <div class="flex items-center gap-1 shrink-0">
                 <button onclick="updateTodoStatus('${t.id}', '완료')" class="text-[10px] px-2 py-0.5 bg-[var(--primary-light)] text-[var(--primary)] font-bold rounded-lg">완료</button>
@@ -445,9 +445,9 @@ function renderTodos() {
         const div = document.createElement('div');
         div.className = "p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between group";
         div.innerHTML = `
-            <div class="flex items-center gap-2.5 flex-1 mr-2 overflow-hidden">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
                 <span class="text-xs font-mono-code font-bold text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">${item.time}</span>
-                <span class="font-bold ${item.status==='완료' ? 'line-through text-[var(--text-sub)] opacity-50' : 'text-[var(--text-main)]'} truncate">${item.text}</span>
+                <span class="font-bold ${item.status==='완료' ? 'line-through text-[var(--text-sub)] opacity-50' : 'text-[var(--text-main)]'} truncate min-w-0" title="${escapeAttr(item.text)}">${item.text}</span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
                 <span class="text-[10px] primary-badge font-black px-2 py-0.5 rounded-full">${item.cat}</span>
@@ -641,9 +641,9 @@ function renderLinkBoard() {
         card.rel = 'noopener';
         card.className = "glass-card p-3.5 flex items-center justify-between gap-2 hover:border-[var(--primary)] transition-all group";
         card.innerHTML = `
-            <div class="truncate">
+            <div class="min-w-0 flex-1">
                 <span class="bookmark-ribbon primary-badge mb-1.5 inline-block">${l.cat}</span>
-                <h4 class="font-bold text-xs text-[var(--text-main)] truncate">${l.title}</h4>
+                <h4 class="font-bold text-sm text-[var(--text-main)] truncate min-w-0" title="${escapeAttr(l.title)}">${l.title}</h4>
             </div>
             <button onclick="event.preventDefault(); event.stopPropagation(); deleteLink('${l.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold shrink-0">✕</button>`;
         grid.appendChild(card);
