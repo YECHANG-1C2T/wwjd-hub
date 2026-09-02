@@ -708,7 +708,7 @@ function deleteMemo(id) {
 }
 
 /* ==========================================================================
-   [TGC LIVE BRIEF - 실시간 번역 피드]
+   [RESEARCH: TED + 논문 검색]
    ========================================================================== */
 async function translateToKorean(text) {
     try {
@@ -720,51 +720,63 @@ async function translateToKorean(text) {
     }
 }
 
-let liveTgcArticles = [];
+const RESEARCH_DEFAULT_QUERIES = ['practical theology preaching', 'youth ministry burnout', 'pastoral care identity', 'biblical counseling forgiveness', 'church community belonging'];
 
-async function fetchTgcFeed(manual = false) {
-    const icon = document.getElementById('tgc-refresh-icon');
-    if (icon && manual) {
-        icon.classList.remove('rotate-anim');
-        void icon.offsetWidth;
-        icon.classList.add('rotate-anim');
-    }
-    try {
-        const targetRss = encodeURIComponent('https://www.thegospelcoalition.org/feed/');
-        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${targetRss}`);
-        const data = await res.json();
-        if (data && data.items && data.items.length > 0) {
-            const items = data.items.slice(0, 8);
-            liveTgcArticles = await Promise.all(items.map(async (item, idx) => {
-                const titleKo = await translateToKorean(item.title);
-                return { id: 'tgc_' + idx, titleKo, titleEn: item.title, url: item.link };
-            }));
-        }
-    } catch (e) {}
-    renderTgcFeed();
+function getTodayResearchQuery() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const dayOfYear = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    return RESEARCH_DEFAULT_QUERIES[dayOfYear % RESEARCH_DEFAULT_QUERIES.length];
 }
 
-function renderTgcFeed() {
-    const container = document.getElementById('tgc-feed-grid');
-    if (!container) return;
-    container.innerHTML = '';
-    if (liveTgcArticles.length === 0) {
-        container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-2">불러오는 중...</p>`;
-        return;
+async function searchResearch(queryOverride) {
+    const input = document.getElementById('research-query-input');
+    const statusEl = document.getElementById('research-status-text');
+    const query = queryOverride || (input && input.value.trim());
+    if (!query) return;
+    if (statusEl) statusEl.innerText = `"${query}" 검색 중...`;
+    try {
+        const res = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=6`);
+        const data = await res.json();
+        const items = (data && data.message && data.message.items) || [];
+        const translated = await Promise.all(items.map(async (p) => {
+            const titleEn = (p.title && p.title[0]) || '(제목 없음)';
+            const titleKo = await translateToKorean(titleEn);
+            const authors = (p.author || []).slice(0, 2).map(a => a.family || '').filter(Boolean).join(', ');
+            const dateParts = p.published && p.published['date-parts'] && p.published['date-parts'][0];
+            const year = dateParts && dateParts[0];
+            return { titleKo, titleEn, authors, year, url: p.URL };
+        }));
+        renderResearchResults(translated);
+        if (statusEl) statusEl.innerText = translated.length > 0 ? `"${query}" 관련 논문 ${translated.length}건` : `"${query}"에 대한 결과가 없습니다.`;
+    } catch (e) {
+        if (statusEl) statusEl.innerText = '논문 검색에 실패했습니다. 잠시 후 다시 시도해주세요.';
     }
-    liveTgcArticles.forEach(a => {
+}
+
+function renderResearchResults(list) {
+    const grid = document.getElementById('research-results-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    list.forEach(p => {
         const card = document.createElement('a');
-        card.href = a.url;
+        card.href = p.url;
         card.target = '_blank';
         card.rel = 'noopener';
-        card.className = "glass-card p-4 flex flex-col gap-2 hover:border-[var(--primary)] transition-all";
+        card.className = "glass-card p-4 flex flex-col gap-1.5 hover:border-[var(--primary)] transition-all";
         card.innerHTML = `
-            <span class="text-[9px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full w-fit">TGC</span>
-            <h4 class="font-bold text-xs text-[var(--text-main)] leading-snug">${a.titleKo}</h4>
-            <span class="text-[10px] text-[var(--text-sub)] truncate">${a.titleEn}</span>
+            <span class="text-[9px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full w-fit">PAPER${p.year ? ' · ' + p.year : ''}</span>
+            <h4 class="font-bold text-xs text-[var(--text-main)] leading-snug">${p.titleKo}</h4>
+            <span class="text-[10px] text-[var(--text-sub)] truncate">${p.titleEn}${p.authors ? ' · ' + p.authors : ''}</span>
         `;
-        container.appendChild(card);
+        grid.appendChild(card);
     });
+}
+
+function openTedSearch() {
+    const input = document.getElementById('research-query-input');
+    const query = (input && input.value.trim()) || getTodayResearchQuery();
+    window.open(`https://www.ted.com/search?q=${encodeURIComponent(query)}`, '_blank');
 }
 
 /* ==========================================================================
@@ -794,7 +806,7 @@ function renderThoughts() {
     grid.innerHTML = '';
 
     window.state.thoughts.forEach(th => {
-        const stage = th.stage || '착상';
+        const stage = th.stage || '씨앗';
         let stageDot = '🌱';
         if (stage === '숙성') stageDot = '📖';
         if (stage === '결실') stageDot = '✨';
@@ -855,7 +867,7 @@ function openThoughtModal(id) {
     const thought = window.state.thoughts.find(t => t.id === id);
     if (!thought) return;
     document.getElementById('modal-tag').innerText = `#${thought.cat || '서재'}`;
-    document.getElementById('modal-thought-stage-select').value = thought.stage || '착상';
+    document.getElementById('modal-thought-stage-select').value = thought.stage || '씨앗';
     document.getElementById('modal-thought-title').innerText = thought.title;
     document.getElementById('modal-text').innerHTML = thought.content;
     document.getElementById('thought-modal').classList.add('show');
@@ -897,7 +909,7 @@ function forwardToSermonIdea(id) {
     const thought = window.state.thoughts.find(t => t.id === id);
     if (!thought) return;
     const plainText = thought.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
-    const formattedIdea = `[서재 착상: ${thought.title}]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 단계: ${thought.stage || '착상'}\n🕒 기록: ${thought.createdAt || '2026.08.28 15:58'}\n📜 본문/내용: ${plainText}`;
+    const formattedIdea = `[서재 착상: ${thought.title}]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 단계: ${thought.stage || '씨앗'}\n🕒 기록: ${thought.createdAt || '2026.08.28 15:58'}\n📜 본문/내용: ${plainText}`;
 
     window.state.memos.unshift({
         id: 'm_' + Date.now(),
@@ -929,7 +941,7 @@ function submitFab() {
    ========================================================================== */
 initTheologyNarrative();
 fetchLiveNaverNews();
-fetchTgcFeed();
+searchResearch(getTodayResearchQuery());
 renderWeeklyGrid();
 if (typeof switchTheme === 'function') switchTheme(window.state.theme, false);
 if (typeof applyThoughtZoomUI === 'function') applyThoughtZoomUI();

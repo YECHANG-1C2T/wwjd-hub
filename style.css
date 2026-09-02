@@ -74,13 +74,11 @@ body.in-study-room {
     background-blend-mode: overlay, overlay, multiply, multiply, multiply, multiply !important;
 }
 
-/* 서재 카드(리소스 허브 등) 표면도 나무 판자 느낌으로, 더 거칠게 */
+/* 서재 카드는 표면에 직접 결을 그리지 않는다 — 배경의 거친 나무결은
+   backdrop-filter: blur가 은은하게 비쳐 보이게 해주는 걸로 충분하고,
+   글자가 있는 표면에 결 무늬를 겹치면 가독성이 떨어진다 */
 body.in-study-room .glass-card {
-    background-image:
-        repeating-linear-gradient(89deg, rgba(0, 0, 0, 0.18) 0px, rgba(0, 0, 0, 0.18) 1px, transparent 1px, transparent 2px, rgba(255, 255, 255, 0.04) 3px, transparent 4px, transparent 6px),
-        radial-gradient(ellipse 260px 28px at 25% 25%, rgba(0, 0, 0, 0.22), transparent 70%),
-        radial-gradient(ellipse 220px 24px at 78% 72%, rgba(0, 0, 0, 0.2), transparent 70%);
-    background-blend-mode: overlay, multiply, multiply;
+    background-color: var(--card-bg);
 }
 
 /* 생각의 서재 아카이브 카드는 책 표지처럼 - 크림색 종이 + 두꺼운 책등 + 살짝 기울어지는 호버 */
