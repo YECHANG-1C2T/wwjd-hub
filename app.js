@@ -763,7 +763,7 @@ function renderResearchResults(list) {
         card.href = p.url;
         card.target = '_blank';
         card.rel = 'noopener';
-        card.className = "glass-card p-4 flex flex-col gap-1.5 hover:border-[var(--primary)] transition-all";
+        card.className = "glass-card p-4 border-l-4 border-l-sky-500 flex flex-col gap-1.5 hover:border-[var(--primary)] transition-all";
         card.innerHTML = `
             <span class="text-[9px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full w-fit">PAPER${p.year ? ' · ' + p.year : ''}</span>
             <h4 class="font-bold text-xs text-[var(--text-main)] leading-snug">${p.titleKo}</h4>
