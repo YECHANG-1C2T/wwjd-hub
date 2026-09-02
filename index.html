@@ -140,6 +140,17 @@
                     </div>
                     <button onclick="switchView('calendar', event)" class="text-xs text-[var(--text-sub)] hover:text-[var(--primary)] font-bold">전체 관리 ➔</button>
                 </div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="time" id="home-todo-time" value="10:00" class="p-2 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-bold outline-none">
+                    <select id="home-todo-cat" class="p-2 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-bold outline-none">
+                        <option value="회의">회의</option>
+                        <option value="심방">심방</option>
+                        <option value="사역" selected>사역</option>
+                        <option value="가정">가정</option>
+                    </select>
+                    <input type="text" id="home-todo-input" placeholder="오늘의 걸음 추가" class="flex-1 p-2 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addHomeTodo()">
+                    <button onclick="addHomeTodo()" class="px-4 py-2 primary-badge text-xs font-black rounded-lg">등록</button>
+                </div>
                 <div id="home-todo-preview" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs"></div>
             </div>
 
@@ -162,7 +173,7 @@
                         <option value="tue">화요일</option>
                         <option value="wed">수요일</option>
                         <option value="thu">목요일</option>
-                        <option value="fri" selected>금요일 (오늘)</option>
+                        <option value="fri">금요일</option>
                         <option value="sat">토요일</option>
                         <option value="sun">일요일</option>
                     </select>
@@ -229,6 +240,23 @@
 
         <!-- ================= [3] 사역현황 ================= -->
         <section id="view-dashboard" class="page-view space-y-6 md:space-y-8">
+            <div class="glass-card p-6 md:p-8 space-y-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Quick Links</span>
+                        <h2 class="text-lg md:text-xl font-black text-[var(--text-main)]">바로가기 링크보드</h2>
+                    </div>
+                </div>
+                <div class="flex gap-2 overflow-x-auto pb-1" id="link-cat-filter"></div>
+                <div class="p-4 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="link-cat-input" placeholder="카테고리" class="sm:w-28 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-bold outline-none">
+                    <input type="text" id="link-title-input" placeholder="링크 제목" class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none">
+                    <input type="text" id="link-url-input" placeholder="https://..." class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addLink()">
+                    <button onclick="addLink()" class="px-4 py-2.5 primary-badge text-xs font-black rounded-lg shrink-0">추가</button>
+                </div>
+                <div id="link-board-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+            </div>
+
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>

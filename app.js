@@ -11,6 +11,7 @@ window.state = {
     weekly: defaultWeekly,
     todos: defaultTodos,
     projects: defaultProjects,
+    links: [],
     memos: [{ id: 'm1', cat: '교회 공통', title: '하반기 목회 계획', date: '2026.08.28', content: '소그룹 모임 장소 재배치 논의 완료.' }],
     thoughts: [{ id: 'th1', cat: '설교착상', stage: '숙성', title: '팀켈러 일과 영성', createdAt: '2026.08.28 15:58', updatedAt: '2026.08.28 15:58', content: '<h1>소명으로서의 일터</h1><p>복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 <mark>거룩한 소명의 자리</mark>로 변화시킨다.</p>' }]
 };
@@ -41,6 +42,7 @@ function startCloudSync() {
             if (data.weekly) window.state.weekly = data.weekly;
             if (data.todos) window.state.todos = data.todos;
             if (data.projects) window.state.projects = data.projects;
+            if (data.links) window.state.links = data.links;
             if (data.memos) window.state.memos = data.memos;
             if (data.thoughts) window.state.thoughts = data.thoughts;
             if (data.theme) window.state.theme = data.theme;
@@ -53,6 +55,7 @@ function startCloudSync() {
             renderTodos();
             renderHomeTodos();
             renderProjects();
+            renderLinkBoard();
             renderMemos();
             renderThoughts();
         }
@@ -187,6 +190,17 @@ function forwardNarrativeToStudy() {
     closeModal('theology-detail-modal');
 }
 
+const NEWS_CATEGORIES = [
+    { key: '정치·정책', query: '정치' },
+    { key: '사회·이슈', query: '사회' },
+    { key: '노동·경제', query: '경제' },
+    { key: 'IT·테크', query: 'IT' },
+    { key: '생활·교통', query: '생활' },
+    { key: '연예·문화', query: '연예' },
+    { key: '스포츠·건강', query: '스포츠' },
+    { key: '국제·외교', query: '국제' }
+];
+
 async function fetchLiveNaverNews(manual = false) {
     const icon = document.getElementById('news-refresh-icon');
     if (icon && manual) {
@@ -195,24 +209,29 @@ async function fetchLiveNaverNews(manual = false) {
         icon.classList.add('rotate-anim');
     }
     try {
-        const targetRss = encodeURIComponent('https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko');
-        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${targetRss}`);
-        const data = await res.json();
-        if (data && data.items && data.items.length > 0) {
-            const cats = ['정치·정책', '사회·이슈', '노동·경제', 'IT·테크', '생활·교통', '연예·문화', '스포츠·건강', '국제·외교'];
-            liveNaverNewsList = data.items.slice(0, 8).map((item, idx) => {
+        const results = await Promise.all(NEWS_CATEGORIES.map(async (cat, idx) => {
+            try {
+                const targetRss = encodeURIComponent(`https://news.google.com/rss/search?q=${encodeURIComponent(cat.query)}&hl=ko&gl=KR&ceid=KR:ko`);
+                const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${targetRss}`);
+                const data = await res.json();
+                const item = data && data.items && data.items[0];
+                if (!item) return null;
                 const rawTitle = item.title.replace(/<[^>]*>?/gm, '').trim();
                 const parts = rawTitle.split(' - ');
                 return {
                     id: 'live_n_' + idx,
-                    cat: cats[idx % cats.length],
+                    cat: cat.key,
                     title: parts[0],
-                    source: parts[1] || '네이버 뉴스',
+                    source: parts[1] || '뉴스',
                     url: item.link,
                     summary: [`실시간 헤드라인: ${parts[0]}`, `출처 매체: ${parts[1] || '뉴스 포털'}`]
                 };
-            });
-        }
+            } catch (e) {
+                return null;
+            }
+        }));
+        const filtered = results.filter(Boolean);
+        if (filtered.length > 0) liveNaverNewsList = filtered;
     } catch (e) {}
     renderNewsAccordion();
 }
@@ -262,16 +281,43 @@ function refreshNaverNews(manual = false) {
 /* ==========================================================================
    [SCHEDULE, TODOS, PROJECTS & MEMOS]
    ========================================================================== */
+function getCurrentWeekDates() {
+    const now = new Date();
+    const keys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    const names = ['월', '화', '수', '목', '금', '토', '일'];
+    const mondayOffset = now.getDay() === 0 ? -6 : 1 - now.getDay();
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset);
+    const todayStr = now.toDateString();
+
+    return keys.map((key, i) => {
+        const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+        return {
+            key,
+            name: names[i],
+            date: `${d.getMonth() + 1}.${d.getDate()}`,
+            isToday: d.toDateString() === todayStr
+        };
+    });
+}
+
 function renderWeeklyGrid() {
     const container = document.getElementById('weekly-grid-view');
     if (!container) return;
     container.innerHTML = '';
-    const daysInfo = [
-        { key: 'mon', name: '월', date: '8.24' }, { key: 'tue', name: '화', date: '8.25' },
-        { key: 'wed', name: '수', date: '8.26' }, { key: 'thu', name: '목', date: '8.27' },
-        { key: 'fri', name: '금', date: '8.28', isToday: true }, { key: 'sat', name: '토', date: '8.29' },
-        { key: 'sun', name: '일', date: '8.30' }
-    ];
+    const daysInfo = getCurrentWeekDates();
+
+    const rangeHeader = document.getElementById('weekly-range-header');
+    if (rangeHeader) rangeHeader.innerText = `${daysInfo[0].date}(월) ~ ${daysInfo[6].date}(일)`;
+
+    const daySelect = document.getElementById('quick-sched-day');
+    if (daySelect) {
+        const todayInfo = daysInfo.find(d => d.isToday);
+        daysInfo.forEach(d => {
+            const opt = daySelect.querySelector(`option[value="${d.key}"]`);
+            if (opt) opt.innerText = d.name + '요일' + (d.isToday ? ' (오늘)' : '');
+        });
+        if (todayInfo) daySelect.value = todayInfo.key;
+    }
 
     daysInfo.forEach(d => {
         const dayBox = document.createElement('div');
@@ -303,7 +349,8 @@ function addQuickScheduleFromHome() {
     window.state.weekly[day] = window.state.weekly[day] || [];
     window.state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
 
-    if (day === 'fri') {
+    const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
+    if (day === todayKey) {
         let inferredCat = '사역';
         if (text.includes('심방')) inferredCat = '심방';
         else if (text.includes('회의')) inferredCat = '회의';
@@ -336,10 +383,35 @@ function renderHomeTodos() {
     }
     pending.slice(0, 3).forEach(t => {
         const div = document.createElement('div');
-        div.className = "bg-[var(--card-bg)] p-2.5 rounded-xl border border-[var(--border-color)] flex items-center justify-between";
-        div.innerHTML = `<div class="flex items-center gap-2 truncate"><span class="text-[10px] font-mono-code font-bold text-[var(--primary)]">${t.time}</span><span class="font-bold text-[var(--text-main)] truncate">${t.text}</span></div><button onclick="updateTodoStatus('${t.id}', '완료')" class="text-[10px] px-2 py-0.5 bg-[var(--primary-light)] text-[var(--primary)] font-bold rounded-lg">완료</button>`;
+        div.className = "bg-[var(--card-bg)] p-2.5 rounded-xl border border-[var(--border-color)] flex items-center justify-between group";
+        div.innerHTML = `
+            <div class="flex items-center gap-2 flex-1 mr-1 overflow-hidden">
+                <span class="text-[10px] font-mono-code font-bold text-[var(--primary)] shrink-0">${t.time}</span>
+                <span contenteditable="true" onclick="event.stopPropagation()" onblur="updateHomeTodoText('${t.id}', this.innerText)" class="font-bold text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text truncate">${t.text}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+                <button onclick="updateTodoStatus('${t.id}', '완료')" class="text-[10px] px-2 py-0.5 bg-[var(--primary-light)] text-[var(--primary)] font-bold rounded-lg">완료</button>
+                <button onclick="deleteTodo('${t.id}')" class="text-[10px] text-red-400 hover-reveal-action font-bold px-1">✕</button>
+            </div>`;
         container.appendChild(div);
     });
+}
+
+function updateHomeTodoText(id, newText) {
+    if (!newText.trim()) return;
+    const t = window.state.todos.find(item => item.id === id);
+    if (t && t.text !== newText.trim()) { t.text = newText.trim(); renderTodos(); window.syncToCloud(); }
+}
+
+function addHomeTodo() {
+    const time = document.getElementById('home-todo-time').value || '10:00';
+    const cat = document.getElementById('home-todo-cat').value;
+    const input = document.getElementById('home-todo-input');
+    const text = input.value.trim();
+    if (!text) return;
+    window.state.todos.push({ id: 't_' + Date.now(), time, cat, text, status: '진행' });
+    renderTodos(); window.syncToCloud();
+    input.value = '';
 }
 
 function renderTodos() {
@@ -515,6 +587,69 @@ function deleteProject(id) {
         window.state.projects = window.state.projects.filter(p => p.id !== id);
         renderProjects(); window.syncToCloud();
     }
+}
+
+let currentLinkCat = '전체';
+
+function renderLinkBoard() {
+    const filterContainer = document.getElementById('link-cat-filter');
+    const grid = document.getElementById('link-board-grid');
+    if (!grid) return;
+
+    const cats = ['전체', ...new Set(window.state.links.map(l => l.cat))];
+    if (!cats.includes(currentLinkCat)) currentLinkCat = '전체';
+
+    if (filterContainer) {
+        filterContainer.innerHTML = cats.map(c => `
+            <button onclick="filterLinkCat('${c}')" class="link-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap ${c === currentLinkCat ? 'primary-badge' : 'text-[var(--text-sub)] bg-[var(--primary-light)]'}">${c === '전체' ? '전체보기' : c}</button>
+        `).join('');
+    }
+
+    grid.innerHTML = '';
+    const filtered = window.state.links.filter(l => currentLinkCat === '전체' || l.cat === currentLinkCat);
+    if (filtered.length === 0) {
+        grid.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-2">등록된 링크가 없습니다. 위에서 추가해보세요.</p>`;
+        return;
+    }
+    filtered.forEach(l => {
+        const card = document.createElement('a');
+        card.href = l.url;
+        card.target = '_blank';
+        card.rel = 'noopener';
+        card.className = "glass-card p-3.5 flex items-center justify-between gap-2 hover:border-[var(--primary)] transition-all group";
+        card.innerHTML = `
+            <div class="truncate">
+                <span class="bookmark-ribbon primary-badge mb-1.5 inline-block">${l.cat}</span>
+                <h4 class="font-bold text-xs text-[var(--text-main)] truncate">${l.title}</h4>
+            </div>
+            <button onclick="event.preventDefault(); event.stopPropagation(); deleteLink('${l.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold shrink-0">✕</button>`;
+        grid.appendChild(card);
+    });
+}
+
+function filterLinkCat(cat) {
+    currentLinkCat = cat;
+    renderLinkBoard();
+}
+
+function addLink() {
+    const catInput = document.getElementById('link-cat-input');
+    const titleInput = document.getElementById('link-title-input');
+    const urlInput = document.getElementById('link-url-input');
+    const title = titleInput.value.trim();
+    let url = urlInput.value.trim();
+    const cat = catInput.value.trim() || '기타';
+    if (!title || !url) return;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+    window.state.links.push({ id: 'lk_' + Date.now(), cat, title, url });
+    renderLinkBoard(); window.syncToCloud();
+    catInput.value = ''; titleInput.value = ''; urlInput.value = '';
+}
+
+function deleteLink(id) {
+    window.state.links = window.state.links.filter(l => l.id !== id);
+    renderLinkBoard(); window.syncToCloud();
 }
 
 function renderMemos() {
@@ -740,5 +875,6 @@ if (typeof applyThoughtZoomUI === 'function') applyThoughtZoomUI();
 renderTodos();
 renderHomeTodos();
 renderProjects();
+renderLinkBoard();
 renderMemos();
 renderThoughts();

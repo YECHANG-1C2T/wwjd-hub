@@ -64,6 +64,22 @@ body.in-study-room {
     --nav-bg: rgba(28, 20, 14, 0.97) !important;
     --highlight-tint: rgba(245, 158, 11, 0.45) !important;
     background-color: var(--bg-color) !important;
+    background-image:
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.09) 0px, transparent 1px, transparent 3px, rgba(255, 255, 255, 0.025) 4px, transparent 5px, transparent 8px),
+        radial-gradient(ellipse 900px 70px at 10% 15%, rgba(0, 0, 0, 0.16), transparent 70%),
+        radial-gradient(ellipse 700px 55px at 85% 45%, rgba(0, 0, 0, 0.14), transparent 70%),
+        radial-gradient(ellipse 800px 60px at 30% 80%, rgba(0, 0, 0, 0.15), transparent 70%),
+        radial-gradient(ellipse 600px 50px at 65% 95%, rgba(0, 0, 0, 0.12), transparent 70%) !important;
+    background-blend-mode: overlay, multiply, multiply, multiply, multiply !important;
+}
+
+/* 서재 카드 표면도 나무 판자 느낌으로 */
+body.in-study-room .glass-card {
+    background-image:
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0px, transparent 1px, transparent 3px, rgba(255, 255, 255, 0.02) 4px, transparent 5px, transparent 7px),
+        radial-gradient(ellipse 260px 22px at 25% 25%, rgba(0, 0, 0, 0.1), transparent 70%),
+        radial-gradient(ellipse 220px 18px at 78% 72%, rgba(0, 0, 0, 0.09), transparent 70%);
+    background-blend-mode: overlay, multiply, multiply;
 }
 
 body {
