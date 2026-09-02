@@ -143,3 +143,36 @@ const defaultProjects = [
         ]
     }
 ];
+
+/* 🔗 사역 관련 링크 모음 (구글 시트에서 이관, 시트 자체의 분류 체계를 그대로 사용) */
+const defaultLinks = [
+    { id: 'lk1', cat: '청년교구', title: '청년교구 회의록(25-26년도)', url: 'https://docs.google.com/document/d/1BLATDTk58rrY_i0pqg8DnQS7t1nlmczKGe-AjAWX8Pk/edit?usp=sharing' },
+    { id: 'lk2', cat: '청년교구', title: '2026 통합행정', url: 'https://docs.google.com/spreadsheets/d/1g084VU0cecemMB9mNF4zl8h-EIqTdjq9ZVUaeEVLrG4/edit?usp=sharing' },
+    { id: 'lk3', cat: '청년교구', title: '청년교구 자료(2025년~)', url: 'https://drive.google.com/drive/folders/18S9uvJrhfXRBXXS3p-_grguRCySKB3H2?usp=drive_link' },
+    { id: 'lk4', cat: '청년교구', title: '2026년 드림센터 식당이용', url: 'https://docs.google.com/spreadsheets/d/1_hyx37M5vBddn6CH-LEZaITXoHYUaFUIbh1SrDwbua0/edit?usp=sharing' },
+    { id: 'lk5', cat: '청년교구', title: '장소신청링크', url: 'https://docs.google.com/forms/d/e/1FAIpQLSdVjumYQ-aypKV7SyqhcaVMsScVPdk1BkO7TYMtSeTHoPljFQ/viewform' },
+    { id: 'lk6', cat: '청년교구', title: '2025 드림센터 장소사용신청 현황표', url: 'https://docs.google.com/spreadsheets/d/1V8ah975xqEhvpp-jwg-tP9CnuoqcPNLgzKBL2nZc-Gs/edit?usp=sharing' },
+    { id: 'lk7', cat: '청년교구', title: '25년 1학기 드림센터 고정장소(확정)', url: 'https://docs.google.com/spreadsheets/d/1sL9_Nj5j1Mf8KbIfaZK4SGo76SQHCCd-TnuWnvmEBDM/edit?usp=sharing' },
+    { id: 'lk8', cat: '청년교구', title: '부서보고서(인원출석)', url: 'https://drive.google.com/drive/u/0/folders/1OjUAOhbzKiFwubdh_lDHaXE4_d8pjn28' },
+    { id: 'lk9', cat: '청년교구', title: '25 주일 기도회 참석자 명단(남교역자)', url: 'https://docs.google.com/spreadsheets/d/1mHHWJSwTVYgRAqJ42qaJBJB5oBiVWfiNm3Zh2giPfa8/edit?usp=sharing' },
+    { id: 'lk10', cat: '청년교구', title: '2026년 새벽기도회', url: 'https://docs.google.com/spreadsheets/d/1HdzzyfHX-J5n8thaXCvKvW63u0OHkpNW-5wAsicAghM/edit?usp=sharing' },
+    { id: 'lk11', cat: '청년교구', title: '2026년 주중 예배 교역자 안내봉사 배치표', url: 'https://docs.google.com/spreadsheets/d/1lQZfhZ0sY9oiLzUR5Gw5yaKPmgdq1BMkO9B9rw5SVsM/edit?usp=sharing' },
+    { id: 'lk12', cat: '수련회', title: '수련회 통합시트', url: 'https://church-camp-dashboard.vercel.app/' },
+    { id: 'lk13', cat: '청년금요기도회', title: '2026 청년금요기도회 시트', url: 'https://docs.google.com/spreadsheets/d/1spzKfbX8ryOxjB5GW5FJuIQZYxmeJW-qzdvIfx5bfm4/edit?usp=sharing' },
+    { id: 'lk14', cat: '청년금요기도회', title: '청금 중보기도 모음🙏(응답)', url: 'https://docs.google.com/spreadsheets/d/1cLITy0aQD9RFyrSF2UZs_8M-fF9xf6XKW7CyT5eISPY/edit?usp=sharing' },
+    { id: 'lk15', cat: '청년금요기도회', title: '청년금요기도회 찬양팀 조직도 및 라인업(2025)', url: 'https://docs.google.com/spreadsheets/d/15xSWm_-K3PMsg_KstYnO1zWmp135Qqkl/edit?usp=sharing&ouid=112826260056797498242&rtpof=true&sd=true' },
+    { id: 'lk16', cat: '1청2팀', title: '[A] 2026년 상반기 - 1청년부 2팀', url: 'https://docs.google.com/spreadsheets/d/1RdtdhAbj0UHdZb3MLbZfivGd1qy8ysNdurqQ0uMQ7w8/edit?usp=sharing' },
+    { id: 'lk17', cat: '1청2팀', title: '2025 1청2팀 리더십 기도제목', url: 'https://docs.google.com/spreadsheets/d/1uIaofxvPJZ8P-nN1hbCf2kiswVdDKfKuL8Rzu_EdVIE/edit?usp=sharing' },
+    { id: 'lk18', cat: '1청2팀', title: '[1청2팀] 마을장 주요 공지', url: 'https://docs.google.com/document/d/173IlCPKf8Xz4uMRqztYh57oH9gWl0PcZcCl3Ta3uYC4/edit?usp=sharing' },
+    { id: 'lk19', cat: '1청2팀', title: '1청 2팀 마을 배정할 귀한 청년들', url: 'https://docs.google.com/spreadsheets/d/1ZkEbNFrOEdWNq0I2KYNSIONLLsnwCfX5FyG7rO7l-WU/edit?usp=sharing' },
+    { id: 'lk20', cat: '1청2팀', title: '2026 1청년부 2팀 회계', url: 'https://docs.google.com/spreadsheets/d/12xVF0Y-NMLzbPnWW3n--O1CET0Ydu4g1CGIR5FOZr8g/edit?usp=sharing' },
+    { id: 'lk21', cat: '1청2팀', title: '2025 1청 2팀 하반기 계획', url: 'https://docs.google.com/spreadsheets/d/1aIAe2KMG8wSK04VYqiKU9UKBNnnoYX6KhrwK3PmSoRM/edit?usp=sharing' },
+    { id: 'lk22', cat: '1청2팀', title: '1청 2팀 부서모임 내용/대본', url: 'https://docs.google.com/document/d/1Vcg0vkZJTUhr_B2RvzItmMTg1jegSygwTz3CW5wa33A/edit?usp=sharing' },
+    { id: 'lk23', cat: '1청2팀', title: '1청년부 2팀 심방신청(응답)·원투원 일정 2026', url: 'https://docs.google.com/spreadsheets/d/19RlditVOp0P_ptwg1mryJE934x0gjV2uyDEOV-6dbhc/edit?usp=sharing' },
+    { id: 'lk24', cat: '1청2팀', title: '1청 연합예배 큐시트', url: 'https://docs.google.com/spreadsheets/d/115q6e30n9nvA6yfJpztaj-x0gZgYq79qF_gZBVcKtlI/edit?usp=sharing' },
+    { id: 'lk25', cat: '1청2팀', title: '2026 1청2팀 새가족 환영(응답)', url: 'https://docs.google.com/spreadsheets/d/15KVhpuKjd4gSKcoabI79VGmVhDzOEnbo-5yf6UYm1h8/edit?usp=sharing' },
+    { id: 'lk26', cat: '1청2팀', title: '2026 1청2팀 오고싶은 순모임 설문(응답)', url: 'https://docs.google.com/spreadsheets/d/1V5FIa4kfsOTMBUKU272V06I5XEOn2Nv6Zrz-d5YiPh8/edit?usp=sharing' },
+    { id: 'lk27', cat: '1청2팀', title: '2026 1청2팀 순장이 꿈꾸는 순모임(응답)', url: 'https://docs.google.com/spreadsheets/d/1utIyHbZvTGa8vqw9Efyb7JV-aTToo4ux0ujlk4V5T-8/edit?usp=sharing' },
+    { id: 'lk28', cat: '1청2팀', title: '26-1 1청2팀 동아리 신청(응답)', url: 'https://docs.google.com/spreadsheets/d/1plT11bkz6ZzYP95fOBOQPKLlDbTrKHFtzZm8HzbuIIk/edit?usp=sharing' },
+    { id: 'lk29', cat: '1청2팀', title: '26-1 1청2팀 양육반 신청(응답)', url: 'https://docs.google.com/spreadsheets/d/1qiWEJz-hUURwFhngncHk-d-dvC8o8InbvoNgBQG30kg/edit?usp=sharing' }
+];
