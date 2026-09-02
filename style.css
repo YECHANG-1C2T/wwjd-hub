@@ -1,5 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800;900&display=swap');
 
+/* 커서를 올리면 뜨는 요약 툴팁 (뉴스/논문 카드 공용) */
+[data-tooltip] { position: relative; }
+[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    z-index: 60;
+    bottom: calc(100% + 8px);
+    left: 0;
+    width: 280px;
+    max-width: 75vw;
+    padding: 10px 12px;
+    background: var(--card-bg);
+    color: var(--text-main);
+    font-size: 11px;
+    line-height: 1.55;
+    font-weight: 600;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+    white-space: normal;
+    pointer-events: none;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
 /* 1. 🩸 클래식 버건디 (Light) */
 body.theme-burgundy {
     --bg-color: #f7f5f2;

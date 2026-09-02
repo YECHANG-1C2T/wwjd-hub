@@ -190,16 +190,37 @@ function forwardNarrativeToStudy() {
     closeModal('theology-detail-modal');
 }
 
-const NEWS_CATEGORIES = [
-    { key: '정치·정책', query: '정치' },
-    { key: '사회·이슈', query: '사회' },
-    { key: '노동·경제', query: '경제' },
-    { key: 'IT·테크', query: 'IT' },
-    { key: '생활·교통', query: '생활' },
-    { key: '연예·문화', query: '연예' },
-    { key: '스포츠·건강', query: '스포츠' },
-    { key: '국제·외교', query: '국제' }
+const NEWS_SOURCES = [
+    { cat: '정치·정책', url: 'https://rss.donga.com/politics.xml', count: 1 },
+    { cat: '노동·경제', url: 'https://rss.donga.com/economy.xml', count: 1 },
+    { cat: '사회·이슈', url: 'https://rss.donga.com/national.xml', count: 1 },
+    { cat: '문화·연예', url: 'https://rss.donga.com/culture.xml', count: 1 },
+    { cat: null, url: 'https://www.yna.co.kr/rss/news.xml', count: 2 },
+    { cat: null, url: 'https://www.hani.co.kr/rss/', count: 2 }
 ];
+
+function stripHtml(html) {
+    return (html || '')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function escapeAttr(str) {
+    return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function guessNewsCategory(title) {
+    if (/스포츠|축구|야구|올림픽|선수|리그/.test(title)) return '스포츠·건강';
+    if (/국제|미국|중국|일본|외교|정상회담|유엔/.test(title)) return '국제·외교';
+    if (/증시|주가|금리|환율|무역|기업|은행/.test(title)) return '노동·경제';
+    if (/법원|검찰|경찰|사고|화재|구조/.test(title)) return '사회·이슈';
+    return '종합';
+}
 
 async function fetchLiveNaverNews(manual = false) {
     const icon = document.getElementById('news-refresh-icon');
@@ -209,29 +230,31 @@ async function fetchLiveNaverNews(manual = false) {
         icon.classList.add('rotate-anim');
     }
     try {
-        const results = await Promise.all(NEWS_CATEGORIES.map(async (cat, idx) => {
+        const results = await Promise.all(NEWS_SOURCES.map(async (src) => {
             try {
-                const targetRss = encodeURIComponent(`https://news.google.com/rss/search?q=${encodeURIComponent(cat.query)}&hl=ko&gl=KR&ceid=KR:ko`);
+                const targetRss = encodeURIComponent(src.url);
                 const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${targetRss}`);
                 const data = await res.json();
-                const item = data && data.items && data.items[0];
-                if (!item) return null;
-                const rawTitle = item.title.replace(/<[^>]*>?/gm, '').trim();
-                const parts = rawTitle.split(' - ');
-                return {
-                    id: 'live_n_' + idx,
-                    cat: cat.key,
-                    title: parts[0],
-                    source: parts[1] || '뉴스',
-                    url: item.link,
-                    summary: [`실시간 헤드라인: ${parts[0]}`, `출처 매체: ${parts[1] || '뉴스 포털'}`]
-                };
+                const items = (data && data.items) || [];
+                const sourceName = (data.feed && data.feed.title) || '뉴스';
+                return items.slice(0, src.count).map((item, idx) => {
+                    const title = stripHtml(item.title);
+                    const summary = stripHtml(item.description).slice(0, 220);
+                    return {
+                        id: 'live_n_' + src.url.replace(/\W/g, '') + '_' + idx,
+                        cat: src.cat || guessNewsCategory(title),
+                        title,
+                        source: sourceName,
+                        url: item.link,
+                        summary
+                    };
+                });
             } catch (e) {
-                return null;
+                return [];
             }
         }));
-        const filtered = results.filter(Boolean);
-        if (filtered.length > 0) liveNaverNewsList = filtered;
+        const flat = results.flat();
+        if (flat.length > 0) liveNaverNewsList = flat;
     } catch (e) {}
     renderNewsAccordion();
 }
@@ -241,7 +264,7 @@ function renderNewsAccordion() {
     if (!container) return;
     container.innerHTML = '';
     const list = (liveNaverNewsList.length > 0) ? liveNaverNewsList : [
-        { id: 'n1', cat: '사회·정책', title: '1인 가구 청년 고립 방지 맞춤형 안전망 전국 확대', source: '네이버 뉴스', url: 'https://news.naver.com', summary: ['청년 지원 프로그램 가동'] }
+        { id: 'n1', cat: '사회·정책', title: '1인 가구 청년 고립 방지 맞춤형 안전망 전국 확대', source: '뉴스', url: 'https://news.naver.com', summary: '청년 지원 프로그램이 전국으로 확대됩니다.' }
     ];
 
     list.forEach(item => {
@@ -250,13 +273,13 @@ function renderNewsAccordion() {
         div.className = "bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl overflow-hidden transition-all shadow-xs";
         let summaryHtml = isOpen ? `
             <div class="px-4 pb-4 pt-2 border-t border-[var(--border-color)] bg-[var(--primary-light)] space-y-2 text-xs">
-                <span class="font-bold text-[var(--primary)] block">🔥 실시간 헤드라인 브리프:</span>
-                <ul class="list-disc list-inside space-y-1 text-[var(--text-main)] font-medium">${item.summary.map(s => `<li>${s}</li>`).join('')}</ul>
+                <span class="font-bold text-[var(--primary)] block">🔥 기사 요약:</span>
+                <p class="text-[var(--text-main)] font-medium leading-relaxed">${item.summary || '요약을 불러올 수 없습니다.'}</p>
             </div>` : '';
 
         div.innerHTML = `
             <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-[var(--primary-light)] transition-colors" onclick="toggleNewsAccordion('${item.id}')">
-                <div class="flex items-center gap-2.5 overflow-hidden flex-1 mr-2">
+                <div class="flex items-center gap-2.5 overflow-hidden flex-1 mr-2" ${item.summary ? `data-tooltip="${escapeAttr(item.summary)}"` : ''}>
                     <span class="text-[10px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full shrink-0">${item.cat}</span>
                     <h4 class="text-xs sm:text-sm font-bold text-[var(--text-main)] truncate">${item.title}</h4>
                 </div>
@@ -736,19 +759,30 @@ async function searchResearch(queryOverride) {
     if (!query) return;
     if (statusEl) statusEl.innerText = `"${query}" 검색 중...`;
     try {
-        const res = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=6`);
+        const res = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&per-page=6`);
         const data = await res.json();
-        const items = (data && data.message && data.message.items) || [];
-        const translated = await Promise.all(items.map(async (p) => {
-            const titleEn = (p.title && p.title[0]) || '(제목 없음)';
+        const items = (data && data.results) || [];
+        const translated = await Promise.all(items.map(async (w) => {
+            const titleEn = w.title || '(제목 없음)';
             const titleKo = await translateToKorean(titleEn);
-            const authors = (p.author || []).slice(0, 2).map(a => a.family || '').filter(Boolean).join(', ');
-            const dateParts = p.published && p.published['date-parts'] && p.published['date-parts'][0];
-            const year = dateParts && dateParts[0];
-            return { titleKo, titleEn, authors, year, url: p.URL };
+            const authors = (w.authorships || []).slice(0, 2).map(a => a.author && a.author.display_name).filter(Boolean).join(', ');
+            const year = w.publication_year;
+            const url = w.doi || (w.primary_location && w.primary_location.landing_page_url) || w.id;
+
+            let summaryKo = '';
+            if (w.abstract_inverted_index) {
+                const posWord = [];
+                for (const [word, positions] of Object.entries(w.abstract_inverted_index)) {
+                    positions.forEach(p => posWord.push([p, word]));
+                }
+                posWord.sort((a, b) => a[0] - b[0]);
+                const abstractEn = posWord.map(pw => pw[1]).join(' ').slice(0, 280);
+                summaryKo = await translateToKorean(abstractEn);
+            }
+            return { titleKo, titleEn, authors, year, url, summaryKo };
         }));
         renderResearchResults(translated);
-        if (statusEl) statusEl.innerText = translated.length > 0 ? `"${query}" 관련 논문 ${translated.length}건` : `"${query}"에 대한 결과가 없습니다.`;
+        if (statusEl) statusEl.innerText = translated.length > 0 ? `"${query}" 관련 논문 ${translated.length}건 · 카드에 커서를 올리면 요약이 보여요` : `"${query}"에 대한 결과가 없습니다.`;
     } catch (e) {
         if (statusEl) statusEl.innerText = '논문 검색에 실패했습니다. 잠시 후 다시 시도해주세요.';
     }
@@ -764,10 +798,12 @@ function renderResearchResults(list) {
         card.target = '_blank';
         card.rel = 'noopener';
         card.className = "glass-card p-4 border-l-4 border-l-sky-500 flex flex-col gap-1.5 hover:border-[var(--primary)] transition-all";
+        if (p.summaryKo) card.setAttribute('data-tooltip', escapeAttr(p.summaryKo));
         card.innerHTML = `
             <span class="text-[9px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full w-fit">PAPER${p.year ? ' · ' + p.year : ''}</span>
             <h4 class="font-bold text-xs text-[var(--text-main)] leading-snug">${p.titleKo}</h4>
             <span class="text-[10px] text-[var(--text-sub)] truncate">${p.titleEn}${p.authors ? ' · ' + p.authors : ''}</span>
+            ${p.summaryKo ? '<span class="text-[9px] text-[var(--primary)] font-bold mt-0.5">👆 커서를 올려 요약 보기</span>' : ''}
         `;
         grid.appendChild(card);
     });
