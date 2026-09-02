@@ -708,6 +708,66 @@ function deleteMemo(id) {
 }
 
 /* ==========================================================================
+   [TGC LIVE BRIEF - 실시간 번역 피드]
+   ========================================================================== */
+async function translateToKorean(text) {
+    try {
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ko`);
+        const data = await res.json();
+        return (data && data.responseData && data.responseData.translatedText) || text;
+    } catch (e) {
+        return text;
+    }
+}
+
+let liveTgcArticles = [];
+
+async function fetchTgcFeed(manual = false) {
+    const icon = document.getElementById('tgc-refresh-icon');
+    if (icon && manual) {
+        icon.classList.remove('rotate-anim');
+        void icon.offsetWidth;
+        icon.classList.add('rotate-anim');
+    }
+    try {
+        const targetRss = encodeURIComponent('https://www.thegospelcoalition.org/feed/');
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${targetRss}`);
+        const data = await res.json();
+        if (data && data.items && data.items.length > 0) {
+            const items = data.items.slice(0, 8);
+            liveTgcArticles = await Promise.all(items.map(async (item, idx) => {
+                const titleKo = await translateToKorean(item.title);
+                return { id: 'tgc_' + idx, titleKo, titleEn: item.title, url: item.link };
+            }));
+        }
+    } catch (e) {}
+    renderTgcFeed();
+}
+
+function renderTgcFeed() {
+    const container = document.getElementById('tgc-feed-grid');
+    if (!container) return;
+    container.innerHTML = '';
+    if (liveTgcArticles.length === 0) {
+        container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-2">불러오는 중...</p>`;
+        return;
+    }
+    liveTgcArticles.forEach(a => {
+        const card = document.createElement('a');
+        card.href = a.url;
+        card.target = '_blank';
+        card.rel = 'noopener';
+        card.className = "glass-card p-4 flex flex-col gap-2 hover:border-[var(--primary)] transition-all";
+        card.innerHTML = `
+            <span class="text-[9px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full w-fit">TGC</span>
+            <h4 class="font-bold text-xs text-[var(--text-main)] leading-snug">${a.titleKo}</h4>
+            <span class="text-[10px] text-[var(--text-sub)] truncate">${a.titleEn}</span>
+        `;
+        container.appendChild(card);
+    });
+}
+
+/* ==========================================================================
    [STUDY ROOM ARCHIVE & MODAL]
    ========================================================================== */
 function applyThoughtTemplate(type) {
@@ -869,6 +929,7 @@ function submitFab() {
    ========================================================================== */
 initTheologyNarrative();
 fetchLiveNaverNews();
+fetchTgcFeed();
 renderWeeklyGrid();
 if (typeof switchTheme === 'function') switchTheme(window.state.theme, false);
 if (typeof applyThoughtZoomUI === 'function') applyThoughtZoomUI();
