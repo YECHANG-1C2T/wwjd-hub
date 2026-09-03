@@ -28,6 +28,15 @@ function showAuthGate(message) {
 function hideAuthGate() {
     const gate = document.getElementById('auth-gate');
     if (gate) gate.classList.remove('show');
+    playEntranceAnimation();
+}
+
+let entrancePlayed = false;
+function playEntranceAnimation() {
+    if (entrancePlayed) return;
+    entrancePlayed = true;
+    document.body.classList.add('app-entrance');
+    setTimeout(() => document.body.classList.remove('app-entrance'), 1200);
 }
 
 function loginWithGoogle() {

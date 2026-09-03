@@ -328,3 +328,42 @@ body.theme-forest .forest-aurora-glow { display: block; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+/* 로그인 직후 첫 진입 연출 — 헤더/히어로/카드/네비가 순서대로 떠오른다.
+   로딩을 늦추는 게 아니라 이미 준비된 화면을 짧게(~1초) 펼쳐 보여주는 것뿐이고,
+   딱 한 번만(재접속마다 X, 첫 로그인 순간만) 재생된다. */
+@media (prefers-reduced-motion: no-preference) {
+    body.app-entrance header {
+        animation: entranceHeaderDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    body.app-entrance nav {
+        animation: entranceNavUp 0.5s 0.05s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    body.app-entrance .furnace-hero {
+        animation: entranceHeroIn 0.6s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    body.app-entrance .page-view.active > *:not(.furnace-hero) {
+        animation: entranceRise 0.5s 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    body.app-entrance .page-view.active > *:nth-child(3) { animation-delay: 0.26s; }
+    body.app-entrance .page-view.active > *:nth-child(4) { animation-delay: 0.34s; }
+    body.app-entrance .page-view.active > *:nth-child(5) { animation-delay: 0.42s; }
+    body.app-entrance .page-view.active > *:nth-child(n+6) { animation-delay: 0.48s; }
+}
+
+@keyframes entranceHeaderDown {
+    from { transform: translateY(-16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+@keyframes entranceNavUp {
+    from { transform: translate(-50%, 24px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+}
+@keyframes entranceHeroIn {
+    from { transform: scale(0.97); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+@keyframes entranceRise {
+    from { transform: translateY(14px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
