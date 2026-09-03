@@ -307,14 +307,15 @@ function renderNewsAccordion() {
         const isOpen = openAccordionId === item.id;
         const div = document.createElement('div');
         div.className = "bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl overflow-hidden transition-all shadow-xs";
+        const summaryId = `news-summary-${item.id}`;
         let summaryHtml = isOpen ? `
-            <div class="px-4 pb-4 pt-2 border-t border-[var(--border-color)] bg-[var(--primary-light)] space-y-2 text-xs">
+            <div id="${summaryId}" class="px-4 pb-4 pt-2 border-t border-[var(--border-color)] bg-[var(--primary-light)] space-y-2 text-xs">
                 <span class="font-bold text-[var(--primary)] block">🔥 기사 요약:</span>
                 <p class="text-[var(--text-main)] font-medium leading-relaxed">${item.summary || '요약을 불러올 수 없습니다.'}</p>
             </div>` : '';
 
         div.innerHTML = `
-            <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-[var(--primary-light)] transition-colors" onclick="toggleNewsAccordion('${item.id}')">
+            <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-[var(--primary-light)] transition-colors focus:outline focus:outline-2 focus:outline-[var(--primary)] focus:outline-offset-[-2px]" role="button" tabindex="0" aria-expanded="${isOpen}" aria-controls="${summaryId}" onclick="toggleNewsAccordion('${item.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); toggleNewsAccordion('${item.id}');}">
                 <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
                     <span class="text-[10px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full shrink-0">${item.cat}</span>
                     <h4 class="text-sm font-bold text-[var(--text-main)] line-clamp-2 min-w-0" title="${escapeAttr(item.title)}">${item.title}</h4>
@@ -751,22 +752,29 @@ function renderMemos() {
     list.innerHTML = '';
     const query = (document.getElementById('memo-search-input')?.value || '').toLowerCase();
 
-    window.state.memos.forEach(m => {
-        const matchCat = (currentMemoCat === '전체' || m.cat === currentMemoCat);
-        const matchQuery = !query || m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query);
-        if (!matchCat || !matchQuery) return;
+    const matched = window.state.memos.filter(m =>
+        (currentMemoCat === '전체' || m.cat === currentMemoCat) &&
+        (!query || m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query))
+    );
+    if (matched.length === 0) {
+        list.innerHTML = `<p class="text-xs text-[var(--text-sub)] px-4 py-6 text-center">${query ? '검색 결과가 없습니다.' : '다음 회의나 메모를 여기에 남겨보세요.'}</p>`;
+        return;
+    }
 
+    matched.forEach(m => {
         const div = document.createElement('div');
-        div.className = "p-5 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl shadow-xs space-y-1 group";
+        div.className = "px-4 py-3 bg-[var(--card-bg)] space-y-1 group hover:bg-[var(--primary-light)] transition-colors";
         div.innerHTML = `
-            <div class="flex justify-between items-center mb-1">
-                <span class="text-[10px] primary-badge font-black px-2.5 py-0.5 rounded-full">${m.cat}</span>
-                <div class="flex items-center gap-2">
+            <div class="flex justify-between items-center gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="text-[10px] primary-badge font-black px-2.5 py-0.5 rounded-full shrink-0">${m.cat}</span>
+                    <h4 class="font-bold text-xs text-[var(--text-main)] truncate">${m.title}</h4>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
                     <span class="text-[10px] text-[var(--text-sub)] font-mono-code">${m.date}</span>
                     <button onclick="deleteMemo('${m.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
                 </div>
             </div>
-            <h4 class="font-bold text-xs text-[var(--text-main)]">${m.title}</h4>
             <p class="text-xs text-[var(--text-sub)] leading-relaxed whitespace-pre-wrap">${m.content}</p>`;
         list.appendChild(div);
     });
@@ -877,13 +885,15 @@ function renderResearchResults() {
         const isOpen = openResearchId === id;
         const card = document.createElement('div');
         card.className = "glass-card p-4 border-l-4 border-l-sky-500 transition-all";
+        const summaryId = `research-summary-${id}`;
         const summaryHtml = (isOpen && p.summaryKo) ? `
-            <div class="mt-2.5 pt-2.5 border-t border-[var(--border-color)] space-y-1.5">
+            <div id="${summaryId}" class="mt-2.5 pt-2.5 border-t border-[var(--border-color)] space-y-1.5">
                 <span class="text-[10px] font-bold text-[var(--primary)] block">📄 논문 요약:</span>
                 <p class="text-xs text-[var(--text-main)] font-medium leading-relaxed">${p.summaryKo}</p>
             </div>` : '';
+        const toggleAttrs = p.summaryKo ? `role="button" tabindex="0" aria-expanded="${isOpen}" aria-controls="${summaryId}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); toggleResearchSummary('${id}');}"` : '';
         card.innerHTML = `
-            <div class="flex flex-col gap-1.5 cursor-pointer" onclick="toggleResearchSummary('${id}')">
+            <div class="flex flex-col gap-1.5 cursor-pointer focus:outline focus:outline-2 focus:outline-[var(--primary)] focus:outline-offset-2 rounded-lg" ${toggleAttrs} onclick="toggleResearchSummary('${id}')">
                 <div class="flex items-center justify-between gap-2">
                     <span class="text-[9px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full w-fit">PAPER${p.year ? ' · ' + p.year : ''}</span>
                     <a href="${p.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-[10px] font-mono-code text-[var(--text-sub)] hover:text-[var(--primary)] font-bold shrink-0">원문 ↗</a>
