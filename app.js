@@ -10,6 +10,7 @@ window.state = {
     thoughtZoom: parseFloat(localStorage.getItem('yc_thought_zoom')) || 1.0,
     weekly: defaultWeekly,
     todos: defaultTodos,
+    todoCompletionLog: {},
     projects: defaultProjects,
     links: defaultLinks,
     memos: [{ id: 'm1', cat: '교회 공통', title: '하반기 목회 계획', date: '2026.08.28', content: '소그룹 모임 장소 재배치 논의 완료.' }],
@@ -41,6 +42,7 @@ function startCloudSync() {
             const data = doc.data();
             if (data.weekly) window.state.weekly = data.weekly;
             if (data.todos) window.state.todos = data.todos;
+            if (data.todoCompletionLog) window.state.todoCompletionLog = data.todoCompletionLog;
             if (data.projects) window.state.projects = data.projects;
             if (data.links && data.links.length > 0) window.state.links = data.links;
             if (data.memos) window.state.memos = data.memos;
@@ -434,6 +436,7 @@ function renderHomeTodos() {
     container.innerHTML = '';
     const pending = window.state.todos.filter(t => t.status === '진행');
     if (badge) badge.innerText = pending.length;
+    renderTodoSparkline();
     if (pending.length === 0) {
         container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-1">등록된 걸음이 없습니다.</p>`;
         return;
@@ -508,7 +511,39 @@ function addTodoInline() {
 
 function updateTodoStatus(id, status) {
     const t = window.state.todos.find(item => item.id === id);
-    if (t) { t.status = status; renderTodos(); window.syncToCloud(); }
+    if (t) {
+        if (status === '완료' && t.status !== '완료') logTodoCompletion();
+        t.status = status;
+        renderTodos(); window.syncToCloud();
+    }
+}
+
+/* 오늘 날짜에 완료 1건을 기록해둔다 (할일이 나중에 삭제돼도 추이 그래프는 남도록,
+   현재 목록에서 세는 대신 별도 로그에 누적한다). */
+function logTodoCompletion() {
+    const key = new Date().toISOString().slice(0, 10);
+    window.state.todoCompletionLog = window.state.todoCompletionLog || {};
+    window.state.todoCompletionLog[key] = (window.state.todoCompletionLog[key] || 0) + 1;
+}
+
+function renderTodoSparkline() {
+    const svg = document.getElementById('todo-sparkline');
+    if (!svg) return;
+    const log = window.state.todoCompletionLog || {};
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push(log[d.toISOString().slice(0, 10)] || 0);
+    }
+    const max = Math.max(1, ...days);
+    const w = 56, h = 20, step = w / (days.length - 1);
+    const points = days.map((v, i) => `${(i * step).toFixed(1)},${(h - 2 - (v / max) * (h - 4)).toFixed(1)}`).join(' ');
+    const primary = getComputedStyle(document.body).getPropertyValue('--primary').trim() || '#34d399';
+    svg.innerHTML = `
+        <polyline points="${points}" fill="none" stroke="${primary}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"></polyline>
+        <circle cx="${(6 * step).toFixed(1)}" cy="${(h - 2 - (days[6] / max) * (h - 4)).toFixed(1)}" r="2" fill="${primary}"></circle>
+    `;
 }
 
 function deleteTodo(id) {
