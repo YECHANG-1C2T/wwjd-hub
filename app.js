@@ -279,7 +279,7 @@ function renderNewsAccordion() {
 
         div.innerHTML = `
             <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-[var(--primary-light)] transition-colors" onclick="toggleNewsAccordion('${item.id}')">
-                <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2" ${item.summary ? `data-tooltip="${escapeAttr(item.summary)}" tabindex="0"` : ''}>
+                <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
                     <span class="text-[10px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full shrink-0">${item.cat}</span>
                     <h4 class="text-sm font-bold text-[var(--text-main)] line-clamp-2 min-w-0" title="${escapeAttr(item.title)}">${item.title}</h4>
                 </div>
@@ -640,7 +640,7 @@ function renderLinkBoard() {
         card.target = '_blank';
         card.rel = 'noopener';
         card.className = "glass-card p-3.5 flex items-center justify-between gap-2 hover:border-[var(--primary)] transition-all group";
-        card.setAttribute('data-tooltip', escapeAttr(l.title));
+        card.title = l.title;
         card.innerHTML = `
             <div class="min-w-0 flex-1">
                 <span class="bookmark-ribbon primary-badge mb-1.5 inline-block">${l.cat}</span>
@@ -782,30 +782,46 @@ async function searchResearch(queryOverride) {
             }
             return { titleKo, titleEn, authors, year, url, summaryKo };
         }));
-        renderResearchResults(translated);
-        if (statusEl) statusEl.innerText = translated.length > 0 ? `"${query}" 관련 논문 ${translated.length}건 · 카드에 커서를 올리면 요약이 보여요` : `"${query}"에 대한 결과가 없습니다.`;
+        liveResearchList = translated;
+        renderResearchResults();
+        if (statusEl) statusEl.innerText = translated.length > 0 ? `"${query}" 관련 논문 ${translated.length}건 · 카드를 누르면 요약이 펼쳐져요` : `"${query}"에 대한 결과가 없습니다.`;
     } catch (e) {
         if (statusEl) statusEl.innerText = '논문 검색에 실패했습니다. 잠시 후 다시 시도해주세요.';
     }
 }
 
-function renderResearchResults(list) {
+let liveResearchList = [];
+let openResearchId = null;
+
+function toggleResearchSummary(id) {
+    openResearchId = (openResearchId === id) ? null : id;
+    renderResearchResults();
+}
+
+function renderResearchResults() {
     const grid = document.getElementById('research-results-grid');
     if (!grid) return;
     grid.innerHTML = '';
-    list.forEach(p => {
-        const card = document.createElement('a');
-        card.href = p.url;
-        card.target = '_blank';
-        card.rel = 'noopener';
-        card.className = "glass-card p-4 border-l-4 border-l-sky-500 flex flex-col gap-1.5 hover:border-[var(--primary)] transition-all";
-        if (p.summaryKo) card.setAttribute('data-tooltip', escapeAttr(p.summaryKo));
+    liveResearchList.forEach((p, idx) => {
+        const id = 'rs_' + idx;
+        const isOpen = openResearchId === id;
+        const card = document.createElement('div');
+        card.className = "glass-card p-4 border-l-4 border-l-sky-500 transition-all";
+        const summaryHtml = (isOpen && p.summaryKo) ? `
+            <div class="mt-2.5 pt-2.5 border-t border-[var(--border-color)] space-y-1.5">
+                <span class="text-[10px] font-bold text-[var(--primary)] block">📄 논문 요약:</span>
+                <p class="text-xs text-[var(--text-main)] font-medium leading-relaxed">${p.summaryKo}</p>
+            </div>` : '';
         card.innerHTML = `
-            <span class="text-[9px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full w-fit">PAPER${p.year ? ' · ' + p.year : ''}</span>
-            <h4 class="font-bold text-xs text-[var(--text-main)] leading-snug">${p.titleKo}</h4>
-            <span class="text-[10px] text-[var(--text-sub)] truncate">${p.titleEn}${p.authors ? ' · ' + p.authors : ''}</span>
-            ${p.summaryKo ? '<span class="text-[9px] text-[var(--primary)] font-bold mt-0.5">👆 커서를 올려 요약 보기</span>' : ''}
-        `;
+            <div class="flex flex-col gap-1.5 cursor-pointer" onclick="toggleResearchSummary('${id}')">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-[9px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full w-fit">PAPER${p.year ? ' · ' + p.year : ''}</span>
+                    <a href="${p.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-[10px] font-mono-code text-[var(--text-sub)] hover:text-[var(--primary)] font-bold shrink-0">원문 ↗</a>
+                </div>
+                <h4 class="font-bold text-xs text-[var(--text-main)] leading-snug">${p.titleKo}</h4>
+                <span class="text-[10px] text-[var(--text-sub)] truncate">${p.titleEn}${p.authors ? ' · ' + p.authors : ''}</span>
+                ${p.summaryKo ? `<span class="text-[9px] text-[var(--primary)] font-bold mt-0.5">${isOpen ? '요약 접기 ▲' : '요약 보기 ▼'}</span>` : ''}
+            </div>${summaryHtml}`;
         grid.appendChild(card);
     });
 }
