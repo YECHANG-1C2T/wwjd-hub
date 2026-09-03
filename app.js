@@ -640,10 +640,11 @@ function renderLinkBoard() {
         card.target = '_blank';
         card.rel = 'noopener';
         card.className = "glass-card p-3.5 flex items-center justify-between gap-2 hover:border-[var(--primary)] transition-all group";
+        card.setAttribute('data-tooltip', escapeAttr(l.title));
         card.innerHTML = `
             <div class="min-w-0 flex-1">
                 <span class="bookmark-ribbon primary-badge mb-1.5 inline-block">${l.cat}</span>
-                <h4 class="font-bold text-sm text-[var(--text-main)] truncate min-w-0" title="${escapeAttr(l.title)}">${l.title}</h4>
+                <h4 class="font-bold text-sm text-[var(--text-main)] line-clamp-2 min-w-0">${l.title}</h4>
             </div>
             <button onclick="event.preventDefault(); event.stopPropagation(); deleteLink('${l.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold shrink-0">✕</button>`;
         grid.appendChild(card);
