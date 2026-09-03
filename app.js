@@ -214,6 +214,40 @@ function escapeAttr(str) {
     return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+/* 추출식 요약 (Extractive Summarization) — 외부 API 없이 순수 JS로 동작.
+   문장을 나눈 뒤, 문서 전체에서 자주 나오는 단어를 많이 포함한 문장일수록
+   "핵심 문장"으로 보고 점수를 매겨 상위 N개만 골라 원래 순서대로 이어붙인다.
+   문장을 새로 쓰는 게 아니라 원문에서 고르는 방식(TextRank/빈도 기반 요약의
+   단순화 버전)이라 왜곡 없이 짧아진다는 게 장점. */
+function extractiveSummary(text, maxSentences) {
+    if (!text) return text;
+    const sentences = (text.match(/[^.!?]+[.!?]+(\s+|$)|[^.!?]+$/g) || [text])
+        .map(s => s.trim()).filter(s => s.length > 1);
+    if (sentences.length <= maxSentences) return sentences.join(' ');
+
+    const stop = new Set(['the', 'a', 'an', 'of', 'to', 'in', 'and', 'is', 'are', 'was', 'were', 'this', 'that',
+        'for', 'on', 'with', 'as', 'by', 'it', 'be', 'at', 'from', 'or', 'we', 'our', 'their', 'these', 'those',
+        '그', '이', '저', '것', '수', '등', '및', '을', '를', '은', '는', '이다', '있다', '하다', '통해', '위해']);
+    const tokenize = s => s.toLowerCase().split(/\s+/)
+        .map(w => w.replace(/[^\w가-힣]/g, ''))
+        .filter(w => w.length >= 2 && !stop.has(w));
+
+    const freq = {};
+    sentences.forEach(s => tokenize(s).forEach(w => { freq[w] = (freq[w] || 0) + 1; }));
+
+    const scored = sentences.map((s, idx) => {
+        const words = tokenize(s);
+        const score = words.length ? words.reduce((sum, w) => sum + freq[w], 0) / words.length : 0;
+        return { s, idx, score };
+    });
+
+    return scored.sort((a, b) => b.score - a.score)
+        .slice(0, maxSentences)
+        .sort((a, b) => a.idx - b.idx)
+        .map(t => t.s)
+        .join(' ');
+}
+
 function guessNewsCategory(title) {
     if (/스포츠|축구|야구|올림픽|선수|리그/.test(title)) return '스포츠·건강';
     if (/국제|미국|중국|일본|외교|정상회담|유엔/.test(title)) return '국제·외교';
@@ -239,7 +273,7 @@ async function fetchLiveNaverNews(manual = false) {
                 const sourceName = (data.feed && data.feed.title) || '뉴스';
                 return items.slice(0, src.count).map((item, idx) => {
                     const title = stripHtml(item.title);
-                    const summary = stripHtml(item.description).slice(0, 220);
+                    const summary = extractiveSummary(stripHtml(item.description), 2);
                     return {
                         id: 'live_n_' + src.url.replace(/\W/g, '') + '_' + idx,
                         cat: src.cat || guessNewsCategory(title),
@@ -777,8 +811,9 @@ async function searchResearch(queryOverride) {
                     positions.forEach(p => posWord.push([p, word]));
                 }
                 posWord.sort((a, b) => a[0] - b[0]);
-                const abstractEn = posWord.map(pw => pw[1]).join(' ').slice(0, 280);
-                summaryKo = await translateToKorean(abstractEn);
+                const fullAbstractEn = posWord.map(pw => pw[1]).join(' ');
+                const keySentencesEn = extractiveSummary(fullAbstractEn, 2);
+                summaryKo = await translateToKorean(keySentencesEn);
             }
             return { titleKo, titleEn, authors, year, url, summaryKo };
         }));
