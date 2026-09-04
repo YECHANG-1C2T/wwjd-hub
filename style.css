@@ -91,12 +91,12 @@ body.theme-waters {
     --primary-light: rgba(110, 231, 240, 0.1);
     --border-color: rgba(110, 231, 240, 0.28);
     --text-main: #EAF6F5;
-    --text-sub: #9FC2C2;
+    --text-sub: #D9EFED;
     --nav-bg: rgba(10, 42, 54, 0.85);
     --hero-bg: linear-gradient(135deg, #0A1F28 0%, #164C5C 50%, #2E8FA3 100%);
     --hero-title-color: #EAF6F5;
-    --hero-quote-color: #C9EDEE;
-    --hero-clock-color: #7DE0F0;
+    --hero-quote-color: #F5FBFA;
+    --hero-clock-color: #FFFFFF;
     --accent-shimmer: #6EE7F0;
     --ambient-glow-color: rgba(110, 231, 240, 0.18);
     --ambient-glow-color-outer: rgba(30, 90, 104, 0.1);

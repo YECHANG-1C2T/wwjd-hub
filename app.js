@@ -6,7 +6,7 @@ const db = firebase.firestore();
 const appDocRef = db.collection('ministry_data').doc('master_workspace');
 
 window.state = {
-    theme: localStorage.getItem('yc_theme') || 'forest',
+    theme: localStorage.getItem('yc_theme') || 'dawn',
     thoughtZoom: parseFloat(localStorage.getItem('yc_thought_zoom')) || 1.0,
     weekly: defaultWeekly,
     todos: defaultTodos,
@@ -23,7 +23,18 @@ let liveNaverNewsList = [];
 let openAccordionId = null;
 let currentMemoCat = '전체';
 
+/* 페이지를 막 열었을 때(로그인 직후) 클라우드에서 진짜 데이터가 도착하기 전까지는
+   window.state가 아직 기본 예시값(defaultTodos 등)인 상태다. 이 짧은 순간에 뭔가를
+   저장하면 그 예시값으로 실제 데이터를 덮어써버릴 수 있으므로, 최초 스냅샷을 받기
+   전까지는 절대 쓰지 않는다 — 배포로 페이지가 새로고침될 때마다 이 위험한 순간이
+   반복되므로, 데이터 유실을 막는 핵심 안전장치다. */
+let initialSnapshotReceived = false;
+
 window.syncToCloud = function() {
+    if (!initialSnapshotReceived) {
+        console.warn('클라우드 초기 동기화가 끝나기 전이라 저장을 건너뜁니다.');
+        return;
+    }
     const dot = document.getElementById('sync-dot');
     if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
     localStorage.setItem('yc_theme', window.state.theme);
@@ -38,6 +49,7 @@ function startCloudSync() {
     if (cloudSyncStarted) return;
     cloudSyncStarted = true;
     appDocRef.onSnapshot((doc) => {
+        initialSnapshotReceived = true;
         if (doc.exists) {
             const data = doc.data();
             if (data.weekly) window.state.weekly = data.weekly;
