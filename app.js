@@ -5,6 +5,46 @@
 const db = firebase.firestore();
 const appDocRef = db.collection('ministry_data').doc('master_workspace');
 
+/* 구글 캘린더 주간 일정을 주간일정표 각 요일 칸에 함께 표시하기 위한 설정.
+   API 키를 발급받아 아래에 붙여넣기 전까지는 조용히 건너뛴다(주간일정표는
+   기존처럼 수동 입력만 표시). */
+const GOOGLE_CALENDAR_API_KEY = "";
+const GOOGLE_CALENDAR_ID = "imyooeun0107@gmail.com";
+let googleCalendarWeekEvents = {};
+
+async function loadGoogleCalendarWeek() {
+    if (!GOOGLE_CALENDAR_API_KEY) return;
+    const now = new Date();
+    const mondayOffset = now.getDay() === 0 ? -6 : 1 - now.getDay();
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset);
+    const nextMonday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 7);
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GOOGLE_CALENDAR_ID)}/events`
+        + `?key=${GOOGLE_CALENDAR_API_KEY}&timeMin=${monday.toISOString()}&timeMax=${nextMonday.toISOString()}`
+        + `&singleEvents=true&orderBy=startTime&timeZone=Asia/Seoul`;
+
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('구글캘린더 응답 오류: ' + res.status);
+        const data = await res.json();
+        const grouped = {};
+        (data.items || []).forEach(ev => {
+            const startRaw = ev.start && (ev.start.dateTime || ev.start.date);
+            if (!startRaw) return;
+            const startDate = new Date(startRaw);
+            const dayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][startDate.getDay()];
+            const time = ev.start.dateTime
+                ? startDate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' })
+                : '종일';
+            grouped[dayKey] = grouped[dayKey] || [];
+            grouped[dayKey].push({ time, text: ev.summary || '(제목 없음)' });
+        });
+        googleCalendarWeekEvents = grouped;
+        renderWeeklyGrid();
+    } catch (e) {
+        console.warn('구글캘린더 주간 일정 로드 실패:', e);
+    }
+}
+
 window.state = {
     theme: localStorage.getItem('yc_theme') || 'dawn',
     thoughtZoom: parseFloat(localStorage.getItem('yc_thought_zoom')) || 1.0,
@@ -395,15 +435,28 @@ function renderWeeklyGrid() {
         const dayBox = document.createElement('div');
         dayBox.className = `bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full ${d.isToday ? 'border-2 border-[var(--primary)] shadow-sm' : 'border border-[var(--border-color)]'}`;
         let schedHtml = '';
-        (window.state.weekly[d.key] || []).sort((a,b)=>a.time.localeCompare(b.time)).forEach(item => {
-            schedHtml += `
-                <div class="bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] leading-snug group relative">
-                    <div class="flex justify-between items-start">
-                        <b class="text-[var(--primary)] font-mono-code font-bold text-[10px]">${item.time}</b>
-                        <button onclick="deleteWeekly('${d.key}', '${item.id}')" class="text-[9px] text-red-400 hover-reveal-action font-bold">✕</button>
-                    </div>
-                    <span class="font-bold text-[11px] text-[var(--text-main)] block mt-0.5">${item.text}</span>
-                </div>`;
+        const manualItems = (window.state.weekly[d.key] || []).map(item => ({ ...item, source: 'manual' }));
+        const calendarItems = (googleCalendarWeekEvents[d.key] || []).map(item => ({ ...item, source: 'google' }));
+        manualItems.concat(calendarItems).sort((a,b)=>a.time.localeCompare(b.time)).forEach(item => {
+            if (item.source === 'google') {
+                schedHtml += `
+                    <div class="bg-[var(--primary-light)] p-1.5 rounded-xl border border-dashed border-[var(--primary)] leading-snug" title="구글 캘린더 일정">
+                        <div class="flex justify-between items-start">
+                            <b class="text-[var(--primary)] font-mono-code font-bold text-[10px]">${item.time}</b>
+                            <span class="text-[8px] text-[var(--text-sub)] font-black">G</span>
+                        </div>
+                        <span class="font-bold text-[11px] text-[var(--text-main)] block mt-0.5">${escapeAttr(item.text)}</span>
+                    </div>`;
+            } else {
+                schedHtml += `
+                    <div class="bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] leading-snug group relative">
+                        <div class="flex justify-between items-start">
+                            <b class="text-[var(--primary)] font-mono-code font-bold text-[10px]">${item.time}</b>
+                            <button onclick="deleteWeekly('${d.key}', '${item.id}')" class="text-[9px] text-red-400 hover-reveal-action font-bold">✕</button>
+                        </div>
+                        <span class="font-bold text-[11px] text-[var(--text-main)] block mt-0.5">${item.text}</span>
+                    </div>`;
+            }
         });
         dayBox.innerHTML = `<div class="text-center pb-1 border-b border-[var(--border-color)]"><span class="font-black text-[var(--primary)] block text-xs">${d.name} ${d.isToday ? '📍' : ''}</span><span class="text-[10px] font-mono-code text-[var(--text-sub)] font-bold">${d.date}</span></div><div class="flex-1 space-y-1.5">${schedHtml}</div>`;
         container.appendChild(dayBox);
@@ -483,7 +536,12 @@ function addHomeTodo() {
     const text = input.value.trim();
     if (!text) return;
     window.state.todos.push({ id: 't_' + Date.now(), time, cat, text, status: '진행' });
-    renderTodos(); window.syncToCloud();
+
+    const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
+    window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
+    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text });
+
+    renderTodos(); renderWeeklyGrid(); window.syncToCloud();
     input.value = '';
 }
 
@@ -518,7 +576,12 @@ function addTodoInline() {
     const text = document.getElementById('todo-input-bar').value.trim();
     if (!text) return;
     window.state.todos.push({ id: 't_' + Date.now(), time, cat, text, status: '진행' });
-    renderTodos(); window.syncToCloud();
+
+    const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
+    window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
+    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text });
+
+    renderTodos(); renderWeeklyGrid(); window.syncToCloud();
     document.getElementById('todo-input-bar').value = '';
 }
 
@@ -1077,7 +1140,12 @@ function submitFab() {
     const text = document.getElementById('fab-input').value.trim();
     if (!text) return;
     window.state.todos.push({ id: 't_' + Date.now(), time: '12:00', cat: '사역', text, status: '진행' });
-    renderTodos(); window.syncToCloud();
+
+    const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
+    window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
+    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time: '12:00', text });
+
+    renderTodos(); renderWeeklyGrid(); window.syncToCloud();
     closeModal('fab-modal');
 }
 
@@ -1088,6 +1156,7 @@ initTheologyNarrative();
 fetchLiveNaverNews();
 searchResearch(getTodayResearchQuery());
 renderWeeklyGrid();
+loadGoogleCalendarWeek();
 if (typeof switchTheme === 'function') switchTheme(window.state.theme, false);
 if (typeof applyThoughtZoomUI === 'function') applyThoughtZoomUI();
 renderTodos();
