@@ -12,6 +12,8 @@ body.theme-burgundy {
     --text-sub: #57534e;
     --nav-bg: rgba(255, 255, 255, 0.95);
     --hero-bg: linear-gradient(135deg, #3d0a11 0%, #691721 60%, #240509 100%);
+    --hero-title-color: #ffffff;
+    --hero-quote-color: rgba(167, 243, 208, 0.9);
     --hero-clock-color: #ffd6dc;
     --gif-opacity: 0.35;
     --highlight-tint: rgba(217, 119, 6, 0.35);
@@ -29,6 +31,8 @@ body.theme-cosmic {
     --text-sub: #a1a1aa;
     --nav-bg: rgba(23, 20, 42, 0.94);
     --hero-bg: linear-gradient(135deg, #1d0a33 0%, #35105e 50%, #10061d 100%);
+    --hero-title-color: #ffffff;
+    --hero-quote-color: rgba(167, 243, 208, 0.9);
     --hero-clock-color: #fbcfe8;
     --gif-opacity: 0.55;
     --highlight-tint: rgba(255, 214, 0, 0.3);
@@ -46,44 +50,63 @@ body.theme-forest {
     --text-sub: #bdd9c4;
     --nav-bg: rgba(21, 39, 32, 0.96);
     --hero-bg: radial-gradient(circle at 50% 40%, #2a4a3a 0%, #17301f 65%, #0e1e15 100%);
+    --hero-title-color: #ffffff;
+    --hero-quote-color: rgba(167, 243, 208, 0.9);
     --hero-clock-color: #8fc7a5;
+    --ambient-glow-color: rgba(124, 184, 153, 0.28);
+    --ambient-glow-color-outer: rgba(42, 74, 58, 0.14);
     --gif-opacity: 0.0;
     --highlight-tint: rgba(255, 214, 0, 0.3);
 }
 
-/* 4. 🌅 새벽/골든아워 (Light, 여명 — 명도대비 검증 완료: primary/text 4.70:1, 나머지 5.7~12.8:1) */
+/* 4. 🌅 새벽/골든아워 (Light, 여명 — 2차 조정: 진한 갈색 버튼+흰 글씨, 명도대비 검증 완료 8.8~13.6:1) */
 body.theme-dawn {
     --bg-color: #FDF6EC;
     --card-bg: rgba(255, 250, 240, 0.75);
-    --primary: #C97A2B;
-    --primary-text: #331f0c;
-    --primary-light: rgba(201, 122, 43, 0.15);
-    --border-color: rgba(201, 122, 43, 0.25);
+    --primary: #5C3A1E;
+    --primary-hover: #4A2E17;
+    --primary-text: #FFFFFF;
+    --primary-light: rgba(92, 58, 30, 0.1);
+    --border-color: rgba(92, 58, 30, 0.22);
     --text-main: #402A16;
     --text-sub: #7A5C3E;
     --nav-bg: rgba(253, 246, 236, 0.85);
     --hero-bg: linear-gradient(135deg, #FCE8CF 0%, #F7C8A0 45%, #E8996B 100%);
-    --hero-clock-color: #8B4A1E;
-    --gif-opacity: 0.5;
+    --hero-title-color: #402A16;
+    --hero-quote-color: #4A2E17;
+    --hero-clock-color: #FFF6E9;
+    --ambient-glow-color: rgba(255, 221, 168, 0.16);
+    --ambient-glow-color-outer: rgba(232, 153, 107, 0.08);
+    --gif-opacity: 0;
     --highlight-tint: rgba(232, 153, 107, 0.12);
 }
 
-/* 5. 🌊 쉴 만한 물가 (Dark, 블루/틸 — 명도대비 검증 완료: 5.3~15:1) */
+/* 5. 🌊 쉴 만한 물가 (Dark, 블루/틸 — 2차 조정: 짙은 파랑 버튼+흰 글씨, "칙칙함" 개선, 명도대비 검증 완료 10~13.7:1) */
 body.theme-waters {
-    --bg-color: #0D1F26;
+    --bg-color: #0A2A36;
     --card-bg: rgba(20, 40, 48, 0.7);
-    --primary: #3E9CAD;
-    --primary-text: #0A1F24;
-    --primary-light: rgba(62, 156, 173, 0.15);
-    --border-color: rgba(79, 168, 184, 0.25);
-    --text-main: #E8F4F2;
+    --primary: #123A52;
+    --primary-hover: #0D2C40;
+    --primary-text: #FFFFFF;
+    --primary-light: rgba(110, 231, 240, 0.1);
+    --border-color: rgba(110, 231, 240, 0.28);
+    --text-main: #EAF6F5;
     --text-sub: #9FC2C2;
-    --nav-bg: rgba(13, 31, 38, 0.85);
-    --hero-bg: linear-gradient(135deg, #0D1F26 0%, #143A45 50%, #1F5C68 100%);
-    --hero-clock-color: #6FCADA;
-    --gif-opacity: 0.35;
+    --nav-bg: rgba(10, 42, 54, 0.85);
+    --hero-bg: linear-gradient(135deg, #0A1F28 0%, #164C5C 50%, #2E8FA3 100%);
+    --hero-title-color: #EAF6F5;
+    --hero-quote-color: #C9EDEE;
+    --hero-clock-color: #7DE0F0;
+    --accent-shimmer: #6EE7F0;
+    --ambient-glow-color: rgba(110, 231, 240, 0.18);
+    --ambient-glow-color-outer: rgba(30, 90, 104, 0.1);
+    --gif-opacity: 0;
     --highlight-tint: rgba(111, 202, 218, 0.12);
 }
+
+/* 물가 테마는 primary가 배경과 명도가 가까워(어두운 위에 어두운) 버튼 경계가 흐려지므로
+   테두리로 UI 요소의 경계를 별도 확보한다 (WCAG 1.4.11 비텍스트 대비) */
+body.theme-waters .primary-badge { border: 1px solid var(--accent-shimmer); }
 
 /* 🪵 [완전 탈바꿈] 생각의 서재 - 내추럴 웜 오크 아틀리에 (Warm Oak Atelier) */
 body.in-study-room {
@@ -240,15 +263,23 @@ body.in-study-room #cabin-lamp-glow {
 
 .hero-gif { opacity: var(--gif-opacity); mix-blend-mode: screen; transition: opacity 0.6s ease; }
 
+/* 히어로 배경 숨쉬는 글로우 — 용광로 GIF 대신 테마별 색(--ambient-glow-color)만
+   갈아끼우는 순수 CSS 앰비언트. 포레스트=오로라, 새벽=떠오르는 빛, 물가=물빛 반짝임 */
 .forest-aurora-glow {
     position: absolute;
     width: 320px; height: 320px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(124, 184, 153, 0.28) 0%, rgba(42, 74, 58, 0.14) 50%, transparent 75%);
+    background: radial-gradient(circle, var(--ambient-glow-color, rgba(124, 184, 153, 0.28)) 0%, var(--ambient-glow-color-outer, rgba(42, 74, 58, 0.14)) 50%, transparent 75%);
     filter: blur(48px); pointer-events: none; z-index: 1; display: none;
     animation: auroraBreathe 11s ease-in-out infinite alternate;
 }
 
-body.theme-forest .forest-aurora-glow { display: block; }
+body.theme-forest .forest-aurora-glow,
+body.theme-dawn .forest-aurora-glow,
+body.theme-waters .forest-aurora-glow { display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+    .forest-aurora-glow { animation: none; opacity: 0.22; }
+}
 @keyframes auroraBreathe {
     0% { transform: translate(-20%, -20%) scale(0.94); opacity: 0.2; }
     50% { transform: translate(10%, 10%) scale(1.08); opacity: 0.28; }
