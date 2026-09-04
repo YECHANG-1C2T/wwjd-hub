@@ -51,6 +51,40 @@ body.theme-forest {
     --highlight-tint: rgba(255, 214, 0, 0.3);
 }
 
+/* 4. 🌅 새벽/골든아워 (Light, 여명 — 명도대비 검증 완료: primary/text 4.70:1, 나머지 5.7~12.8:1) */
+body.theme-dawn {
+    --bg-color: #FDF6EC;
+    --card-bg: rgba(255, 250, 240, 0.75);
+    --primary: #C97A2B;
+    --primary-text: #331f0c;
+    --primary-light: rgba(201, 122, 43, 0.15);
+    --border-color: rgba(201, 122, 43, 0.25);
+    --text-main: #402A16;
+    --text-sub: #7A5C3E;
+    --nav-bg: rgba(253, 246, 236, 0.85);
+    --hero-bg: linear-gradient(135deg, #FCE8CF 0%, #F7C8A0 45%, #E8996B 100%);
+    --hero-clock-color: #8B4A1E;
+    --gif-opacity: 0.5;
+    --highlight-tint: rgba(232, 153, 107, 0.12);
+}
+
+/* 5. 🌊 쉴 만한 물가 (Dark, 블루/틸 — 명도대비 검증 완료: 5.3~15:1) */
+body.theme-waters {
+    --bg-color: #0D1F26;
+    --card-bg: rgba(20, 40, 48, 0.7);
+    --primary: #3E9CAD;
+    --primary-text: #0A1F24;
+    --primary-light: rgba(62, 156, 173, 0.15);
+    --border-color: rgba(79, 168, 184, 0.25);
+    --text-main: #E8F4F2;
+    --text-sub: #9FC2C2;
+    --nav-bg: rgba(13, 31, 38, 0.85);
+    --hero-bg: linear-gradient(135deg, #0D1F26 0%, #143A45 50%, #1F5C68 100%);
+    --hero-clock-color: #6FCADA;
+    --gif-opacity: 0.35;
+    --highlight-tint: rgba(111, 202, 218, 0.12);
+}
+
 /* 🪵 [완전 탈바꿈] 생각의 서재 - 내추럴 웜 오크 아틀리에 (Warm Oak Atelier) */
 body.in-study-room {
     --bg-color: #211811 !important;

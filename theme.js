@@ -8,7 +8,7 @@ function switchTheme(themeName, shouldSync = true) {
     const isStudy = document.getElementById('view-assets')?.classList.contains('active');
     document.body.className = 'theme-' + themeName + (isStudy ? ' in-study-room' : '') + ' selection:bg-[var(--primary)] selection:text-[var(--primary-text)]';
 
-    ['burgundy', 'cosmic', 'forest'].forEach(t => {
+    ['burgundy', 'cosmic', 'forest', 'dawn', 'waters'].forEach(t => {
         const btn = document.getElementById('btn-theme-' + t);
         if (btn) {
             if (t === themeName) {
@@ -35,7 +35,13 @@ function switchTheme(themeName, shouldSync = true) {
 
     if (themeName === 'forest') {
         if (heroBadge) heroBadge.innerText = "🍃 Sabbath & Sanctuary Forest";
-        if (heroDesc) heroDesc.innerText = "“푸른 풀밭과 쉴 만한 물가, 영혼을 소생시키시는 고요한 안식의 숲”";
+        if (heroDesc) heroDesc.innerText = "“그가 나를 푸른 풀밭에 누이시며, 영혼을 소생시키시는 고요한 안식의 숲”";
+    } else if (themeName === 'dawn') {
+        if (heroBadge) heroBadge.innerText = "🌅 Dawn Prayer Hour";
+        if (heroDesc) heroDesc.innerText = "“날이 새기 전에 일어나 부르짖으며, 주의 말씀을 바라는 새벽의 여명”";
+    } else if (themeName === 'waters') {
+        if (heroBadge) heroBadge.innerText = "🌊 Still Waters";
+        if (heroDesc) heroDesc.innerText = "“쉴 만한 물 가으로 인도하시는도다, 내 영혼을 소생시키시고”";
     } else {
         if (heroBadge) heroBadge.innerText = "Spiritual Furnace Control Tower";
         if (heroDesc) heroDesc.innerText = "“하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라”";
