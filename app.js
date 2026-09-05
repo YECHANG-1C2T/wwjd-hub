@@ -8,7 +8,7 @@ const appDocRef = db.collection('ministry_data').doc('master_workspace');
 /* 구글 캘린더 주간 일정을 주간일정표 각 요일 칸에 함께 표시하기 위한 설정.
    API 키를 발급받아 아래에 붙여넣기 전까지는 조용히 건너뛴다(주간일정표는
    기존처럼 수동 입력만 표시). */
-const GOOGLE_CALENDAR_API_KEY = "";
+const GOOGLE_CALENDAR_API_KEY = "AIzaSyAI5ZHYd_Mi7JogsgZAYsBERsbPMD5m544";
 const GOOGLE_CALENDAR_ID = "imyooeun0107@gmail.com";
 let googleCalendarWeekEvents = {};
 
