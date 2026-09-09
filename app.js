@@ -573,11 +573,7 @@ function renderHomeTodos() {
         container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-1">이 날짜에 등록된 걸음이 없습니다.</p>`;
         return;
     }
-    const sorted = list.slice().sort((a, b) => {
-        const aDone = a.status === '완료' ? 1 : 0, bDone = b.status === '완료' ? 1 : 0;
-        return aDone !== bDone ? aDone - bDone : a.time.localeCompare(b.time);
-    });
-    sorted.slice(0, 4).forEach(t => {
+    list.forEach(t => {
         const isOverdue = getEffectiveTodoDate(t) < todayStr && t.status !== '완료';
         const div = document.createElement('div');
         div.className = "bg-[var(--card-bg)] p-2.5 rounded-xl border border-[var(--border-color)] flex items-center justify-between group";
