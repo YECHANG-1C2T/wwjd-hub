@@ -249,23 +249,6 @@
 
         <!-- ================= [3] 사역현황 ================= -->
         <section id="view-dashboard" class="page-view space-y-6 md:space-y-8">
-            <div class="glass-card p-6 md:p-8 space-y-5">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Quick Links</span>
-                        <h2 class="text-lg md:text-xl font-black text-[var(--text-main)]">바로가기 링크보드</h2>
-                    </div>
-                </div>
-                <div class="flex gap-2 overflow-x-auto pb-1" id="link-cat-filter"></div>
-                <div class="p-4 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl flex flex-col sm:flex-row gap-2">
-                    <input type="text" id="link-cat-input" placeholder="카테고리" class="sm:w-28 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-bold outline-none">
-                    <input type="text" id="link-title-input" placeholder="링크 제목" class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none">
-                    <input type="text" id="link-url-input" placeholder="https://..." class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addLink()">
-                    <button onclick="addLink()" class="px-4 py-2.5 primary-badge text-xs font-black rounded-lg shrink-0">추가</button>
-                </div>
-                <div id="link-board-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
-            </div>
-
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
@@ -289,7 +272,27 @@
             </div>
         </section>
 
-        <!-- ================= [4] 회의록 ================= -->
+        <!-- ================= [4] 링크보드 ================= -->
+        <section id="view-links" class="page-view space-y-6 md:space-y-8">
+            <div class="glass-card p-6 md:p-8 space-y-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Quick Links</span>
+                        <h2 class="text-lg md:text-xl font-black text-[var(--text-main)]">바로가기 링크보드</h2>
+                    </div>
+                </div>
+                <div class="flex gap-2 overflow-x-auto pb-1" id="link-cat-filter"></div>
+                <div class="p-4 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="link-cat-input" placeholder="카테고리" class="sm:w-28 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-bold outline-none">
+                    <input type="text" id="link-title-input" placeholder="링크 제목" class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none">
+                    <input type="text" id="link-url-input" placeholder="https://..." class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addLink()">
+                    <button onclick="addLink()" class="px-4 py-2.5 primary-badge text-xs font-black rounded-lg shrink-0">추가</button>
+                </div>
+                <div id="link-board-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+            </div>
+        </section>
+
+        <!-- ================= [5] 회의록 ================= -->
         <section id="view-meetings" class="page-view space-y-6">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -331,7 +334,7 @@
             </div>
         </section>
 
-        <!-- ================= [5] 생각의 서재 ================= -->
+        <!-- ================= [6] 생각의 서재 ================= -->
         <section id="view-assets" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
@@ -460,6 +463,7 @@
         <button onclick="switchView('home', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs">홈</button>
         <button onclick="switchView('calendar', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">일정</button>
         <button onclick="switchView('dashboard', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">사역현황</button>
+        <button onclick="switchView('links', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">링크보드</button>
         <button onclick="switchView('meetings', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">회의록</button>
         <button onclick="switchView('assets', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">생각의서재</button>
     </nav>
