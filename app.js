@@ -180,11 +180,7 @@ function updateHeroClock() {
     document.getElementById('hero-date').innerText = dateStr;
     document.getElementById('global-header-clock').innerText = timeStr;
 
-    const shortToday = `${month}.${day} (${days[now.getDay()]})`;
-    const homeTodayEl = document.getElementById('home-today-date-text');
-    const calTodayEl = document.getElementById('calendar-today-date-text');
-    if (homeTodayEl) homeTodayEl.innerText = shortToday;
-    if (calTodayEl) calTodayEl.innerText = shortToday;
+    if (typeof renderTodoViewDateLabel === 'function') renderTodoViewDateLabel();
 }
 setInterval(updateHeroClock, 1000);
 updateHeroClock();
@@ -480,7 +476,7 @@ function addQuickScheduleFromHome() {
         if (text.includes('심방')) inferredCat = '심방';
         else if (text.includes('회의')) inferredCat = '회의';
         else if (text.includes('가정')) inferredCat = '가정';
-        window.state.todos.push({ id: 't_' + Date.now(), time, cat: inferredCat, text, status: '진행' });
+        window.state.todos.push({ id: 't_' + Date.now(), time, cat: inferredCat, text, status: '시작안함', date: getLocalDateStr() });
     }
     renderWeeklyGrid(); renderTodos(); renderHomeTodos(); window.syncToCloud();
     document.getElementById('quick-sched-input').value = '';
@@ -495,28 +491,104 @@ function openGoogleCalendar() {
     window.open("https://calendar.google.com/calendar/embed?src=imyooeun0107%40gmail.com&ctz=Asia%2FSeoul", "_blank");
 }
 
+/* 오늘의 걸음 상태값과 순환 순서. 클릭 한 번으로 다음 상태로 넘어간다. */
+const TODO_STATUS_CYCLE = ['시작안함', '진행', '완료', '연기'];
+const TODO_STATUS_STYLE = {
+    '시작안함': 'bg-[var(--bg-color)] text-[var(--text-sub)] border border-[var(--border-color)]',
+    '진행': 'primary-badge',
+    '완료': 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30',
+    '연기': 'bg-amber-500/15 text-amber-500 border border-amber-500/30'
+};
+
+function getLocalDateStr(d) {
+    d = d || new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/* 날짜 필드가 없는 옛 데이터는 항상 '오늘'로 취급한다 (하루살이처럼 매일 오늘 칸에만 나타남). */
+function getEffectiveTodoDate(t) {
+    return t.date || getLocalDateStr();
+}
+
+/* 화살표로 넘겨보는 기준 날짜. 새로고침하면 다시 오늘로 돌아온다(굳이 저장할 필요 없는 화면 상태). */
+window.todoViewDate = getLocalDateStr();
+
+function shiftTodoViewDate(delta) {
+    const d = new Date(window.todoViewDate + 'T00:00:00');
+    d.setDate(d.getDate() + delta);
+    window.todoViewDate = getLocalDateStr(d);
+    renderTodos();
+}
+
+function renderTodoViewDateLabel() {
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    const todayStr = getLocalDateStr();
+    const d = new Date(window.todoViewDate + 'T00:00:00');
+    const label = `${d.getMonth() + 1}.${d.getDate()} (${days[d.getDay()]})`;
+    let prefix = '오늘의 걸음';
+    if (window.todoViewDate !== todayStr) {
+        const diffDays = Math.round((new Date(todayStr) - new Date(window.todoViewDate)) / 86400000);
+        if (diffDays === 1) prefix = '어제의 걸음';
+        else if (diffDays === -1) prefix = '내일의 걸음';
+        else prefix = diffDays > 0 ? `${diffDays}일 전 걸음` : `${Math.abs(diffDays)}일 후 걸음`;
+    }
+    ['home-today-date-text', 'calendar-today-date-text'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = label;
+    });
+    ['home-todo-label-text', 'calendar-todo-label-text'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = prefix;
+    });
+}
+
+/* 지금 화살표로 보고 있는 날짜의 걸음 목록. '오늘'을 볼 때는 아직 완료되지 않은
+   지난 날짜의 걸음도 함께 끌어와 보여준다 — 날짜가 지나도 잊히지 않도록 자동으로
+   최신화되는 셈이다. 지난 날짜를 직접 볼 때는 그날의 원래 기록만 그대로 보여준다. */
+function getTodosForViewDate() {
+    const viewDate = window.todoViewDate;
+    const todayStr = getLocalDateStr();
+    let list = window.state.todos.filter(t => getEffectiveTodoDate(t) === viewDate);
+    if (viewDate === todayStr) {
+        const overdue = window.state.todos.filter(t => getEffectiveTodoDate(t) < todayStr && t.status !== '완료');
+        list = list.concat(overdue);
+    }
+    return list.slice().sort((a, b) => a.time.localeCompare(b.time));
+}
+
 function renderHomeTodos() {
     const container = document.getElementById('home-todo-preview');
     const badge = document.getElementById('home-todo-badge');
     if (!container) return;
     container.innerHTML = '';
-    const pending = window.state.todos.filter(t => t.status === '진행');
-    if (badge) badge.innerText = pending.length;
+    const todayStr = getLocalDateStr();
+    const list = getTodosForViewDate();
+    const pendingCount = list.filter(t => t.status !== '완료').length;
+    if (badge) badge.innerText = pendingCount;
     renderTodoSparkline();
-    if (pending.length === 0) {
-        container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-1">등록된 걸음이 없습니다.</p>`;
+    if (list.length === 0) {
+        container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-1">이 날짜에 등록된 걸음이 없습니다.</p>`;
         return;
     }
-    pending.slice(0, 3).forEach(t => {
+    const sorted = list.slice().sort((a, b) => {
+        const aDone = a.status === '완료' ? 1 : 0, bDone = b.status === '완료' ? 1 : 0;
+        return aDone !== bDone ? aDone - bDone : a.time.localeCompare(b.time);
+    });
+    sorted.slice(0, 4).forEach(t => {
+        const isOverdue = getEffectiveTodoDate(t) < todayStr && t.status !== '완료';
         const div = document.createElement('div');
         div.className = "bg-[var(--card-bg)] p-2.5 rounded-xl border border-[var(--border-color)] flex items-center justify-between group";
         div.innerHTML = `
             <div class="flex items-center gap-2 min-w-0 flex-1 mr-1">
                 <span class="text-[10px] font-mono-code font-bold text-[var(--primary)] shrink-0">${t.time}</span>
-                <span contenteditable="true" onclick="event.stopPropagation()" onblur="updateHomeTodoText('${t.id}', this.innerText)" class="font-bold text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text truncate min-w-0" title="${escapeAttr(t.text)}">${t.text}</span>
+                <span contenteditable="true" onclick="event.stopPropagation()" onblur="updateHomeTodoText('${t.id}', this.innerText)" class="font-bold ${t.status === '완료' ? 'line-through text-[var(--text-sub)] opacity-60' : 'text-[var(--text-main)]'} outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text truncate min-w-0" title="${escapeAttr(t.text)}">${t.text}</span>
+                ${isOverdue ? `<span class="text-[9px] font-bold text-amber-500 shrink-0">지연</span>` : ''}
             </div>
             <div class="flex items-center gap-1 shrink-0">
-                <button onclick="updateTodoStatus('${t.id}', '완료')" class="text-[10px] px-2 py-0.5 bg-[var(--primary-light)] text-[var(--primary)] font-bold rounded-lg">완료</button>
+                <button onclick="cycleTodoStatus('${t.id}')" class="text-[10px] px-2 py-0.5 font-bold rounded-lg ${TODO_STATUS_STYLE[t.status] || TODO_STATUS_STYLE['시작안함']}">${t.status}</button>
                 <button onclick="deleteTodo('${t.id}')" class="text-[10px] text-red-400 hover-reveal-action font-bold px-1">✕</button>
             </div>`;
         container.appendChild(div);
@@ -535,7 +607,7 @@ function addHomeTodo() {
     const input = document.getElementById('home-todo-input');
     const text = input.value.trim();
     if (!text) return;
-    window.state.todos.push({ id: 't_' + Date.now(), time, cat, text, status: '진행' });
+    window.state.todos.push({ id: 't_' + Date.now(), time, cat, text, status: '시작안함', date: getLocalDateStr() });
 
     const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
     window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
@@ -547,22 +619,29 @@ function addHomeTodo() {
 
 function renderTodos() {
     const container = document.getElementById('todo-checklist-container');
+    renderTodoViewDateLabel();
     if (!container) return;
     container.innerHTML = '';
-    window.state.todos.forEach(item => {
+    const todayStr = getLocalDateStr();
+    const list = getTodosForViewDate();
+    if (list.length === 0) {
+        container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-2">이 날짜에 등록된 걸음이 없습니다.</p>`;
+        renderHomeTodos();
+        return;
+    }
+    list.forEach(item => {
+        const isOverdue = getEffectiveTodoDate(item) < todayStr && item.status !== '완료';
         const div = document.createElement('div');
         div.className = "p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between group";
         div.innerHTML = `
             <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
                 <span class="text-xs font-mono-code font-bold text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">${item.time}</span>
                 <span class="font-bold ${item.status==='완료' ? 'line-through text-[var(--text-sub)] opacity-50' : 'text-[var(--text-main)]'} truncate min-w-0" title="${escapeAttr(item.text)}">${item.text}</span>
+                ${isOverdue ? `<span class="text-[9px] font-bold text-amber-500 shrink-0">지연</span>` : ''}
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
                 <span class="text-[10px] primary-badge font-black px-2 py-0.5 rounded-full">${item.cat}</span>
-                <select onchange="updateTodoStatus('${item.id}', this.value)" class="text-[11px] font-bold rounded-lg px-2 py-1 outline-none border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text-main)]">
-                    <option value="진행" ${item.status === '진행' ? 'selected' : ''}>진행</option>
-                    <option value="완료" ${item.status === '완료' ? 'selected' : ''}>완료</option>
-                </select>
+                <button onclick="cycleTodoStatus('${item.id}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${TODO_STATUS_STYLE[item.status] || TODO_STATUS_STYLE['시작안함']}">${item.status}</button>
                 <button onclick="deleteTodo('${item.id}')" class="text-[11px] text-red-400 font-bold px-1 hover-reveal-action">✕</button>
             </div>`;
         container.appendChild(div);
@@ -575,7 +654,7 @@ function addTodoInline() {
     const cat = document.getElementById('todo-cat-select').value;
     const text = document.getElementById('todo-input-bar').value.trim();
     if (!text) return;
-    window.state.todos.push({ id: 't_' + Date.now(), time, cat, text, status: '진행' });
+    window.state.todos.push({ id: 't_' + Date.now(), time, cat, text, status: '시작안함', date: getLocalDateStr() });
 
     const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
     window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
@@ -585,13 +664,14 @@ function addTodoInline() {
     document.getElementById('todo-input-bar').value = '';
 }
 
-function updateTodoStatus(id, status) {
+function cycleTodoStatus(id) {
     const t = window.state.todos.find(item => item.id === id);
-    if (t) {
-        if (status === '완료' && t.status !== '완료') logTodoCompletion();
-        t.status = status;
-        renderTodos(); window.syncToCloud();
-    }
+    if (!t) return;
+    const idx = TODO_STATUS_CYCLE.indexOf(t.status);
+    const next = TODO_STATUS_CYCLE[(idx === -1 ? 0 : idx + 1) % TODO_STATUS_CYCLE.length];
+    if (next === '완료' && t.status !== '완료') logTodoCompletion();
+    t.status = next;
+    renderTodos(); window.syncToCloud();
 }
 
 /* 오늘 날짜에 완료 1건을 기록해둔다 (할일이 나중에 삭제돼도 추이 그래프는 남도록,
@@ -1139,7 +1219,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('show'); 
 function submitFab() {
     const text = document.getElementById('fab-input').value.trim();
     if (!text) return;
-    window.state.todos.push({ id: 't_' + Date.now(), time: '12:00', cat: '사역', text, status: '진행' });
+    window.state.todos.push({ id: 't_' + Date.now(), time: '12:00', cat: '사역', text, status: '시작안함', date: getLocalDateStr() });
 
     const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
     window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];

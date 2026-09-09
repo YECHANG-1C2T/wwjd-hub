@@ -142,8 +142,10 @@
             <!-- 홈 화면: 오늘의 걸음 -->
             <div class="glass-card p-5 md:p-6 space-y-3 border-l-4 border-l-[var(--primary)]">
                 <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-2.5">
-                        <span class="text-sm font-black text-[var(--text-main)]">오늘의 걸음 · <span id="home-today-date-text" class="text-[var(--primary)]">8.28 (금)</span></span>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="shiftTodoViewDate(-1)" class="w-5 h-5 flex items-center justify-center rounded-full text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] font-black text-xs shrink-0" title="전날">‹</button>
+                        <span class="text-sm font-black text-[var(--text-main)] whitespace-nowrap"><span id="home-todo-label-text">오늘의 걸음</span> · <span id="home-today-date-text" class="text-[var(--primary)]">8.28 (금)</span></span>
+                        <button onclick="shiftTodoViewDate(1)" class="w-5 h-5 flex items-center justify-center rounded-full text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] font-black text-xs shrink-0" title="다음날">›</button>
                         <span id="home-todo-badge" class="text-[10px] font-mono-code px-2 py-0.5 rounded-full primary-badge font-black">0</span>
                         <svg id="todo-sparkline" width="56" height="20" viewBox="0 0 56 20" class="shrink-0" title="최근 7일 완료 추이"></svg>
                     </div>
@@ -216,7 +218,11 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[var(--border-color)] pb-4 gap-3">
                     <div>
                         <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Task Pipeline</span>
-                        <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">오늘의 걸음 · <span id="calendar-today-date-text" class="text-[var(--primary)]">8.28 (금)</span></h2>
+                        <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)] flex items-center gap-2">
+                            <button onclick="shiftTodoViewDate(-1)" class="w-7 h-7 flex items-center justify-center rounded-full text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] font-black text-base shrink-0" title="전날">‹</button>
+                            <span><span id="calendar-todo-label-text">오늘의 걸음</span> · <span id="calendar-today-date-text" class="text-[var(--primary)]">8.28 (금)</span></span>
+                            <button onclick="shiftTodoViewDate(1)" class="w-7 h-7 flex items-center justify-center rounded-full text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] font-black text-base shrink-0" title="다음날">›</button>
+                        </h2>
                     </div>
                     <button onclick="openGoogleCalendar()" class="px-4 py-2 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl text-xs font-bold text-[var(--text-main)] hover:border-[var(--primary)] transition-all">구글 캘린더 전체화면 ↗</button>
                 </div>
