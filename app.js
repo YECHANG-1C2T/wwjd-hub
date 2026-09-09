@@ -854,25 +854,48 @@ function renderLinkBoard() {
     }
 
     grid.innerHTML = '';
+    grid.className = "space-y-5";
     const filtered = window.state.links.filter(l => currentLinkCat === '전체' || l.cat === currentLinkCat);
     if (filtered.length === 0) {
         grid.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-2">등록된 링크가 없습니다. 위에서 추가해보세요.</p>`;
         return;
     }
-    filtered.forEach(l => {
-        const card = document.createElement('a');
-        card.href = l.url;
-        card.target = '_blank';
-        card.rel = 'noopener';
-        card.className = "glass-card p-3.5 flex items-center justify-between gap-2 hover:border-[var(--primary)] transition-all group";
-        card.title = l.title;
-        card.innerHTML = `
-            <div class="min-w-0 flex-1">
-                <span class="bookmark-ribbon primary-badge mb-1.5 inline-block">${l.cat}</span>
-                <h4 class="font-bold text-sm text-[var(--text-main)] line-clamp-2 min-w-0">${l.title}</h4>
-            </div>
-            <button onclick="event.preventDefault(); event.stopPropagation(); deleteLink('${l.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold shrink-0">✕</button>`;
-        grid.appendChild(card);
+
+    /* 전체보기일 때는 카테고리별로 묶어서 소제목과 함께 보여준다.
+       특정 카테고리만 골랐을 땐 그 한 그룹만 남으므로 자연히 동일한 모양이 된다. */
+    const groupOrder = currentLinkCat === '전체' ? cats.filter(c => c !== '전체') : [currentLinkCat];
+    groupOrder.forEach(cat => {
+        const items = filtered.filter(l => l.cat === cat);
+        if (items.length === 0) return;
+
+        const group = document.createElement('div');
+        group.className = "space-y-2.5";
+        const header = document.createElement('div');
+        header.className = "flex items-center gap-2";
+        header.innerHTML = `
+            <span class="text-[11px] font-black text-[var(--primary)] uppercase tracking-wider">${cat}</span>
+            <span class="text-[10px] font-mono-code text-[var(--text-sub)] font-bold">${items.length}</span>
+            <div class="flex-1 h-px bg-[var(--border-color)]"></div>`;
+        group.appendChild(header);
+
+        const cardGrid = document.createElement('div');
+        cardGrid.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3";
+        items.forEach(l => {
+            const card = document.createElement('a');
+            card.href = l.url;
+            card.target = '_blank';
+            card.rel = 'noopener';
+            card.className = "glass-card p-3.5 flex items-center justify-between gap-2 hover:border-[var(--primary)] transition-all group";
+            card.title = l.title;
+            card.innerHTML = `
+                <div class="min-w-0 flex-1">
+                    <h4 class="font-bold text-sm text-[var(--text-main)] line-clamp-2 min-w-0">${l.title}</h4>
+                </div>
+                <button onclick="event.preventDefault(); event.stopPropagation(); deleteLink('${l.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold shrink-0">✕</button>`;
+            cardGrid.appendChild(card);
+        });
+        group.appendChild(cardGrid);
+        grid.appendChild(group);
     });
 }
 
