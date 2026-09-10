@@ -1238,11 +1238,12 @@ function closeModal(id) { document.getElementById(id).classList.remove('show'); 
 function submitFab() {
     const text = document.getElementById('fab-input').value.trim();
     if (!text) return;
-    window.state.todos.push({ id: 't_' + Date.now(), time: '12:00', cat: '사역', text, status: '시작안함', date: getLocalDateStr() });
+    const time = document.getElementById('fab-time').value || '12:00';
+    window.state.todos.push({ id: 't_' + Date.now(), time, cat: '사역', text, status: '시작안함', date: getLocalDateStr() });
 
     const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
     window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
-    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time: '12:00', text });
+    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text });
 
     renderTodos(); renderWeeklyGrid(); window.syncToCloud();
     closeModal('fab-modal');

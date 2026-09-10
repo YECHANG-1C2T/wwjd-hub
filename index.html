@@ -542,10 +542,13 @@
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3 class="font-black text-lg text-[var(--text-main)] mb-4">빠른 입력</h3>
             <div class="space-y-3">
-                <select id="fab-type" class="w-full p-3 text-sm bg-[var(--primary-light)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl font-bold outline-none">
-                    <option value="todo">오늘의 걸음 추가</option>
-                    <option value="memo">회의록 퀵메모 추가</option>
-                </select>
+                <div class="flex gap-2">
+                    <select id="fab-type" class="flex-1 p-3 text-sm bg-[var(--primary-light)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl font-bold outline-none">
+                        <option value="todo">오늘의 걸음 추가</option>
+                        <option value="memo">회의록 퀵메모 추가</option>
+                    </select>
+                    <input type="time" id="fab-time" value="10:00" class="w-28 p-3 text-sm bg-[var(--primary-light)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl font-bold outline-none">
+                </div>
                 <textarea id="fab-input" rows="3" placeholder="내용을 입력하세요..." class="w-full p-4 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl text-sm outline-none font-medium"></textarea>
                 <div class="flex justify-end gap-2 mt-2">
                     <button onclick="closeModal('fab-modal')" class="px-4 py-2 text-xs font-bold text-[var(--text-sub)]">취소</button>
