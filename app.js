@@ -286,6 +286,23 @@ function aiErrorSeverity(err) {
     return 'error';
 }
 
+/* 무료 등급 분당 요청 한도에 잠깐 걸린 것뿐이면, 사용자에게 바로 실패를
+   보여주기 전에 몇 초 기다렸다가 한 번 더 조용히 시도해본다. 대부분은
+   이걸로 사용자가 눈치채지 못하고 넘어간다. */
+async function fetchGeminiProxy(body, retries = 1) {
+    const res = await fetch(CHAT_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data?.error && aiErrorSeverity(data.error) === 'warn' && retries > 0) {
+        await new Promise(r => setTimeout(r, 4000));
+        return fetchGeminiProxy(body, retries - 1);
+    }
+    return data;
+}
+
 function setAiStatus(key, state, msg) {
     const item = window.aiStatus[key];
     if (!item) return;
@@ -391,31 +408,26 @@ async function aiSummarizeNewsBatch(items) {
 
 ${listText}`;
     try {
-        const res = await fetch(CHAT_PROXY_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseMimeType: 'application/json',
-                    responseSchema: {
-                        type: 'object',
-                        properties: {
+        const data = await fetchGeminiProxy({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: 'object',
+                    properties: {
+                        items: {
+                            type: 'array',
                             items: {
-                                type: 'array',
-                                items: {
-                                    type: 'object',
-                                    properties: { id: { type: 'string' }, summary: { type: 'string' } },
-                                    required: ['id', 'summary']
-                                }
+                                type: 'object',
+                                properties: { id: { type: 'string' }, summary: { type: 'string' } },
+                                required: ['id', 'summary']
                             }
-                        },
-                        required: ['items']
-                    }
+                        }
+                    },
+                    required: ['items']
                 }
-            })
+            }
         });
-        const data = await res.json();
         const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
         if (!jsonText) {
             setAiStatus('news', aiErrorSeverity(data?.error), data?.error ? friendlyAIErrorMessage(data.error) : '요약을 받지 못했어요.');
@@ -1157,31 +1169,26 @@ async function aiTranslateResearchBatch(papers) {
 
 ${listText}`;
     try {
-        const res = await fetch(CHAT_PROXY_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseMimeType: 'application/json',
-                    responseSchema: {
-                        type: 'object',
-                        properties: {
+        const data = await fetchGeminiProxy({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: 'object',
+                    properties: {
+                        items: {
+                            type: 'array',
                             items: {
-                                type: 'array',
-                                items: {
-                                    type: 'object',
-                                    properties: { id: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' } },
-                                    required: ['id', 'title']
-                                }
+                                type: 'object',
+                                properties: { id: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' } },
+                                required: ['id', 'title']
                             }
-                        },
-                        required: ['items']
-                    }
+                        }
+                    },
+                    required: ['items']
                 }
-            })
+            }
         });
-        const data = await res.json();
         const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
         if (!jsonText) {
             setAiStatus('research', aiErrorSeverity(data?.error), data?.error ? friendlyAIErrorMessage(data.error) : '번역을 받지 못했어요.');
@@ -1402,22 +1409,17 @@ async function summarizeWithAI(rawText) {
 원문:
 ${rawText.slice(0, 80000)}`;
 
-    const res = await fetch(CHAT_PROXY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: {
-                responseMimeType: 'application/json',
-                responseSchema: {
-                    type: 'object',
-                    properties: { title: { type: 'string' }, summary: { type: 'string' } },
-                    required: ['title', 'summary']
-                }
+    const data = await fetchGeminiProxy({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+                type: 'object',
+                properties: { title: { type: 'string' }, summary: { type: 'string' } },
+                required: ['title', 'summary']
             }
-        })
+        }
     });
-    const data = await res.json();
     const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
     if (!jsonText) {
         const errMsg = friendlyAIErrorMessage(data?.error);
@@ -1717,12 +1719,7 @@ function friendlyAIErrorMessage(err) {
 
 async function callChatModel(baseContents) {
     const systemInstruction = { parts: [{ text: buildChatSystemInstruction() }] };
-    const res = await fetch(CHAT_PROXY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: baseContents, systemInstruction, tools: CHAT_TOOLS })
-    });
-    const data = await res.json();
+    const data = await fetchGeminiProxy({ contents: baseContents, systemInstruction, tools: CHAT_TOOLS });
     const parts = data?.candidates?.[0]?.content?.parts;
     if (!parts) {
         const errMsg = friendlyAIErrorMessage(data?.error);
@@ -1737,12 +1734,7 @@ async function callChatModel(baseContents) {
             { role: 'model', parts: [callPart] },
             { role: 'user', parts: [{ functionResponse: { name: callPart.functionCall.name, response: result } }] }
         ]);
-        const res2 = await fetch(CHAT_PROXY_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: followupContents, systemInstruction, tools: CHAT_TOOLS })
-        });
-        const data2 = await res2.json();
+        const data2 = await fetchGeminiProxy({ contents: followupContents, systemInstruction, tools: CHAT_TOOLS });
         const finalText = data2?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
         setAiStatus('chat', 'ok');
         return finalText || result.message || result.error || '처리했어요.';
