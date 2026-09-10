@@ -323,6 +323,19 @@ body.theme-waters .forest-aurora-glow { display: block; }
 .fab-btn:hover { transform: scale(1.08); }
 @media (min-width: 768px) { .fab-btn { bottom: 40px; right: 40px; } }
 
+.fab-btn-chat {
+    position: fixed; bottom: 149px; right: 24px; z-index: 90;
+    width: 52px; height: 52px; border-radius: 26px;
+    background: var(--card-bg); color: var(--primary);
+    border: 2px solid var(--primary);
+    display: flex; justify-content: center; align-items: center;
+    font-size: 22px; box-shadow: 0 10px 25px rgba(0,0,0,0.22);
+    cursor: pointer; transition: transform 0.2s;
+    backdrop-filter: blur(14px);
+}
+.fab-btn-chat:hover { transform: scale(1.08); }
+@media (min-width: 768px) { .fab-btn-chat { bottom: 104px; right: 40px; } }
+
 /* 서재 플로팅 캡슐 툴바 */
 #selection-toolbar {
     position: absolute; display: none; z-index: 80;

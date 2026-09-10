@@ -489,6 +489,7 @@
     </nav>
 
     <div class="fab-btn" onclick="openFabModal()" title="빠른 입력">+</div>
+    <div class="fab-btn-chat" onclick="openChatPanel()" title="AI 챗봇">💬</div>
 
     <!-- 플로팅 서식 버블 툴바 (드래그 시 노출) -->
     <div id="selection-toolbar">
@@ -568,6 +569,21 @@
                     <button onclick="closeModal('fab-modal')" class="px-4 py-2 text-xs font-bold text-[var(--text-sub)]">취소</button>
                     <button onclick="submitFab()" class="px-5 py-2.5 primary-badge text-xs font-black rounded-xl">저장하기</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. AI 챗봇 패널 -->
+    <div id="chat-modal" class="modal-overlay" onclick="if(event.target === this) closeModal('chat-modal')">
+        <div class="modal-content flex flex-col" style="max-width: 520px; height: 72vh;" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-3 shrink-0">
+                <h3 class="font-black text-lg text-[var(--text-main)]">💬 AI 챗봇</h3>
+                <button onclick="closeModal('chat-modal')" class="text-[var(--text-sub)] hover:text-[var(--primary)] font-black text-xl leading-none">✕</button>
+            </div>
+            <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 pr-1 mb-3"></div>
+            <div class="flex gap-2 shrink-0">
+                <input type="text" id="chat-input" placeholder="무엇이든 물어보세요..." class="flex-1 p-3 text-sm bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-medium" onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" class="px-4 py-2.5 primary-badge text-xs font-black rounded-xl shrink-0">전송</button>
             </div>
         </div>
     </div>

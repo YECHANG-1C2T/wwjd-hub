@@ -1300,6 +1300,77 @@ function deleteThought(id) {
 
 function openFabModal() { document.getElementById('fab-modal').classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+/* ==========================================================================
+   [AI 챗봇]
+   Gemini API는 브라우저에서 직접 호출하면 CORS로 막히기 때문에, 키를 안전하게
+   보관하는 아주 작은 Cloudflare Worker 중계소를 거쳐서 호출한다. 중계소 주소를
+   아래에 채워 넣기 전까지는 "아직 설정 전" 안내만 표시하고 조용히 대기한다.
+   대화 기록은 새로고침하면 사라진다(공유 Firestore 문서에 굳이 쌓아두지 않음). */
+const CHAT_PROXY_URL = "";
+let chatHistory = [];
+
+function openChatPanel() {
+    document.getElementById('chat-modal').classList.add('show');
+    renderChatMessages();
+    const input = document.getElementById('chat-input');
+    if (input) input.focus();
+}
+
+function renderChatMessages() {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    if (chatHistory.length === 0) {
+        container.innerHTML = `<p class="text-xs text-[var(--text-sub)] text-center py-8">무엇이든 편하게 물어보세요.</p>`;
+        return;
+    }
+    container.innerHTML = chatHistory.map(m => `
+        <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
+            <div class="max-w-[82%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${m.role === 'user' ? 'primary-badge' : 'bg-[var(--primary-light)] text-[var(--text-main)] border border-[var(--border-color)]'}">${escapeAttr(m.text)}</div>
+        </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+}
+
+async function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    if (!CHAT_PROXY_URL) {
+        chatHistory.push({ role: 'user', text });
+        chatHistory.push({ role: 'model', text: '아직 챗봇 연결이 완료되지 않았어요. 설정이 끝나면 바로 쓸 수 있어요.' });
+        renderChatMessages();
+        return;
+    }
+
+    chatHistory.push({ role: 'user', text });
+    renderChatMessages();
+    chatHistory.push({ role: 'model', text: '생각하는 중...' });
+    renderChatMessages();
+
+    try {
+        const contents = chatHistory.slice(0, -1).map(m => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.text }]
+        }));
+        const res = await fetch(CHAT_PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents })
+        });
+        const data = await res.json();
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text
+            || data?.error?.message
+            || '응답을 받지 못했어요. 잠시 후 다시 시도해주세요.';
+        chatHistory[chatHistory.length - 1] = { role: 'model', text: reply };
+    } catch (e) {
+        console.error('챗봇 응답 실패:', e);
+        chatHistory[chatHistory.length - 1] = { role: 'model', text: '오류가 발생했어요. 잠시 후 다시 시도해주세요.' };
+    }
+    renderChatMessages();
+}
 function submitFab() {
     const text = document.getElementById('fab-input').value.trim();
     if (!text) return;
