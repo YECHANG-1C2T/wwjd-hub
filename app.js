@@ -1175,12 +1175,61 @@ function addThoughtCard() {
     document.getElementById('thought-editor-content').innerHTML = '';
 }
 
-/* PDF에서 텍스트를 뽑아 생각의 서재에 자동 저장한다. 요약은 이미 뉴스 브리프에
-   쓰고 있던 추출식 요약(extractiveSummary)을 그대로 재사용한다 — 별도 AI API
-   없이 브라우저 안에서만 처리되므로 비용이 들지 않는다.
-   Firestore 문서 하나(ministry_data/master_workspace)에 모든 데이터가 같이
-   저장되므로, 아주 긴 PDF 전문을 통째로 넣으면 문서 용량 한도를 건드려 전체
-   동기화가 깨질 수 있어 일정 길이 이상은 잘라서 저장한다. */
+/* PDF나 붙여넣은 글에서 뽑은 원문을 AI(Gemini, 챗봇과 같은 프록시)에게 보내
+   제목과 정리된 요약만 받아온다. 원문 자체는 어디에도 저장하지 않고 이 처리가
+   끝나면 그대로 버려진다 — 서재에는 AI가 정리한 결과물만 남는다. */
+async function summarizeWithAI(rawText) {
+    if (!CHAT_PROXY_URL) throw new Error('AI 연결이 아직 설정되지 않았어요.');
+    const prompt = `다음은 목회자가 자료로 보관하려는 글의 원문입니다. 이 글을 나중에 다시 보고 바로 활용할 수 있도록, 핵심만 정리해 주세요.
+
+- title: 내용을 잘 드러내는 간결한 제목 (20자 내외)
+- summary: 핵심 내용을 문단이나 번호 목록으로 읽기 좋게 정리한 요약 (원문을 그대로 베끼지 말고, 실제로 이해하고 정리할 것)
+
+원문:
+${rawText.slice(0, 80000)}`;
+
+    const res = await fetch(CHAT_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: 'object',
+                    properties: { title: { type: 'string' }, summary: { type: 'string' } },
+                    required: ['title', 'summary']
+                }
+            }
+        })
+    });
+    const data = await res.json();
+    const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
+    if (!jsonText) throw new Error(data?.error?.message || 'AI 요약에 실패했어요.');
+    return JSON.parse(jsonText);
+}
+
+async function archiveWithAISummary(rawText, catLabel) {
+    const statusEl = document.getElementById('pdf-upload-status');
+    if (!rawText || !rawText.trim()) {
+        if (statusEl) statusEl.innerText = '내용이 비어있어요.';
+        return;
+    }
+    if (statusEl) statusEl.innerText = 'AI가 정리하는 중...';
+    try {
+        const { title, summary } = await summarizeWithAI(rawText);
+        const now = new Date();
+        const timeStr = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const content = `<p>${escapeAttr(summary).replace(/\n/g, '<br>')}</p>`;
+        window.state.thoughts.unshift({ id: 'th_' + Date.now(), cat: catLabel, stage: '씨앗', title, createdAt: timeStr, updatedAt: timeStr, content });
+        renderThoughts(); window.syncToCloud();
+        if (statusEl) statusEl.innerText = `"${title}" 서재에 저장 완료!`;
+    } catch (e) {
+        console.error('AI 아카이빙 실패:', e);
+        if (statusEl) statusEl.innerText = 'AI 요약에 실패했어요: ' + e.message;
+    }
+}
+
 async function handlePdfUpload(event) {
     const file = event.target.files[0];
     const statusEl = document.getElementById('pdf-upload-status');
@@ -1209,29 +1258,21 @@ async function handlePdfUpload(event) {
             if (statusEl) statusEl.innerText = '텍스트를 추출하지 못했어요 (스캔 이미지로 된 PDF일 수 있어요).';
             return;
         }
-
-        const MAX_CHARS = 50000;
-        let truncatedNote = '';
-        if (fullText.length > MAX_CHARS) {
-            fullText = fullText.slice(0, MAX_CHARS);
-            truncatedNote = '<p class="text-[11px] text-amber-500 font-bold">(문서가 길어 앞부분만 저장했어요)</p>';
-        }
-
-        const summary = extractiveSummary(fullText, 5);
-        const title = file.name.replace(/\.pdf$/i, '');
-        const now = new Date();
-        const timeStr = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        const content = `<p><b>[요약]</b> ${escapeAttr(summary)}</p>${truncatedNote}<h2>원문 전체</h2><p>${escapeAttr(fullText).replace(/\n/g, '<br>')}</p>`;
-
-        window.state.thoughts.unshift({ id: 'th_' + Date.now(), cat: 'PDF 자료', stage: '씨앗', title, createdAt: timeStr, updatedAt: timeStr, content });
-        renderThoughts(); window.syncToCloud();
-        if (statusEl) statusEl.innerText = `"${title}" 서재에 저장 완료!`;
+        await archiveWithAISummary(fullText, 'PDF 자료');
     } catch (e) {
         console.error('PDF 처리 실패:', e);
         if (statusEl) statusEl.innerText = 'PDF 처리 중 오류가 발생했어요.';
     } finally {
         event.target.value = '';
     }
+}
+
+async function handleArticlePaste() {
+    const textarea = document.getElementById('article-paste-input');
+    const text = textarea.value.trim();
+    if (!text) return;
+    await archiveWithAISummary(text, '스크랩');
+    textarea.value = '';
 }
 
 function openThoughtModal(id) {
