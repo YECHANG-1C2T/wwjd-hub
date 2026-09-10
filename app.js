@@ -264,6 +264,80 @@ function escapeAttr(str) {
     return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+/* ==========================================================================
+   [AI 상태 패널]
+   흩어진 4개 AI 기능(챗봇·뉴스요약·논문번역·서재요약)이 지금 잘 되고 있는지를
+   한 곳에서 볼 수 있게 한다. 예전엔 뭔가 조용히 실패해도 사용자가 스크린샷을
+   찍어 보여줘야만 알 수 있었는데, 그 문제를 직접 겨냥한 장치.
+   ========================================================================== */
+window.aiStatus = {
+    chat: { label: '챗봇', state: 'idle', lastOk: null, msg: '' },
+    news: { label: '뉴스 브리프 요약', state: 'idle', lastOk: null, msg: '' },
+    research: { label: '논문 번역', state: 'idle', lastOk: null, msg: '' },
+    archive: { label: '서재 자동 요약', state: 'idle', lastOk: null, msg: '' }
+};
+
+/* rate-limit(사용량 초과)처럼 시간이 지나면 저절로 풀리는 실패는 '지연(노랑)',
+   그 외의 실패는 '오류(빨강)'로 구분한다. */
+function aiErrorSeverity(err) {
+    if (!err) return 'error';
+    const msg = err.message || '';
+    if (err.status === 'RESOURCE_EXHAUSTED' || err.code === 429 || /quota|rate limit/i.test(msg)) return 'warn';
+    return 'error';
+}
+
+function setAiStatus(key, state, msg) {
+    const item = window.aiStatus[key];
+    if (!item) return;
+    item.state = state;
+    item.msg = msg || '';
+    if (state === 'ok') item.lastOk = new Date();
+    renderAiStatusDot();
+    renderAiStatusList();
+}
+
+function renderAiStatusDot() {
+    const dot = document.getElementById('ai-status-dot');
+    if (!dot) return;
+    const states = Object.values(window.aiStatus).map(i => i.state);
+    let worst = 'idle';
+    if (states.includes('error')) worst = 'error';
+    else if (states.includes('warn')) worst = 'warn';
+    else if (states.includes('ok')) worst = 'ok';
+    const colorMap = { idle: 'bg-[var(--text-sub)]', ok: 'bg-emerald-400', warn: 'bg-amber-400', error: 'bg-red-500' };
+    dot.className = `w-2 h-2 rounded-full block ${colorMap[worst]}`;
+}
+
+function formatAiTime(d) {
+    if (!d) return '아직 사용 안 함';
+    const diffMin = Math.round((Date.now() - d.getTime()) / 60000);
+    if (diffMin < 1) return '방금 전';
+    if (diffMin < 60) return `${diffMin}분 전`;
+    return `${Math.round(diffMin / 60)}시간 전`;
+}
+
+function renderAiStatusList() {
+    const container = document.getElementById('ai-status-list');
+    if (!container) return;
+    const iconMap = { idle: '○', ok: '●', warn: '▲', error: '✕' };
+    const colorMap = { idle: 'text-[var(--text-sub)]', ok: 'text-emerald-400', warn: 'text-amber-400', error: 'text-red-500' };
+    const stateLabel = { idle: '아직 사용 안 함', ok: '정상', warn: '지연', error: '오류' };
+    container.innerHTML = Object.values(window.aiStatus).map(item => `
+        <div class="flex items-center justify-between p-3 bg-[var(--primary-light)] rounded-xl border border-[var(--border-color)]">
+            <div class="min-w-0 flex-1 mr-2">
+                <span class="font-bold text-sm text-[var(--text-main)] block">${item.label}</span>
+                <span class="text-[10px] text-[var(--text-sub)]">${item.state === 'ok' ? formatAiTime(item.lastOk) : (item.msg || stateLabel[item.state])}</span>
+            </div>
+            <span class="text-lg font-black shrink-0 ${colorMap[item.state]}" title="${stateLabel[item.state]}">${iconMap[item.state]}</span>
+        </div>
+    `).join('');
+}
+
+function openAiStatusPanel() {
+    renderAiStatusList();
+    document.getElementById('ai-status-modal').classList.add('show');
+}
+
 /* 추출식 요약 (Extractive Summarization) — 외부 API 없이 순수 JS로 동작.
    문장을 나눈 뒤, 문서 전체에서 자주 나오는 단어를 많이 포함한 문장일수록
    "핵심 문장"으로 보고 점수를 매겨 상위 N개만 골라 원래 순서대로 이어붙인다.
@@ -343,12 +417,17 @@ ${listText}`;
         });
         const data = await res.json();
         const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
-        if (!jsonText) return null;
+        if (!jsonText) {
+            setAiStatus('news', aiErrorSeverity(data?.error), data?.error ? friendlyAIErrorMessage(data.error) : '요약을 받지 못했어요.');
+            return null;
+        }
         const parsed = JSON.parse(jsonText);
         const map = {};
         (parsed.items || []).forEach(it => { map[it.id] = it.summary; });
+        setAiStatus('news', 'ok');
         return map;
     } catch (e) {
+        setAiStatus('news', 'error', '요약 중 오류가 발생했어요.');
         return null;
     }
 }
@@ -1104,12 +1183,17 @@ ${listText}`;
         });
         const data = await res.json();
         const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
-        if (!jsonText) return null;
+        if (!jsonText) {
+            setAiStatus('research', aiErrorSeverity(data?.error), data?.error ? friendlyAIErrorMessage(data.error) : '번역을 받지 못했어요.');
+            return null;
+        }
         const parsed = JSON.parse(jsonText);
         const map = {};
         (parsed.items || []).forEach(it => { map[it.id] = it; });
+        setAiStatus('research', 'ok');
         return map;
     } catch (e) {
+        setAiStatus('research', 'error', '번역 중 오류가 발생했어요.');
         return null;
     }
 }
@@ -1306,7 +1390,10 @@ function addThoughtCard() {
    제목과 정리된 요약만 받아온다. 원문 자체는 어디에도 저장하지 않고 이 처리가
    끝나면 그대로 버려진다 — 서재에는 AI가 정리한 결과물만 남는다. */
 async function summarizeWithAI(rawText) {
-    if (!CHAT_PROXY_URL) throw new Error('AI 연결이 아직 설정되지 않았어요.');
+    if (!CHAT_PROXY_URL) {
+        setAiStatus('archive', 'error', 'AI 연결이 아직 설정되지 않았어요.');
+        throw new Error('AI 연결이 아직 설정되지 않았어요.');
+    }
     const prompt = `다음은 목회자가 자료로 보관하려는 글의 원문입니다. 이 글을 나중에 다시 보고 바로 활용할 수 있도록, 핵심만 정리해 주세요.
 
 - title: 내용을 잘 드러내는 간결한 제목 (20자 내외)
@@ -1332,7 +1419,12 @@ ${rawText.slice(0, 80000)}`;
     });
     const data = await res.json();
     const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
-    if (!jsonText) throw new Error(friendlyAIErrorMessage(data?.error));
+    if (!jsonText) {
+        const errMsg = friendlyAIErrorMessage(data?.error);
+        setAiStatus('archive', aiErrorSeverity(data?.error), errMsg);
+        throw new Error(errMsg);
+    }
+    setAiStatus('archive', 'ok');
     return JSON.parse(jsonText);
 }
 
@@ -1353,6 +1445,9 @@ async function archiveWithAISummary(rawText, catLabel) {
         if (statusEl) statusEl.innerText = `"${title}" 서재에 저장 완료!`;
     } catch (e) {
         console.error('AI 아카이빙 실패:', e);
+        if (window.aiStatus.archive.state !== 'error' && window.aiStatus.archive.state !== 'warn') {
+            setAiStatus('archive', 'error', 'AI 요약에 실패했어요.');
+        }
         if (statusEl) statusEl.innerText = e.message || 'AI 요약에 실패했어요.';
     }
 }
@@ -1629,7 +1724,11 @@ async function callChatModel(baseContents) {
     });
     const data = await res.json();
     const parts = data?.candidates?.[0]?.content?.parts;
-    if (!parts) return friendlyAIErrorMessage(data?.error);
+    if (!parts) {
+        const errMsg = friendlyAIErrorMessage(data?.error);
+        setAiStatus('chat', aiErrorSeverity(data?.error), errMsg);
+        return errMsg;
+    }
 
     const callPart = parts.find(p => p.functionCall);
     if (callPart) {
@@ -1645,10 +1744,12 @@ async function callChatModel(baseContents) {
         });
         const data2 = await res2.json();
         const finalText = data2?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
+        setAiStatus('chat', 'ok');
         return finalText || result.message || result.error || '처리했어요.';
     }
 
     const textPart = parts.find(p => p.text);
+    setAiStatus('chat', 'ok');
     return textPart?.text || '응답을 받지 못했어요.';
 }
 
@@ -1679,6 +1780,7 @@ async function sendChatMessage() {
         chatHistory[chatHistory.length - 1] = { role: 'model', text: reply };
     } catch (e) {
         console.error('챗봇 응답 실패:', e);
+        setAiStatus('chat', 'error', '오류가 발생했어요.');
         chatHistory[chatHistory.length - 1] = { role: 'model', text: '오류가 발생했어요. 잠시 후 다시 시도해주세요.' };
     }
     renderChatMessages();
