@@ -1332,6 +1332,40 @@ function renderChatMessages() {
     container.scrollTop = container.scrollHeight;
 }
 
+/* 챗봇이 실제 오늘의 걸음/주간일정/사역현황 데이터를 알고 답하도록, 매 요청마다
+   최신 상태를 요약해 systemInstruction으로 함께 보낸다 (대화 기록에는 안 남기고
+   매번 최신 값으로 새로 만든다). */
+function buildChatSystemInstruction() {
+    const todayStr = getLocalDateStr();
+    const todayTodos = getTodosForViewDate()
+        .map(t => `- [${t.time}] ${t.text} (${t.status})`)
+        .join('\n') || '없음';
+
+    const daysInfo = getCurrentWeekDates();
+    const weeklyLines = daysInfo.map(d => {
+        const items = (window.state.weekly[d.key] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
+        const itemsStr = items.map(i => `${i.time} ${i.text}`).join(', ') || '없음';
+        return `${d.name}요일(${d.date})${d.isToday ? ' [오늘]' : ''}: ${itemsStr}`;
+    }).join('\n');
+
+    const activeProjects = window.state.projects.filter(p => !p.completed).map(p => {
+        const done = (p.subtasks || []).filter(s => s.done).length;
+        const total = (p.subtasks || []).length;
+        return `- ${p.title} (기간: ${p.start}~${p.end}, 세부과제 ${done}/${total} 완료)`;
+    }).join('\n') || '없음';
+
+    return `당신은 "임예창의 사역공간"이라는 개인 목회 대시보드에 내장된 AI 비서입니다. 아래는 목사님의 실제 최신 데이터입니다. 일정·할일·사역 진행상황에 관한 질문에는 이 데이터를 근거로 답하고, 데이터에 없는 내용은 추측하지 말고 모른다고 답하세요. 그 외의 질문에는 평소처럼 자유롭게 답해도 됩니다.
+
+[오늘(${todayStr}) 오늘의 걸음]
+${todayTodos}
+
+[이번 주 주간일정표]
+${weeklyLines}
+
+[진행 중인 사역현황]
+${activeProjects}`;
+}
+
 async function sendChatMessage() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
@@ -1355,10 +1389,11 @@ async function sendChatMessage() {
             role: m.role === 'user' ? 'user' : 'model',
             parts: [{ text: m.text }]
         }));
+        const systemInstruction = { parts: [{ text: buildChatSystemInstruction() }] };
         const res = await fetch(CHAT_PROXY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents })
+            body: JSON.stringify({ contents, systemInstruction })
         });
         const data = await res.json();
         const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text
