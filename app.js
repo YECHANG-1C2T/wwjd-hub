@@ -306,6 +306,53 @@ function guessNewsCategory(title) {
     return '종합';
 }
 
+/* 뉴스 8건을 한 번의 AI 호출로 묶어 처리해서(항목마다 따로 부르지 않음) 핵심을
+   짚어주는 요약을 받아온다. 챗봇과 같은 프록시를 재사용하므로 별도 설정이
+   필요 없고, 연결 전이거나 실패하면 null을 반환해 기존 추출식 요약이 그대로
+   쓰이도록 한다. */
+async function aiSummarizeNewsBatch(items) {
+    if (!CHAT_PROXY_URL || !items || items.length === 0) return null;
+    const listText = items.map(it => `id: ${it.id}\n제목: ${it.title}\n발췌: ${it.rawDesc || it.summary || ''}`).join('\n\n');
+    const prompt = `다음은 뉴스 기사 제목과 짧은 발췌문 목록입니다. 각 기사마다 핵심이 무엇인지 분석해서, 발췌문을 그대로 옮기지 말고 명확한 한국어 문장 1~2개로 다시 정리해 주세요.
+
+${listText}`;
+    try {
+        const res = await fetch(CHAT_PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: 'application/json',
+                    responseSchema: {
+                        type: 'object',
+                        properties: {
+                            items: {
+                                type: 'array',
+                                items: {
+                                    type: 'object',
+                                    properties: { id: { type: 'string' }, summary: { type: 'string' } },
+                                    required: ['id', 'summary']
+                                }
+                            }
+                        },
+                        required: ['items']
+                    }
+                }
+            })
+        });
+        const data = await res.json();
+        const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
+        if (!jsonText) return null;
+        const parsed = JSON.parse(jsonText);
+        const map = {};
+        (parsed.items || []).forEach(it => { map[it.id] = it.summary; });
+        return map;
+    } catch (e) {
+        return null;
+    }
+}
+
 async function fetchLiveNaverNews(manual = false) {
     const icon = document.getElementById('news-refresh-icon');
     if (icon && manual) {
@@ -323,14 +370,15 @@ async function fetchLiveNaverNews(manual = false) {
                 const sourceName = (data.feed && data.feed.title) || '뉴스';
                 return items.slice(0, src.count).map((item, idx) => {
                     const title = stripHtml(item.title);
-                    const summary = extractiveSummary(stripHtml(item.description), 2);
+                    const rawDesc = stripHtml(item.description);
                     return {
                         id: 'live_n_' + src.url.replace(/\W/g, '') + '_' + idx,
                         cat: src.cat || guessNewsCategory(title),
                         title,
                         source: sourceName,
                         url: item.link,
-                        summary
+                        summary: extractiveSummary(rawDesc, 2),
+                        rawDesc
                     };
                 });
             } catch (e) {
@@ -341,6 +389,19 @@ async function fetchLiveNaverNews(manual = false) {
         if (flat.length > 0) liveNaverNewsList = flat;
     } catch (e) {}
     renderNewsAccordion();
+
+    /* 위 기본 요약(추출식)은 즉시 보여주고, AI 정리 요약은 뒤이어 비동기로 받아와
+       도착하면 교체한다 — 화면을 기다리게 하지 않으면서 품질은 끌어올리는 방식.
+       AI 호출이 실패해도 이미 기본 요약이 떠 있으므로 화면엔 아무 문제 없다. */
+    try {
+        const aiMap = await aiSummarizeNewsBatch(liveNaverNewsList);
+        if (aiMap) {
+            liveNaverNewsList.forEach(it => { if (aiMap[it.id]) it.summary = aiMap[it.id]; });
+            renderNewsAccordion();
+        }
+    } catch (e) {
+        console.warn('뉴스 AI 요약 실패, 기본 요약 유지:', e);
+    }
 }
 
 function renderNewsAccordion() {
