@@ -269,7 +269,12 @@
                         <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">사역현황</h2>
                     </div>
                     <div class="flex items-center gap-3">
-                        <span id="proj-overall-progress" class="text-xs font-mono-code font-bold bg-[var(--primary-light)] text-[var(--primary)] px-3.5 py-1.5 rounded-full border border-[var(--border-color)]">진척도 100%</span>
+                        <div class="flex items-center gap-2 bg-[var(--primary-light)] px-3.5 py-1.5 rounded-full border border-[var(--border-color)]">
+                            <div class="w-16 h-1.5 bg-[var(--border-color)] rounded-full overflow-hidden shrink-0">
+                                <div id="proj-overall-progress-bar" class="h-full bg-[var(--primary)] rounded-full transition-all duration-500" style="width: 100%"></div>
+                            </div>
+                            <span id="proj-overall-progress" class="text-xs font-mono-code font-bold text-[var(--primary)] whitespace-nowrap">진척도 100%</span>
+                        </div>
                         <button onclick="addNewProject()" class="px-4 py-2 primary-badge text-xs font-black rounded-xl hover:opacity-85">+ 새 사역</button>
                     </div>
                 </div>

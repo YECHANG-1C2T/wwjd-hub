@@ -898,6 +898,9 @@ function renderProjects() {
                     </div>
                 </div>
                 <h4 contenteditable="true" onblur="updateProjectTitle('${p.id}', this.innerText)" class="font-black text-base text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${p.title}</h4>
+                <div class="w-full h-2 bg-[var(--border-color)] rounded-full overflow-hidden" role="progressbar" aria-valuenow="${rate}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="h-full bg-[var(--primary)] rounded-full transition-all duration-500" style="width: ${rate}%"></div>
+                </div>
                 <div class="space-y-1.5 pt-2 border-t border-[var(--border-color)]">
                     <span class="text-xs font-bold text-[var(--text-sub)] block">실행 과업</span>
                     <div class="space-y-1 text-xs">${subtasksHtml}</div>
@@ -928,6 +931,8 @@ function renderProjects() {
     const overallRate = activeProjects.length > 0 ? Math.round(totalRates / activeProjects.length) : 100;
     const overallBadge = document.getElementById('proj-overall-progress');
     if (overallBadge) overallBadge.innerText = `진척도 ${overallRate}%`;
+    const overallBar = document.getElementById('proj-overall-progress-bar');
+    if (overallBar) overallBar.style.width = overallRate + '%';
 }
 
 function addNewProject() {
@@ -1039,16 +1044,30 @@ function renderLinkBoard() {
             card.href = l.url;
             card.target = '_blank';
             card.rel = 'noopener';
-            card.className = "glass-card p-3.5 flex items-center justify-between gap-2 hover:border-[var(--primary)] transition-all group";
+            card.draggable = true;
+            card.className = "glass-card p-3.5 flex items-center justify-between gap-2 hover:border-[var(--primary)] transition-all group cursor-grab active:cursor-grabbing";
             card.title = l.title;
             card.innerHTML = `
-                <div class="min-w-0 flex-1">
+                <div class="min-w-0 flex-1 flex items-center gap-1.5">
+                    <span class="text-[var(--text-sub)] opacity-0 group-hover:opacity-60 transition-opacity shrink-0 select-none" title="끌어서 순서 바꾸기">⠿</span>
                     <h4 class="font-bold text-sm text-[var(--text-main)] line-clamp-2 min-w-0">${l.title}</h4>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <button onclick="event.preventDefault(); event.stopPropagation(); editLinkCategory('${l.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] hover-reveal-action font-bold" title="카테고리 변경">✎</button>
                     <button onclick="event.preventDefault(); event.stopPropagation(); deleteLink('${l.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
                 </div>`;
+            card.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', l.id);
+                e.dataTransfer.effectAllowed = 'move';
+                card.classList.add('opacity-40');
+            });
+            card.addEventListener('dragend', () => card.classList.remove('opacity-40'));
+            card.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+            card.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData('text/plain');
+                if (draggedId && draggedId !== l.id) reorderLinks(draggedId, l.id);
+            });
             cardGrid.appendChild(card);
         });
         group.appendChild(cardGrid);
@@ -1090,6 +1109,20 @@ function editLinkCategory(id) {
     const trimmed = newCat.trim();
     if (!trimmed || trimmed === link.cat) return;
     link.cat = trimmed;
+    renderLinkBoard();
+    window.syncToCloud();
+}
+
+/* 링크를 끌어다 놓으면 그 위치로 옮긴다. links 배열 안에서의 순서가 곧 화면
+   표시 순서라서(카테고리별로 필터링만 함), 드래그한 항목을 목표 항목 자리로
+   옮기면 같은 카테고리 안에서는 항상 기대한 순서가 나온다. */
+function reorderLinks(draggedId, targetId) {
+    const links = window.state.links;
+    const fromIdx = links.findIndex(l => l.id === draggedId);
+    const toIdx = links.findIndex(l => l.id === targetId);
+    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+    const [moved] = links.splice(fromIdx, 1);
+    links.splice(links.findIndex(l => l.id === targetId), 0, moved);
     renderLinkBoard();
     window.syncToCloud();
 }
