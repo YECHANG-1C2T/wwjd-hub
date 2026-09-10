@@ -954,7 +954,10 @@ function renderLinkBoard() {
                 <div class="min-w-0 flex-1">
                     <h4 class="font-bold text-sm text-[var(--text-main)] line-clamp-2 min-w-0">${l.title}</h4>
                 </div>
-                <button onclick="event.preventDefault(); event.stopPropagation(); deleteLink('${l.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold shrink-0">✕</button>`;
+                <div class="flex items-center gap-2 shrink-0">
+                    <button onclick="event.preventDefault(); event.stopPropagation(); editLinkCategory('${l.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] hover-reveal-action font-bold" title="카테고리 변경">✎</button>
+                    <button onclick="event.preventDefault(); event.stopPropagation(); deleteLink('${l.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
+                </div>`;
             cardGrid.appendChild(card);
         });
         group.appendChild(cardGrid);
@@ -985,6 +988,19 @@ function addLink() {
 function deleteLink(id) {
     window.state.links = window.state.links.filter(l => l.id !== id);
     renderLinkBoard(); window.syncToCloud();
+}
+
+function editLinkCategory(id) {
+    const link = window.state.links.find(l => l.id === id);
+    if (!link) return;
+    const existingCats = [...new Set(window.state.links.map(l => l.cat))].join(', ');
+    const newCat = prompt(`새 카테고리를 입력하세요 (기존: ${existingCats})`, link.cat);
+    if (newCat === null) return;
+    const trimmed = newCat.trim();
+    if (!trimmed || trimmed === link.cat) return;
+    link.cat = trimmed;
+    renderLinkBoard();
+    window.syncToCloud();
 }
 
 function renderMemos() {
