@@ -1332,7 +1332,7 @@ ${rawText.slice(0, 80000)}`;
     });
     const data = await res.json();
     const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
-    if (!jsonText) throw new Error(data?.error?.message || 'AI 요약에 실패했어요.');
+    if (!jsonText) throw new Error(friendlyAIErrorMessage(data?.error));
     return JSON.parse(jsonText);
 }
 
@@ -1353,7 +1353,7 @@ async function archiveWithAISummary(rawText, catLabel) {
         if (statusEl) statusEl.innerText = `"${title}" 서재에 저장 완료!`;
     } catch (e) {
         console.error('AI 아카이빙 실패:', e);
-        if (statusEl) statusEl.innerText = 'AI 요약에 실패했어요: ' + e.message;
+        if (statusEl) statusEl.innerText = e.message || 'AI 요약에 실패했어요.';
     }
 }
 
@@ -1485,6 +1485,16 @@ function openChatPanel() {
     if (input) input.focus();
 }
 
+/* 챗봇 답변에 마크다운(**굵게**, - 목록)이 섞여 오면 별표가 그대로 보이던 문제를
+   해결하기 위한 아주 단순한 변환. escapeAttr로 이스케이프한 뒤에 적용해야
+   변환용 기호 자체가 다시 이스케이프되지 않는다. */
+function renderChatText(text) {
+    let html = escapeAttr(text);
+    html = html.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+    html = html.replace(/^[-*]\s+/gm, '• ');
+    return html;
+}
+
 function renderChatMessages() {
     const container = document.getElementById('chat-messages');
     if (!container) return;
@@ -1494,7 +1504,7 @@ function renderChatMessages() {
     }
     container.innerHTML = chatHistory.map(m => `
         <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
-            <div class="max-w-[82%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${m.role === 'user' ? 'primary-badge' : 'bg-[var(--primary-light)] text-[var(--text-main)] border border-[var(--border-color)]'}">${escapeAttr(m.text)}</div>
+            <div class="max-w-[82%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${m.role === 'user' ? 'primary-badge' : 'bg-[var(--primary-light)] text-[var(--text-main)] border border-[var(--border-color)]'}">${renderChatText(m.text)}</div>
         </div>
     `).join('');
     container.scrollTop = container.scrollHeight;
@@ -1598,6 +1608,18 @@ function executeChatFunctionCall(call) {
     return { error: '알 수 없는 요청이에요.' };
 }
 
+/* Gemini 무료 등급은 분당 요청 수 한도가 낮아(모델당 20건) 짧은 시간에 몰아
+   쓰면 종종 걸린다. 이때 나오는 원문 영어 에러 메시지를 그대로 채팅창에
+   띄우던 것을, 사람이 이해할 수 있는 안내문으로 바꾼다. */
+function friendlyAIErrorMessage(err) {
+    if (!err) return '오류가 발생했어요. 잠시 후 다시 시도해주세요.';
+    const msg = err.message || '';
+    if (err.status === 'RESOURCE_EXHAUSTED' || err.code === 429 || /quota|rate limit/i.test(msg)) {
+        return '지금 사용량이 많아서 잠시 막혔어요. 1분 정도 후에 다시 시도해 주세요.';
+    }
+    return '오류가 발생했어요. 잠시 후 다시 시도해주세요.';
+}
+
 async function callChatModel(baseContents) {
     const systemInstruction = { parts: [{ text: buildChatSystemInstruction() }] };
     const res = await fetch(CHAT_PROXY_URL, {
@@ -1607,7 +1629,7 @@ async function callChatModel(baseContents) {
     });
     const data = await res.json();
     const parts = data?.candidates?.[0]?.content?.parts;
-    if (!parts) return data?.error?.message || '응답을 받지 못했어요. 잠시 후 다시 시도해주세요.';
+    if (!parts) return friendlyAIErrorMessage(data?.error);
 
     const callPart = parts.find(p => p.functionCall);
     if (callPart) {
