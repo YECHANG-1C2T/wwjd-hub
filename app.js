@@ -1169,6 +1169,65 @@ function addThoughtCard() {
     document.getElementById('thought-editor-content').innerHTML = '';
 }
 
+/* PDF에서 텍스트를 뽑아 생각의 서재에 자동 저장한다. 요약은 이미 뉴스 브리프에
+   쓰고 있던 추출식 요약(extractiveSummary)을 그대로 재사용한다 — 별도 AI API
+   없이 브라우저 안에서만 처리되므로 비용이 들지 않는다.
+   Firestore 문서 하나(ministry_data/master_workspace)에 모든 데이터가 같이
+   저장되므로, 아주 긴 PDF 전문을 통째로 넣으면 문서 용량 한도를 건드려 전체
+   동기화가 깨질 수 있어 일정 길이 이상은 잘라서 저장한다. */
+async function handlePdfUpload(event) {
+    const file = event.target.files[0];
+    const statusEl = document.getElementById('pdf-upload-status');
+    if (!file) return;
+
+    if (typeof pdfjsLib === 'undefined') {
+        if (statusEl) statusEl.innerText = 'PDF 처리 도구를 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+        return;
+    }
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    if (statusEl) statusEl.innerText = 'PDF 읽는 중...';
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+            if (statusEl) statusEl.innerText = `PDF 읽는 중... (${i}/${pdf.numPages}쪽)`;
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            fullText += textContent.items.map(it => it.str).join(' ') + '\n\n';
+        }
+        fullText = fullText.trim();
+
+        if (!fullText) {
+            if (statusEl) statusEl.innerText = '텍스트를 추출하지 못했어요 (스캔 이미지로 된 PDF일 수 있어요).';
+            return;
+        }
+
+        const MAX_CHARS = 50000;
+        let truncatedNote = '';
+        if (fullText.length > MAX_CHARS) {
+            fullText = fullText.slice(0, MAX_CHARS);
+            truncatedNote = '<p class="text-[11px] text-amber-500 font-bold">(문서가 길어 앞부분만 저장했어요)</p>';
+        }
+
+        const summary = extractiveSummary(fullText, 5);
+        const title = file.name.replace(/\.pdf$/i, '');
+        const now = new Date();
+        const timeStr = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const content = `<p><b>[요약]</b> ${escapeAttr(summary)}</p>${truncatedNote}<h2>원문 전체</h2><p>${escapeAttr(fullText).replace(/\n/g, '<br>')}</p>`;
+
+        window.state.thoughts.unshift({ id: 'th_' + Date.now(), cat: 'PDF 자료', stage: '씨앗', title, createdAt: timeStr, updatedAt: timeStr, content });
+        renderThoughts(); window.syncToCloud();
+        if (statusEl) statusEl.innerText = `"${title}" 서재에 저장 완료!`;
+    } catch (e) {
+        console.error('PDF 처리 실패:', e);
+        if (statusEl) statusEl.innerText = 'PDF 처리 중 오류가 발생했어요.';
+    } finally {
+        event.target.value = '';
+    }
+}
+
 function openThoughtModal(id) {
     currentActiveThoughtId = id;
     const thought = window.state.thoughts.find(t => t.id === id);

@@ -19,6 +19,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <!-- PDF 텍스트 추출 (생각의 서재 PDF 아카이빙용, 전부 브라우저 안에서 처리 — 비용 없음) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body class="theme-dawn selection:bg-[var(--primary)] selection:text-[var(--primary-text)]">
 
@@ -407,6 +410,17 @@
                     </div>
                     <p id="research-status-text" class="text-[10px] text-[var(--text-sub)] font-medium"></p>
                     <div id="research-results-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+                </div>
+
+                <!-- PDF 업로드 아카이빙 -->
+                <div class="p-5 border border-[var(--border-color)] rounded-3xl space-y-3.5">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-mono-code font-bold text-[var(--text-sub)] uppercase tracking-widest">PDF Archiving</span>
+                        <h3 class="text-sm font-bold text-[var(--text-main)]">PDF 업로드로 서재에 담기</h3>
+                    </div>
+                    <p class="text-[11px] text-[var(--text-sub)]">PDF를 올리면 제목·요약을 자동으로 만들어 서재 아카이브에 저장해요. 카드를 열면 전문도 그대로 볼 수 있어요.</p>
+                    <input type="file" id="pdf-upload-input" accept="application/pdf" onchange="handlePdfUpload(event)" class="w-full text-xs text-[var(--text-main)] file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:primary-badge file:cursor-pointer cursor-pointer">
+                    <p id="pdf-upload-status" class="text-[10px] text-[var(--text-sub)] font-medium"></p>
                 </div>
 
                 <!-- 묵상 및 착상 에디터 -->
