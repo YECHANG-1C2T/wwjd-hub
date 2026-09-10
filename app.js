@@ -579,7 +579,7 @@ function renderHomeTodos() {
         div.className = "bg-[var(--card-bg)] p-2.5 rounded-xl border border-[var(--border-color)] flex items-center justify-between group";
         div.innerHTML = `
             <div class="flex items-center gap-2 min-w-0 flex-1 mr-1">
-                <span class="text-[10px] font-mono-code font-bold text-[var(--primary)] shrink-0">${t.time}</span>
+                <input type="time" value="${t.time}" onclick="event.stopPropagation()" onchange="updateTodoTime('${t.id}', this.value)" class="text-[10px] font-mono-code font-bold text-[var(--primary)] bg-transparent outline-none shrink-0 w-[62px] cursor-pointer">
                 <span contenteditable="true" onclick="event.stopPropagation()" onblur="updateHomeTodoText('${t.id}', this.innerText)" class="font-bold ${t.status === '완료' ? 'line-through text-[var(--text-sub)] opacity-60' : 'text-[var(--text-main)]'} outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text truncate min-w-0" title="${escapeAttr(t.text)}">${t.text}</span>
                 ${isOverdue ? `<span class="text-[9px] font-bold text-amber-500 shrink-0">지연</span>` : ''}
             </div>
@@ -595,6 +595,12 @@ function updateHomeTodoText(id, newText) {
     if (!newText.trim()) return;
     const t = window.state.todos.find(item => item.id === id);
     if (t && t.text !== newText.trim()) { t.text = newText.trim(); renderTodos(); window.syncToCloud(); }
+}
+
+function updateTodoTime(id, newTime) {
+    if (!newTime) return;
+    const t = window.state.todos.find(item => item.id === id);
+    if (t && t.time !== newTime) { t.time = newTime; renderTodos(); window.syncToCloud(); }
 }
 
 function addHomeTodo() {
@@ -631,7 +637,7 @@ function renderTodos() {
         div.className = "p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between group";
         div.innerHTML = `
             <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-                <span class="text-xs font-mono-code font-bold text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">${item.time}</span>
+                <input type="time" value="${item.time}" onchange="updateTodoTime('${item.id}', this.value)" class="text-xs font-mono-code font-bold text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)] outline-none cursor-pointer">
                 <span class="font-bold ${item.status==='완료' ? 'line-through text-[var(--text-sub)] opacity-50' : 'text-[var(--text-main)]'} truncate min-w-0" title="${escapeAttr(item.text)}">${item.text}</span>
                 ${isOverdue ? `<span class="text-[9px] font-bold text-amber-500 shrink-0">지연</span>` : ''}
             </div>
