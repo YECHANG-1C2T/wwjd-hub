@@ -313,7 +313,7 @@ function guessNewsCategory(title) {
 async function aiSummarizeNewsBatch(items) {
     if (!CHAT_PROXY_URL || !items || items.length === 0) return null;
     const listText = items.map(it => `id: ${it.id}\n제목: ${it.title}\n발췌: ${it.rawDesc || it.summary || ''}`).join('\n\n');
-    const prompt = `다음은 뉴스 기사 제목과 짧은 발췌문 목록입니다. 각 기사마다 핵심이 무엇인지 분석해서, 발췌문을 그대로 옮기지 말고 명확한 한국어 문장 1~2개로 다시 정리해 주세요.
+    const prompt = `다음은 뉴스 기사 제목과 짧은 발췌문 목록입니다. 각 기사마다 핵심이 무엇인지 분석해서, 발췌문을 그대로 옮기지 말고 명확한 한국어 문장 정확히 2개로(한 문장짜리 요약은 안 됨) 다시 정리해 주세요.
 
 ${listText}`;
     try {
