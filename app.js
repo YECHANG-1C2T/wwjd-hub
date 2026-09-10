@@ -1052,13 +1052,49 @@ function deleteMemo(id) {
 /* ==========================================================================
    [RESEARCH: TED + 논문 검색]
    ========================================================================== */
-async function translateToKorean(text) {
+/* 논문 6건의 제목·초록을 한 번의 AI 호출로 묶어 한국어 번역+요약을 받아온다.
+   예전엔 무료 번역 API(MyMemory)를 건마다 따로 불렀는데, 하루 무료 사용량을
+   금방 넘겨버려서 "번역 실패" 경고 문구가 그대로 화면에 박히는 버그가 있었다. */
+async function aiTranslateResearchBatch(papers) {
+    if (!CHAT_PROXY_URL || !papers || papers.length === 0) return null;
+    const listText = papers.map(p => `id: ${p.id}\n제목: ${p.titleEn}\n초록: ${p.abstractEn || '(초록 없음)'}`).join('\n\n');
+    const prompt = `다음은 영어 학술 논문 제목과 초록 목록입니다. 각 논문마다 자연스러운 한국어 title과, 초록이 있다면 핵심을 정리한 2문장 이내 한국어 summary를 만들어 주세요. 초록이 없으면 summary는 빈 문자열로 두세요.
+
+${listText}`;
     try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ko`);
+        const res = await fetch(CHAT_PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: 'application/json',
+                    responseSchema: {
+                        type: 'object',
+                        properties: {
+                            items: {
+                                type: 'array',
+                                items: {
+                                    type: 'object',
+                                    properties: { id: { type: 'string' }, title: { type: 'string' }, summary: { type: 'string' } },
+                                    required: ['id', 'title']
+                                }
+                            }
+                        },
+                        required: ['items']
+                    }
+                }
+            })
+        });
         const data = await res.json();
-        return (data && data.responseData && data.responseData.translatedText) || text;
+        const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
+        if (!jsonText) return null;
+        const parsed = JSON.parse(jsonText);
+        const map = {};
+        (parsed.items || []).forEach(it => { map[it.id] = it; });
+        return map;
     } catch (e) {
-        return text;
+        return null;
     }
 }
 
@@ -1081,29 +1117,43 @@ async function searchResearch(queryOverride) {
         const res = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&per-page=6`);
         const data = await res.json();
         const items = (data && data.results) || [];
-        const translated = await Promise.all(items.map(async (w) => {
+        const papers = items.map((w, idx) => {
             const titleEn = w.title || '(제목 없음)';
-            const titleKo = await translateToKorean(titleEn);
             const authors = (w.authorships || []).slice(0, 2).map(a => a.author && a.author.display_name).filter(Boolean).join(', ');
             const year = w.publication_year;
             const url = w.doi || (w.primary_location && w.primary_location.landing_page_url) || w.id;
 
-            let summaryKo = '';
+            let abstractEn = '';
             if (w.abstract_inverted_index) {
                 const posWord = [];
                 for (const [word, positions] of Object.entries(w.abstract_inverted_index)) {
                     positions.forEach(p => posWord.push([p, word]));
                 }
                 posWord.sort((a, b) => a[0] - b[0]);
-                const fullAbstractEn = posWord.map(pw => pw[1]).join(' ');
-                const keySentencesEn = extractiveSummary(fullAbstractEn, 2);
-                summaryKo = await translateToKorean(keySentencesEn);
+                abstractEn = posWord.map(pw => pw[1]).join(' ');
             }
-            return { titleKo, titleEn, authors, year, url, summaryKo };
-        }));
-        liveResearchList = translated;
+            return { id: 'rs_' + idx, titleEn, titleKo: titleEn, authors, year, url, abstractEn, summaryKo: '' };
+        });
+
+        liveResearchList = papers;
         renderResearchResults();
-        if (statusEl) statusEl.innerText = translated.length > 0 ? `"${query}" 관련 논문 ${translated.length}건 · 카드를 누르면 요약이 펼쳐져요` : `"${query}"에 대한 결과가 없습니다.`;
+        if (papers.length === 0) {
+            if (statusEl) statusEl.innerText = `"${query}"에 대한 결과가 없습니다.`;
+            return;
+        }
+        if (statusEl) statusEl.innerText = `"${query}" 관련 논문 ${papers.length}건 · AI가 번역 중...`;
+
+        const aiMap = await aiTranslateResearchBatch(papers);
+        if (aiMap) {
+            liveResearchList.forEach(p => {
+                const t = aiMap[p.id];
+                if (t) { p.titleKo = t.title || p.titleEn; p.summaryKo = t.summary || ''; }
+            });
+            renderResearchResults();
+            if (statusEl) statusEl.innerText = `"${query}" 관련 논문 ${papers.length}건 · 카드를 누르면 요약이 펼쳐져요`;
+        } else if (statusEl) {
+            statusEl.innerText = `"${query}" 관련 논문 ${papers.length}건 (번역은 잠시 후 다시 시도해주세요, 원문 제목으로 표시 중)`;
+        }
     } catch (e) {
         if (statusEl) statusEl.innerText = '논문 검색에 실패했습니다. 잠시 후 다시 시도해주세요.';
     }
