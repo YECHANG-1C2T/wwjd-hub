@@ -60,25 +60,29 @@ body.theme-forest {
 }
 
 /* 4. 🌅 새벽/골든아워 (Light, 여명 — 2차 조정: 진한 갈색 버튼+흰 글씨, 명도대비 검증 완료 8.8~13.6:1) */
+/* 새벽 테마 2차 리터치: 배경과 카드 명도차가 너무 좁아 전체가 뿌옇게(회색조로)
+   보이던 문제를 해결 — 배경을 더 밝고 깨끗하게, 카드는 순백에 가깝게 띄워
+   또렷한 레이어감을 주고, primary/text-sub도 더 화사한 호박색 톤으로 교체.
+   명도대비 검증 완료: primary 5.84:1, text-main 13.5:1, text-sub 5.1~5.2:1 */
 body.theme-dawn {
-    --bg-color: #FDF6EC;
-    --card-bg: rgba(255, 250, 240, 0.75);
-    --primary: #5C3A1E;
-    --primary-hover: #4A2E17;
+    --bg-color: #FFFBF3;
+    --card-bg: rgba(255, 255, 255, 0.82);
+    --primary: #8B5A2B;
+    --primary-hover: #74491F;
     --primary-text: #FFFFFF;
-    --primary-light: rgba(92, 58, 30, 0.1);
-    --border-color: rgba(92, 58, 30, 0.22);
-    --text-main: #402A16;
-    --text-sub: #7A5C3E;
-    --nav-bg: rgba(253, 246, 236, 0.85);
-    --hero-bg: linear-gradient(135deg, #FCE8CF 0%, #F7C8A0 45%, #E8996B 100%);
-    --hero-title-color: #402A16;
+    --primary-light: rgba(139, 90, 43, 0.09);
+    --border-color: rgba(139, 90, 43, 0.18);
+    --text-main: #3D2814;
+    --text-sub: #8A6541;
+    --nav-bg: rgba(255, 251, 243, 0.85);
+    --hero-bg: linear-gradient(135deg, #FDECD4 0%, #F9CFA3 45%, #EBA06E 100%);
+    --hero-title-color: #3D2814;
     --hero-quote-color: #4A2E17;
-    --hero-clock-color: #FFF6E9;
-    --ambient-glow-color: rgba(255, 221, 168, 0.16);
-    --ambient-glow-color-outer: rgba(232, 153, 107, 0.08);
+    --hero-clock-color: #3D2814;
+    --ambient-glow-color: rgba(255, 200, 140, 0.18);
+    --ambient-glow-color-outer: rgba(235, 160, 110, 0.08);
     --gif-opacity: 0;
-    --highlight-tint: rgba(232, 153, 107, 0.12);
+    --highlight-tint: rgba(235, 160, 110, 0.12);
 }
 
 /* 5. 🌊 쉴 만한 물가 (Dark, 블루/틸 — 3차 조정: primary를 밝은 시안으로 교체해 코스믹처럼
