@@ -1366,6 +1366,102 @@ ${weeklyLines}
 ${activeProjects}`;
 }
 
+/* 챗봇이 "2시에 청년교구 회의 잡아줘" 같은 요청을 실제로 반영할 수 있도록
+   호출 가능한 도구(함수) 두 개를 정의한다. 모델이 이 중 하나를 호출하면
+   executeChatFunctionCall이 실제로 데이터를 등록하고, 그 결과를 모델에게
+   다시 보내 자연스러운 확인 문장을 받아온다(표준적인 함수 호출 왕복 패턴). */
+const CHAT_TOOLS = [{
+    functionDeclarations: [
+        {
+            name: 'add_todo',
+            description: '오늘의 걸음(할일)을 오늘 날짜로 추가한다.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    time: { type: 'string', description: '24시간제 HH:MM 형식 시간, 예: 14:00' },
+                    text: { type: 'string', description: '할일 내용' },
+                    category: { type: 'string', enum: ['회의', '심방', '사역', '가정'], description: '분류, 알 수 없으면 사역으로' }
+                },
+                required: ['time', 'text']
+            }
+        },
+        {
+            name: 'add_weekly_schedule',
+            description: '주간일정표의 특정 요일에 일정을 추가한다. 오늘 요일이면 오늘의 걸음에도 함께 반영된다.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    day: { type: 'string', enum: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], description: '요일(영문 약어)' },
+                    time: { type: 'string', description: '24시간제 HH:MM 형식 시간' },
+                    text: { type: 'string', description: '일정 내용' }
+                },
+                required: ['day', 'time', 'text']
+            }
+        }
+    ]
+}];
+
+function executeChatFunctionCall(call) {
+    const args = call.args || {};
+    const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
+
+    if (call.name === 'add_todo') {
+        if (!args.text) return { error: '내용이 없어서 등록하지 못했어요.' };
+        const time = args.time || '10:00';
+        window.state.todos.push({ id: 't_' + Date.now(), time, cat: args.category || '사역', text: args.text, status: '시작안함', date: getLocalDateStr() });
+        window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
+        window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text: args.text });
+        renderTodos(); renderWeeklyGrid(); window.syncToCloud();
+        return { success: true, message: `${time}에 "${args.text}" 오늘의 걸음으로 등록했습니다.` };
+    }
+
+    if (call.name === 'add_weekly_schedule') {
+        if (!args.day || !args.time || !args.text) return { error: '요일/시간/내용이 부족해서 등록하지 못했어요.' };
+        window.state.weekly[args.day] = window.state.weekly[args.day] || [];
+        window.state.weekly[args.day].push({ id: 'w_' + Date.now(), time: args.time, text: args.text });
+        if (args.day === todayKey) {
+            window.state.todos.push({ id: 't_' + Date.now(), time: args.time, cat: '사역', text: args.text, status: '시작안함', date: getLocalDateStr() });
+        }
+        renderWeeklyGrid(); renderTodos(); window.syncToCloud();
+        const dayNames = { mon: '월', tue: '화', wed: '수', thu: '목', fri: '금', sat: '토', sun: '일' };
+        return { success: true, message: `${dayNames[args.day]}요일 ${args.time}에 "${args.text}" 일정을 등록했습니다.` };
+    }
+
+    return { error: '알 수 없는 요청이에요.' };
+}
+
+async function callChatModel(baseContents) {
+    const systemInstruction = { parts: [{ text: buildChatSystemInstruction() }] };
+    const res = await fetch(CHAT_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: baseContents, systemInstruction, tools: CHAT_TOOLS })
+    });
+    const data = await res.json();
+    const parts = data?.candidates?.[0]?.content?.parts;
+    if (!parts) return data?.error?.message || '응답을 받지 못했어요. 잠시 후 다시 시도해주세요.';
+
+    const callPart = parts.find(p => p.functionCall);
+    if (callPart) {
+        const result = executeChatFunctionCall(callPart.functionCall);
+        const followupContents = baseContents.concat([
+            { role: 'model', parts: [callPart] },
+            { role: 'user', parts: [{ functionResponse: { name: callPart.functionCall.name, response: result } }] }
+        ]);
+        const res2 = await fetch(CHAT_PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: followupContents, systemInstruction, tools: CHAT_TOOLS })
+        });
+        const data2 = await res2.json();
+        const finalText = data2?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
+        return finalText || result.message || result.error || '처리했어요.';
+    }
+
+    const textPart = parts.find(p => p.text);
+    return textPart?.text || '응답을 받지 못했어요.';
+}
+
 async function sendChatMessage() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
@@ -1389,16 +1485,7 @@ async function sendChatMessage() {
             role: m.role === 'user' ? 'user' : 'model',
             parts: [{ text: m.text }]
         }));
-        const systemInstruction = { parts: [{ text: buildChatSystemInstruction() }] };
-        const res = await fetch(CHAT_PROXY_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents, systemInstruction })
-        });
-        const data = await res.json();
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text
-            || data?.error?.message
-            || '응답을 받지 못했어요. 잠시 후 다시 시도해주세요.';
+        const reply = await callChatModel(contents);
         chatHistory[chatHistory.length - 1] = { role: 'model', text: reply };
     } catch (e) {
         console.error('챗봇 응답 실패:', e);
