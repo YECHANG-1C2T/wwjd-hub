@@ -1307,7 +1307,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('show'); 
    보관하는 아주 작은 Cloudflare Worker 중계소를 거쳐서 호출한다. 중계소 주소를
    아래에 채워 넣기 전까지는 "아직 설정 전" 안내만 표시하고 조용히 대기한다.
    대화 기록은 새로고침하면 사라진다(공유 Firestore 문서에 굳이 쌓아두지 않음). */
-const CHAT_PROXY_URL = "";
+const CHAT_PROXY_URL = "https://wwjd-chat-proxy.imyh1991.workers.dev";
 let chatHistory = [];
 
 function openChatPanel() {
