@@ -887,19 +887,26 @@ function renderProjects() {
                 </div>`;
         });
 
+        const ringCircumference = 2 * Math.PI * 18;
+        const ringOffset = (ringCircumference * (1 - rate / 100)).toFixed(1);
+
         const card = document.createElement('div');
         card.className = "glass-card p-6 space-y-4 flex flex-col justify-between border-t-4 border-t-[var(--primary)] group";
         card.innerHTML = `
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-[var(--primary-light)] px-2.5 py-1 rounded-full text-[var(--primary)]">진행중 (${rate}%)</span>
+                    <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider bg-[var(--primary-light)] px-2.5 py-1 rounded-full text-[var(--primary)]">진행중</span>
                     <div class="flex items-center gap-1.5 hover-reveal-action">
                         <button onclick="deleteProject('${p.id}')" class="text-[11px] text-red-400 font-bold">삭제</button>
                     </div>
                 </div>
-                <h4 contenteditable="true" onblur="updateProjectTitle('${p.id}', this.innerText)" class="font-black text-base text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${p.title}</h4>
-                <div class="w-full h-2 bg-[var(--border-color)] rounded-full overflow-hidden" role="progressbar" aria-valuenow="${rate}" aria-valuemin="0" aria-valuemax="100">
-                    <div class="h-full bg-[var(--primary)] rounded-full transition-all duration-500" style="width: ${rate}%"></div>
+                <div class="flex items-center gap-3.5">
+                    <svg width="46" height="46" viewBox="0 0 46 46" class="shrink-0" role="img" aria-label="진척도 ${rate}%">
+                        <circle cx="23" cy="23" r="18" fill="none" stroke="var(--border-color)" stroke-width="4"></circle>
+                        <circle cx="23" cy="23" r="18" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${ringCircumference.toFixed(1)}" stroke-dashoffset="${ringOffset}" transform="rotate(-90 23 23)" style="transition: stroke-dashoffset 0.6s ease;"></circle>
+                        <text x="23" y="27" text-anchor="middle" font-size="10.5" font-weight="900" fill="var(--text-main)">${rate}%</text>
+                    </svg>
+                    <h4 contenteditable="true" onblur="updateProjectTitle('${p.id}', this.innerText)" class="font-black text-base text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text flex-1 min-w-0">${p.title}</h4>
                 </div>
                 <div class="space-y-1.5 pt-2 border-t border-[var(--border-color)]">
                     <span class="text-xs font-bold text-[var(--text-sub)] block">실행 과업</span>
