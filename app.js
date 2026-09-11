@@ -1504,10 +1504,12 @@ async function extractPdfText(file, statusEl, fileLabel) {
 /* 한 번에 여러 PDF를 선택할 수 있고, 하나씩 순서대로(동시에 X) 처리한다.
    동시에 여러 건을 AI에 보내면 분당 요청 한도에 더 쉽게 걸리기 때문에,
    느리더라도 순차 처리가 더 안정적이다. */
-async function handlePdfUpload(event) {
-    const files = Array.from(event.target.files || []);
+/* 한 번에 여러 PDF를 선택하거나 끌어다 놓을 수 있고, 하나씩 순서대로(동시에 X)
+   처리한다. 동시에 여러 건을 AI에 보내면 분당 요청 한도에 더 쉽게 걸리기
+   때문에, 느리더라도 순차 처리가 더 안정적이다. */
+async function processPdfFileList(files) {
     const statusEl = document.getElementById('pdf-upload-status');
-    if (files.length === 0) return;
+    if (!files || files.length === 0) return;
 
     if (typeof pdfjsLib === 'undefined') {
         if (statusEl) statusEl.innerText = 'PDF 처리 도구를 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
@@ -1535,7 +1537,24 @@ async function handlePdfUpload(event) {
         }
     }
     if (statusEl && files.length > 1) statusEl.innerText = `${files.length}개 중 ${successCount}개 서재에 저장 완료!`;
+}
+
+async function handlePdfUpload(event) {
+    const files = Array.from(event.target.files || []);
+    await processPdfFileList(files);
     event.target.value = '';
+}
+
+function handlePdfDrop(event, zoneEl) {
+    event.preventDefault();
+    zoneEl.classList.remove('border-[var(--primary)]', 'bg-[var(--primary-light)]');
+    const files = Array.from(event.dataTransfer.files || []).filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+    const statusEl = document.getElementById('pdf-upload-status');
+    if (files.length === 0) {
+        if (statusEl) statusEl.innerText = 'PDF 파일만 끌어다 놓을 수 있어요.';
+        return;
+    }
+    processPdfFileList(files);
 }
 
 async function handleArticlePaste() {
