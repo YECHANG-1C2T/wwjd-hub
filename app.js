@@ -774,9 +774,10 @@ async function fetchLiveNaverNews(manual = false) {
     } catch (e) {}
     renderNewsAccordion();
 
-    /* 위 기본 요약(추출식)은 즉시 보여주고, AI 정리 요약은 뒤이어 비동기로 받아와
-       도착하면 교체한다 — 화면을 기다리게 하지 않으면서 품질은 끌어올리는 방식.
-       AI 호출이 실패해도 이미 기본 요약이 떠 있으므로 화면엔 아무 문제 없다. */
+    /* AI 요약은 챗봇과 같은 사용량 한도를 나눠 쓰기 때문에, 페이지를 열 때마다
+       자동으로 돌리지 않는다. 새로고침 버튼을 직접 눌렀을 때(manual)만 AI로
+       업그레이드하고, 자동 로드 시에는 추출식 기본 요약만 보여준다. */
+    if (!manual) return;
     try {
         const aiMap = await aiSummarizeNewsBatch(liveNaverNewsList);
         if (aiMap) {
@@ -2392,7 +2393,10 @@ function submitFab() {
    ========================================================================== */
 initTheologyNarrative();
 fetchLiveNaverNews();
-searchResearch(getTodayResearchQuery());
+/* 예전엔 페이지를 열 때마다 자동으로 검색+AI 번역을 돌렸는데, 챗봇과 같은
+   사용량 한도를 나눠 쓰기 때문에 이제 직접 검색 버튼을 눌렀을 때만 돈다. */
+const researchStatusEl = document.getElementById('research-status-text');
+if (researchStatusEl) researchStatusEl.innerText = '주제를 입력하고 "논문 검색"을 눌러주세요.';
 renderWeeklyGrid();
 loadGoogleCalendarWeek();
 if (typeof switchTheme === 'function') switchTheme(window.state.theme, false);
