@@ -490,7 +490,7 @@ async function fetchLiveNaverNews(manual = false) {
     try {
         const aiMap = await aiSummarizeNewsBatch(liveNaverNewsList);
         if (aiMap) {
-            liveNaverNewsList.forEach(it => { if (aiMap[it.id]) it.summary = aiMap[it.id]; });
+            liveNaverNewsList.forEach(it => { if (aiMap[it.id]) it.summary = stripMarkdownAsterisks(aiMap[it.id]); });
             renderNewsAccordion();
         }
     } catch (e) {
@@ -1404,9 +1404,24 @@ function deleteMemo(id) {
 /* ==========================================================================
    [RESEARCH: TED + 논문 검색]
    ========================================================================== */
+const OPENALEX_TYPE_LABELS = {
+    article: '학술지',
+    dissertation: '학위논문',
+    'book-chapter': '단행본',
+    book: '단행본',
+    preprint: '프리프린트',
+    report: '보고서'
+};
+
 /* 논문 6건의 제목·초록을 한 번의 AI 호출로 묶어 한국어 번역+요약을 받아온다.
    예전엔 무료 번역 API(MyMemory)를 건마다 따로 불렀는데, 하루 무료 사용량을
-   금방 넘겨버려서 "번역 실패" 경고 문구가 그대로 화면에 박히는 버그가 있었다. */
+   금방 넘겨버려서 "번역 실패" 경고 문구가 그대로 화면에 박히는 버그가 있었다.
+   AI가 가끔 **굵게** 같은 마크다운 기호를 섞어 보내는 경우가 있어 별표는
+   그냥 제거한다(챗봇에서와 달리 제목·요약은 굵게 표시할 이유가 없다). */
+function stripMarkdownAsterisks(text) {
+    return (text || '').replace(/\*\*/g, '');
+}
+
 async function aiTranslateResearchBatch(papers) {
     if (!CHAT_PROXY_URL || !papers || papers.length === 0) return null;
     const listText = papers.map(p => `id: ${p.id}\n제목: ${p.titleEn}\n초록: ${p.abstractEn || '(초록 없음)'}`).join('\n\n');
@@ -1474,6 +1489,8 @@ async function searchResearch(queryOverride) {
             const authors = (w.authorships || []).slice(0, 2).map(a => a.author && a.author.display_name).filter(Boolean).join(', ');
             const year = w.publication_year;
             const url = w.doi || (w.primary_location && w.primary_location.landing_page_url) || w.id;
+            const institution = (w.authorships && w.authorships[0] && w.authorships[0].institutions && w.authorships[0].institutions[0] && w.authorships[0].institutions[0].display_name) || '';
+            const typeLabel = OPENALEX_TYPE_LABELS[w.type] || '';
 
             let abstractEn = '';
             if (w.abstract_inverted_index) {
@@ -1484,7 +1501,7 @@ async function searchResearch(queryOverride) {
                 posWord.sort((a, b) => a[0] - b[0]);
                 abstractEn = posWord.map(pw => pw[1]).join(' ');
             }
-            return { id: 'rs_' + idx, titleEn, titleKo: titleEn, authors, year, url, abstractEn, summaryKo: '' };
+            return { id: 'rs_' + idx, titleEn, titleKo: titleEn, authors, year, url, institution, typeLabel, abstractEn, summaryKo: '' };
         });
 
         liveResearchList = papers;
@@ -1499,7 +1516,7 @@ async function searchResearch(queryOverride) {
         if (aiMap) {
             liveResearchList.forEach(p => {
                 const t = aiMap[p.id];
-                if (t) { p.titleKo = t.title || p.titleEn; p.summaryKo = t.summary || ''; }
+                if (t) { p.titleKo = stripMarkdownAsterisks(t.title) || p.titleEn; p.summaryKo = stripMarkdownAsterisks(t.summary); }
             });
             renderResearchResults();
             if (statusEl) statusEl.innerText = `"${query}" 관련 논문 ${papers.length}건 · 카드를 누르면 요약이 펼쳐져요`;
@@ -1538,11 +1555,12 @@ function renderResearchResults() {
         card.innerHTML = `
             <div class="flex flex-col gap-1.5 cursor-pointer focus:outline focus:outline-2 focus:outline-[var(--primary)] focus:outline-offset-2 rounded-lg" ${toggleAttrs} onclick="toggleResearchSummary('${id}')">
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-[9px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full w-fit">PAPER${p.year ? ' · ' + p.year : ''}</span>
+                    <span class="text-[9px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full w-fit">${p.typeLabel || 'PAPER'}</span>
                     <a href="${p.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-[10px] font-mono-code text-[var(--text-sub)] hover:text-[var(--primary)] font-bold shrink-0">원문 ↗</a>
                 </div>
                 <h4 class="font-bold text-xs text-[var(--text-main)] leading-snug">${p.titleKo}</h4>
-                ${p.authors ? `<span class="text-[10px] text-[var(--primary)] font-bold truncate">✍️ ${escapeAttr(p.authors)}</span>` : ''}
+                ${(p.authors || p.year) ? `<div class="text-[10px] text-[var(--primary)] font-bold flex flex-wrap items-center gap-x-1">${p.authors ? `<span>✍️ ${escapeAttr(p.authors)}</span>` : ''}${p.year ? `<span>(${p.year})</span>` : ''}</div>` : ''}
+                ${p.institution ? `<div class="text-[10px] text-[var(--text-sub)]">🏫 ${escapeAttr(p.institution)}</div>` : ''}
                 <span class="text-[10px] text-[var(--text-sub)] truncate">${p.titleEn}</span>
                 ${p.summaryKo ? `<span class="text-[9px] text-[var(--primary)] font-bold mt-0.5">${isOpen ? '요약 접기 ▲' : '요약 보기 ▼'}</span>` : ''}
             </div>${summaryHtml}`;
@@ -1688,7 +1706,9 @@ async function archiveWithAISummary(rawText, catLabel) {
     }
     if (statusEl) statusEl.innerText = 'AI가 정리하는 중...';
     try {
-        const { title, summary } = await summarizeWithAI(rawText);
+        const raw = await summarizeWithAI(rawText);
+        const title = stripMarkdownAsterisks(raw.title);
+        const summary = stripMarkdownAsterisks(raw.summary);
         const now = new Date();
         const timeStr = `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
         const content = `<p>${escapeAttr(summary).replace(/\n/g, '<br>')}</p>`;
