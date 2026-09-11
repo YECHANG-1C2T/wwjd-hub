@@ -2,125 +2,299 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>심방신청</title>
+<meta name="theme-color" content="#781423">
 <link rel="icon" href="data:,">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
     :root {
-        --bg-color: #f7f5f2;
-        --card-bg: #ffffff;
-        --primary: #781423;
-        --primary-light: rgba(120, 20, 35, 0.08);
-        --border-color: rgba(120, 20, 35, 0.16);
-        --text-main: #1c1917;
-        --text-sub: #57534e;
+        --bg: #fbf5f1;
+        --ink: #241012;
+        --ink-sub: #8a6a6e;
+        --card: rgba(255,255,255,0.82);
+        --card-solid: #ffffff;
+        --line: rgba(120,20,35,0.12);
+        --wash: rgba(120,20,35,0.06);
+        --brand: #781423;
+        --brand2: #c9455f;
+        --accent: #ffb648;
+        --radius: 26px;
     }
-    * { box-sizing: border-box; }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --bg: #180b0e;
+            --ink: #f7ece9;
+            --ink-sub: #c9a2a7;
+            --card: rgba(38,18,21,0.72);
+            --card-solid: #2b1518;
+            --line: rgba(255,255,255,0.10);
+            --wash: rgba(255,255,255,0.05);
+            --brand: #ff6b7e;
+            --brand2: #ff9d6c;
+            --accent: #ffcf6b;
+        }
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { -webkit-text-size-adjust: 100%; }
     body {
         margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-        background: var(--bg-color);
-        color: var(--text-main);
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
         min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        padding: 32px 16px 60px;
+        overflow-x: hidden;
+        position: relative;
     }
-    .wrap { width: 100%; max-width: 480px; }
-    .header { text-align: center; margin-bottom: 24px; }
-    .header .eyebrow {
-        display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
-        color: var(--primary); background: var(--primary-light); padding: 4px 12px; border-radius: 999px;
-        margin-bottom: 10px; text-transform: uppercase;
+
+    /* ---- 떠다니는 그라데이션 블롭 배경 ---- */
+    .blob {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.55;
+        z-index: 0;
+        pointer-events: none;
     }
-    .header h1 { font-size: 22px; font-weight: 900; margin: 0 0 8px; }
-    .header p { font-size: 13px; color: var(--text-sub); margin: 0; line-height: 1.6; }
+    .blob-1 { width: 340px; height: 340px; top: -120px; left: -100px; background: radial-gradient(circle, var(--brand2), transparent 70%); animation: float1 16s ease-in-out infinite; }
+    .blob-2 { width: 300px; height: 300px; bottom: -100px; right: -80px; background: radial-gradient(circle, var(--accent), transparent 70%); animation: float2 20s ease-in-out infinite; }
+    .blob-3 { width: 220px; height: 220px; top: 40%; right: -60px; background: radial-gradient(circle, var(--brand), transparent 70%); opacity: 0.35; animation: float1 14s ease-in-out infinite reverse; }
+    @keyframes float1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,40px) scale(1.1); } }
+    @keyframes float2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-25px,-30px) scale(1.08); } }
+
+    .wrap {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 460px;
+        margin: 0 auto;
+        padding: 44px 18px 60px;
+    }
+
+    .header { text-align: center; margin-bottom: 22px; }
+    .header .badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
+        color: var(--brand); background: var(--wash); border: 1px solid var(--line);
+        padding: 6px 14px; border-radius: 999px; margin-bottom: 16px;
+    }
+    .header h1 {
+        font-size: 30px; font-weight: 900; margin: 0 0 10px; line-height: 1.25;
+        letter-spacing: -0.02em;
+    }
+    .header h1 .grad {
+        background: linear-gradient(100deg, var(--brand), var(--brand2) 60%, var(--accent));
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .header p { font-size: 14px; color: var(--ink-sub); margin: 0; line-height: 1.7; font-weight: 500; }
+
+    /* ---- 진행률 ---- */
+    .progress-track {
+        height: 6px; border-radius: 999px; background: var(--wash);
+        overflow: hidden; margin: 22px 0 18px;
+    }
+    .progress-fill {
+        height: 100%; width: 0%; border-radius: 999px;
+        background: linear-gradient(90deg, var(--brand), var(--brand2));
+        transition: width 0.4s cubic-bezier(.4,0,.2,1);
+    }
+
     .card {
-        background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px;
-        padding: 24px 20px; box-shadow: 0 10px 30px rgba(120,20,35,0.06);
+        background: var(--card);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 26px 22px 24px;
+        box-shadow: 0 20px 50px -15px rgba(120,20,35,0.18);
     }
-    label { display: block; font-size: 13px; font-weight: 800; margin: 18px 0 6px; }
-    label:first-of-type { margin-top: 0; }
-    label .req { color: var(--primary); }
-    label .opt { font-weight: 600; color: var(--text-sub); font-size: 11px; }
-    input, select, textarea {
-        width: 100%; padding: 12px 14px; font-size: 14px; border-radius: 12px;
-        border: 1px solid var(--border-color); background: var(--primary-light); color: var(--text-main);
+
+    .field { margin-bottom: 20px; }
+    .field:last-of-type { margin-bottom: 0; }
+    .field-label {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 13.5px; font-weight: 800; margin-bottom: 9px;
+    }
+    .field-label .req { color: var(--brand2); }
+    .field-label .opt { font-weight: 600; color: var(--ink-sub); font-size: 11px; }
+
+    .input-shell { position: relative; }
+    .input-shell .ico {
+        position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+        font-size: 16px; opacity: 0.8; pointer-events: none;
+    }
+    input[type="text"], input[type="tel"], input[type="date"], textarea {
+        width: 100%; padding: 14px 14px 14px 42px; font-size: 15px; font-weight: 600;
+        border-radius: 16px; border: 1.5px solid var(--line);
+        background: var(--wash); color: var(--ink);
         font-family: inherit; outline: none;
+        transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
-    textarea { resize: vertical; min-height: 80px; }
-    .row2 { display: flex; gap: 8px; }
-    .row2 > * { flex: 1; }
+    input::placeholder, textarea::placeholder { color: var(--ink-sub); font-weight: 500; opacity: 0.75; }
+    input:focus, textarea:focus {
+        border-color: var(--brand2); background: var(--card-solid);
+        box-shadow: 0 0 0 4px rgba(201,69,95,0.12);
+    }
+    input.valid { border-color: #4fb477; }
+    textarea { padding-left: 14px; resize: none; min-height: 90px; line-height: 1.6; }
+
+    .charcount { text-align: right; font-size: 10.5px; color: var(--ink-sub); font-weight: 700; margin-top: 6px; }
+
+    /* ---- 칩 선택 버튼 ---- */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+        padding: 10px 16px; font-size: 13px; font-weight: 700;
+        border-radius: 999px; border: 1.5px solid var(--line);
+        background: var(--wash); color: var(--ink-sub);
+        cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+        -webkit-user-select: none; user-select: none;
+    }
+    .chip:active { transform: scale(0.95); }
+    .chip.selected {
+        background: linear-gradient(100deg, var(--brand), var(--brand2));
+        border-color: transparent; color: #fff;
+        box-shadow: 0 6px 16px -6px rgba(120,20,35,0.5);
+    }
+
+    .row2 { display: flex; gap: 10px; }
+    .row2 > .input-shell { flex: 1; }
+
+    .error {
+        font-size: 12.5px; color: var(--brand2); font-weight: 700;
+        margin-top: 14px; padding: 10px 14px; background: var(--wash);
+        border-radius: 12px; display: none;
+    }
+
     button[type="submit"] {
-        width: 100%; margin-top: 24px; padding: 15px; font-size: 15px; font-weight: 900;
-        border: none; border-radius: 14px; background: var(--primary); color: #fff; cursor: pointer;
+        width: 100%; margin-top: 24px; padding: 17px; font-size: 16px; font-weight: 900;
+        border: none; border-radius: 18px; color: #fff; cursor: pointer;
+        background: linear-gradient(100deg, var(--brand), var(--brand2));
+        box-shadow: 0 14px 30px -10px rgba(120,20,35,0.45);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
-    .privacy { font-size: 11px; color: var(--text-sub); text-align: center; margin-top: 12px; line-height: 1.6; }
-    .error { font-size: 12px; color: var(--primary); font-weight: 700; margin-top: 8px; display: none; }
-    #success {
-        display: none; text-align: center; padding: 50px 20px;
+    button[type="submit"]:active { transform: scale(0.97); }
+    button[type="submit"]:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+    .spinner {
+        width: 16px; height: 16px; border-radius: 50%;
+        border: 2.5px solid rgba(255,255,255,0.4); border-top-color: #fff;
+        animation: spin 0.7s linear infinite; display: none;
     }
-    #success .icon { font-size: 44px; margin-bottom: 14px; }
-    #success h2 { font-size: 19px; font-weight: 900; margin: 0 0 10px; }
-    #success p { font-size: 13px; color: var(--text-sub); line-height: 1.7; margin: 0 0 24px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .privacy { font-size: 11px; color: var(--ink-sub); text-align: center; margin-top: 14px; line-height: 1.7; font-weight: 500; }
+
+    /* ---- 성공 화면 ---- */
+    #success { display: none; text-align: center; padding: 54px 24px 40px; }
+    .check-circle {
+        width: 84px; height: 84px; border-radius: 50%; margin: 0 auto 20px;
+        background: linear-gradient(135deg, var(--brand), var(--brand2));
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 16px 36px -10px rgba(120,20,35,0.5);
+        animation: pop 0.5s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .check-circle svg { width: 40px; height: 40px; }
+    .check-circle path {
+        fill: none; stroke: #fff; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round;
+        stroke-dasharray: 40; stroke-dashoffset: 40;
+        animation: draw 0.4s ease 0.35s forwards;
+    }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    #success h2 { font-size: 21px; font-weight: 900; margin: 0 0 10px; }
+    #success p { font-size: 13.5px; color: var(--ink-sub); line-height: 1.8; margin: 0 0 26px; font-weight: 500; }
     #success button {
-        padding: 11px 22px; font-size: 13px; font-weight: 800; border-radius: 12px;
-        border: 1px solid var(--border-color); background: var(--primary-light); color: var(--primary); cursor: pointer;
+        padding: 12px 24px; font-size: 13.5px; font-weight: 800; border-radius: 14px;
+        border: 1.5px solid var(--line); background: var(--wash); color: var(--brand); cursor: pointer;
     }
+
+    .fade-in { animation: fadeIn 0.5s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
 <div class="wrap">
-    <div class="header">
-        <span class="eyebrow">Visit Request</span>
-        <h1>🕊️ 심방신청</h1>
-        <p>편하게 뵙고 이야기 나누고 싶은 마음을<br>남겨주세요. 확인 후 연락드릴게요.</p>
+    <div class="header fade-in">
+        <span class="badge">✨ 청년부 심방신청</span>
+        <h1>편하게<br><span class="grad">마음 나눠요</span></h1>
+        <p>1분이면 끝나요. 남겨주시면<br>확인하고 바로 연락드릴게요 🕊️</p>
     </div>
 
-    <div class="card" id="form-card">
-        <form id="visit-form">
-            <label>이름 <span class="req">*</span></label>
-            <input type="text" id="f-name" required placeholder="이름을 입력해주세요">
+    <div class="progress-track fade-in" style="animation-delay:0.05s">
+        <div class="progress-fill" id="progress-fill"></div>
+    </div>
 
-            <label>연락처 <span class="req">*</span></label>
-            <input type="tel" id="f-phone" required placeholder="010-0000-0000">
-
-            <label>소속 <span class="opt">(선택)</span></label>
-            <select id="f-group">
-                <option value="">선택 안 함</option>
-                <option value="청년교구">청년교구</option>
-                <option value="청년금요기도회">청년금요기도회</option>
-                <option value="1청2팀">1청2팀</option>
-                <option value="수련회">수련회</option>
-                <option value="기타">기타</option>
-            </select>
-
-            <label>희망 날짜/시간 <span class="opt">(선택)</span></label>
-            <div class="row2">
-                <input type="date" id="f-date">
-                <select id="f-time">
-                    <option value="">시간대 무관</option>
-                    <option value="오전">오전</option>
-                    <option value="오후">오후</option>
-                    <option value="저녁">저녁</option>
-                </select>
+    <div class="card fade-in" id="form-card" style="animation-delay:0.1s">
+        <form id="visit-form" novalidate>
+            <div class="field">
+                <label class="field-label">이름 <span class="req">*</span></label>
+                <div class="input-shell">
+                    <span class="ico">👤</span>
+                    <input type="text" id="f-name" placeholder="이름을 입력해주세요" autocomplete="name">
+                </div>
             </div>
 
-            <label>나누고 싶은 이야기 <span class="opt">(선택)</span></label>
-            <textarea id="f-reason" placeholder="심방을 신청하는 이유나 나누고 싶은 이야기를 편하게 적어주세요"></textarea>
+            <div class="field">
+                <label class="field-label">연락처 <span class="req">*</span></label>
+                <div class="input-shell">
+                    <span class="ico">📱</span>
+                    <input type="tel" id="f-phone" placeholder="010-0000-0000" autocomplete="tel" inputmode="numeric" maxlength="13">
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label">소속 <span class="opt">선택</span></label>
+                <div class="chips" id="chips-group">
+                    <div class="chip" data-value="청년교구">청년교구</div>
+                    <div class="chip" data-value="청년금요기도회">청년금요기도회</div>
+                    <div class="chip" data-value="1청2팀">1청2팀</div>
+                    <div class="chip" data-value="수련회">수련회</div>
+                    <div class="chip" data-value="기타">기타</div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label">희망 시간대 <span class="opt">선택</span></label>
+                <div class="chips" id="chips-time">
+                    <div class="chip" data-value="오전">☀️ 오전</div>
+                    <div class="chip" data-value="오후">🌤️ 오후</div>
+                    <div class="chip" data-value="저녁">🌙 저녁</div>
+                    <div class="chip" data-value="">시간 무관</div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label">희망 날짜 <span class="opt">선택</span></label>
+                <div class="input-shell">
+                    <span class="ico">🗓️</span>
+                    <input type="date" id="f-date">
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="field-label">나누고 싶은 이야기 <span class="opt">선택</span></label>
+                <textarea id="f-reason" maxlength="300" placeholder="요즘 고민, 나누고 싶은 이야기를 편하게 적어주세요"></textarea>
+                <div class="charcount"><span id="char-count">0</span>/300</div>
+            </div>
 
             <div class="error" id="form-error">이름과 연락처를 입력해주세요.</div>
-            <button type="submit" id="submit-btn">신청하기</button>
+            <button type="submit" id="submit-btn">
+                <span class="spinner" id="spinner"></span>
+                <span id="submit-text">신청하기 →</span>
+            </button>
             <p class="privacy">입력하신 정보는 심방 연락을 위해서만 사용되며,<br>담당 목사님에게만 전달됩니다.</p>
         </form>
     </div>
 
     <div class="card" id="success">
-        <div class="icon">✅</div>
-        <h2>신청이 접수되었습니다</h2>
-        <p>소중한 마음 감사합니다.<br>확인 후 연락드릴게요!</p>
+        <div class="check-circle">
+            <svg viewBox="0 0 24 24"><path d="M4 12l6 6L20 6"/></svg>
+        </div>
+        <h2>신청이 접수됐어요!</h2>
+        <p>소중한 마음 감사해요.<br>확인 후 빠르게 연락드릴게요 💌</p>
         <button onclick="resetForm()">다시 신청하기</button>
     </div>
 </div>
@@ -143,48 +317,121 @@
     const form = document.getElementById('visit-form');
     const errorEl = document.getElementById('form-error');
     const submitBtn = document.getElementById('submit-btn');
+    const submitText = document.getElementById('submit-text');
+    const spinner = document.getElementById('spinner');
+    const nameInput = document.getElementById('f-name');
+    const phoneInput = document.getElementById('f-phone');
+    const reasonInput = document.getElementById('f-reason');
+    const charCount = document.getElementById('char-count');
+    const progressFill = document.getElementById('progress-fill');
+
+    let selectedGroup = '';
+    let selectedTime = '';
+
+    function setupChips(containerId, onSelect) {
+        const container = document.getElementById(containerId);
+        container.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const alreadySelected = chip.classList.contains('selected');
+                container.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+                if (!alreadySelected) {
+                    chip.classList.add('selected');
+                    onSelect(chip.dataset.value);
+                } else {
+                    onSelect('');
+                }
+                updateProgress();
+            });
+        });
+    }
+    setupChips('chips-group', v => selectedGroup = v);
+    setupChips('chips-time', v => selectedTime = v);
+
+    /* 전화번호 자동 하이픈 */
+    phoneInput.addEventListener('input', () => {
+        let digits = phoneInput.value.replace(/\D/g, '').slice(0, 11);
+        let formatted = digits;
+        if (digits.length > 3 && digits.length <= 7) {
+            formatted = digits.slice(0, 3) + '-' + digits.slice(3);
+        } else if (digits.length > 7) {
+            formatted = digits.slice(0, 3) + '-' + digits.slice(3, 7) + '-' + digits.slice(7);
+        }
+        phoneInput.value = formatted;
+        updateProgress();
+    });
+
+    nameInput.addEventListener('input', updateProgress);
+
+    reasonInput.addEventListener('input', () => {
+        charCount.textContent = reasonInput.value.length;
+    });
+
+    function updateProgress() {
+        let filled = 0;
+        const total = 2;
+        if (nameInput.value.trim()) filled++;
+        if (phoneInput.value.replace(/\D/g, '').length >= 9) filled++;
+        const pct = Math.min(100, (filled / total) * 100);
+        progressFill.style.width = pct + '%';
+
+        nameInput.classList.toggle('valid', !!nameInput.value.trim());
+        phoneInput.classList.toggle('valid', phoneInput.value.replace(/\D/g, '').length >= 9);
+    }
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const name = document.getElementById('f-name').value.trim();
-        const phone = document.getElementById('f-phone').value.trim();
+        const name = nameInput.value.trim();
+        const phone = phoneInput.value.trim();
 
-        if (!name || !phone) {
+        if (!name || phone.replace(/\D/g, '').length < 9) {
+            errorEl.textContent = '이름과 연락처를 입력해주세요.';
             errorEl.style.display = 'block';
             return;
         }
         errorEl.style.display = 'none';
 
         submitBtn.disabled = true;
-        submitBtn.textContent = '접수 중...';
+        submitText.textContent = '접수 중...';
+        spinner.style.display = 'inline-block';
 
         db.collection('visit_requests').add({
             name: name,
             phone: phone,
-            group: document.getElementById('f-group').value,
+            group: selectedGroup,
             preferredDate: document.getElementById('f-date').value,
-            preferredTime: document.getElementById('f-time').value,
-            reason: document.getElementById('f-reason').value.trim(),
+            preferredTime: selectedTime,
+            reason: reasonInput.value.trim(),
             status: '신규',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(function() {
             document.getElementById('form-card').style.display = 'none';
+            document.querySelector('.progress-track').style.display = 'none';
             document.getElementById('success').style.display = 'block';
         }).catch(function(err) {
             console.error(err);
-            errorEl.textContent = '접수 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            errorEl.textContent = '접수 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.';
             errorEl.style.display = 'block';
             submitBtn.disabled = false;
-            submitBtn.textContent = '신청하기';
+            submitText.textContent = '신청하기 →';
+            spinner.style.display = 'none';
         });
     });
 
     function resetForm() {
         form.reset();
+        selectedGroup = '';
+        selectedTime = '';
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        charCount.textContent = '0';
+        progressFill.style.width = '0%';
+        nameInput.classList.remove('valid');
+        phoneInput.classList.remove('valid');
         document.getElementById('success').style.display = 'none';
         document.getElementById('form-card').style.display = 'block';
+        document.querySelector('.progress-track').style.display = 'block';
         submitBtn.disabled = false;
-        submitBtn.textContent = '신청하기';
+        submitText.textContent = '신청하기 →';
+        spinner.style.display = 'none';
     }
 </script>
 </body>
