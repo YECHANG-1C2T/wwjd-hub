@@ -275,7 +275,7 @@
                             </div>
                             <span id="proj-overall-progress" class="text-xs font-mono-code font-bold text-[var(--primary)] whitespace-nowrap">진척도 100%</span>
                         </div>
-                        <button onclick="addNewProject()" class="px-4 py-2 primary-badge text-xs font-black rounded-xl hover:opacity-85">+ 새 사역</button>
+                        <button onclick="openNewProjectModal()" class="px-4 py-2 primary-badge text-xs font-black rounded-xl hover:opacity-85">+ 새 사역</button>
                     </div>
                 </div>
 
@@ -607,7 +607,33 @@
         </div>
     </div>
 
-    <!-- 5. AI 상태 패널 -->
+    <!-- 5. 새 사역 만들기 (퀵 양식) -->
+    <div id="new-project-modal" class="modal-overlay" onclick="if(event.target === this) closeModal('new-project-modal')">
+        <div class="modal-content" style="max-width: 460px;" onclick="event.stopPropagation()">
+            <h3 class="font-black text-lg text-[var(--text-main)] mb-4">새 사역 만들기</h3>
+            <input type="text" id="new-project-title-input" placeholder="사역 이름을 입력하세요" class="w-full p-3 mb-4 text-sm bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-medium">
+            <p class="text-[11px] text-[var(--text-sub)] mb-2">유형을 고르면 맞는 실행 과업으로 바로 시작해요</p>
+            <div class="space-y-2">
+                <button onclick="createProjectFromTemplate('sermon')" class="w-full text-left p-3 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-xl hover:border-[var(--primary)] transition-all">
+                    <span class="font-bold text-sm text-[var(--text-main)] block">📖 설교준비</span>
+                    <span class="text-[10px] text-[var(--text-sub)]">본문 선정부터 원고 리딩까지</span>
+                </button>
+                <button onclick="createProjectFromTemplate('planning')" class="w-full text-left p-3 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-xl hover:border-[var(--primary)] transition-all">
+                    <span class="font-bold text-sm text-[var(--text-main)] block">🗂️ 사역기획</span>
+                    <span class="text-[10px] text-[var(--text-sub)]">주제·목적·일정 수립</span>
+                </button>
+                <button onclick="createProjectFromTemplate('joint')" class="w-full text-left p-3 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-xl hover:border-[var(--primary)] transition-all">
+                    <span class="font-bold text-sm text-[var(--text-main)] block">🤝 공동사역</span>
+                    <span class="text-[10px] text-[var(--text-sub)]">교회 전체 사역 중 내가 맡은 부분</span>
+                </button>
+                <button onclick="createProjectFromTemplate('blank')" class="w-full text-left p-3 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl hover:border-[var(--primary)] transition-all">
+                    <span class="font-bold text-sm text-[var(--text-sub)] block">빈 양식으로 시작</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. AI 상태 패널 -->
     <div id="ai-status-modal" class="modal-overlay" onclick="if(event.target === this) closeModal('ai-status-modal')">
         <div class="modal-content" style="max-width: 420px;" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-1">

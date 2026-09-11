@@ -942,11 +942,38 @@ function renderProjects() {
     if (overallBar) overallBar.style.width = overallRate + '%';
 }
 
-function addNewProject() {
-    const title = prompt("새 사역 프로젝트 명칭:");
-    if (!title) return;
-    window.state.projects.push({ id: 'p_' + Date.now(), title, start: '2026.08.28', end: '2026.09.10', completed: false, subtasks: [{ id: 'st_' + Date.now(), text: '초기 기획 수립', done: false }] });
+/* 사역 종류별로 실제 업무 흐름에 맞는 실행 과업 세트를 미리 채워준다.
+   목사님이 매번 "뭐부터 적어야 하지"를 고민하지 않도록 출발점을 만들어주는
+   것이 목적이라, 항목들은 만든 뒤에도 자유롭게 고치고 더하고 지울 수 있다. */
+const PROJECT_TEMPLATES = {
+    sermon: ['본문 선정', '본문 주해 및 묵상', '설교 개요 작성', '원고 초안 작성', '원고 리딩 및 다듬기'],
+    planning: ['주제 및 목적 설정', '세부 일정 수립', '필요 자원·예산 파악', '담당자 배정', '실행 및 점검'],
+    joint: ['전체 사역 개요 파악', '내 담당 영역 확인', '담당 부분 준비', '팀과 일정 조율', '실행 및 피드백 공유'],
+    blank: ['초기 기획 수립']
+};
+
+function openNewProjectModal() {
+    const input = document.getElementById('new-project-title-input');
+    if (input) input.value = '';
+    document.getElementById('new-project-modal').classList.add('show');
+    if (input) input.focus();
+}
+
+function createProjectFromTemplate(type) {
+    const titleInput = document.getElementById('new-project-title-input');
+    const title = titleInput.value.trim();
+    if (!title) {
+        alert('사역 이름을 먼저 입력해주세요.');
+        titleInput.focus();
+        return;
+    }
+    const subtaskTexts = PROJECT_TEMPLATES[type] || PROJECT_TEMPLATES.blank;
+    const subtasks = subtaskTexts.map((text, i) => ({ id: 'st_' + Date.now() + '_' + i, text, done: false }));
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+    window.state.projects.push({ id: 'p_' + Date.now(), title, start: dateStr, end: dateStr, completed: false, subtasks });
     renderProjects(); window.syncToCloud();
+    closeModal('new-project-modal');
 }
 
 function handleSubTaskEnter(projectId, inputEl, event) {
