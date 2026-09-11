@@ -428,7 +428,7 @@
                         <h3 class="text-sm font-bold text-[var(--text-main)]">PDF·뉴스 기사 AI 요약 아카이빙</h3>
                     </div>
                     <p class="text-[11px] text-[var(--text-sub)]">PDF를 올리거나 뉴스 기사·글을 붙여넣으면, AI가 제목과 요약을 깔끔하게 정리해 서재에 저장해요. 원문은 저장하지 않고 처리 후 바로 버려요.</p>
-                    <input type="file" id="pdf-upload-input" accept="application/pdf" onchange="handlePdfUpload(event)" class="w-full text-xs text-[var(--text-main)] file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:primary-badge file:cursor-pointer cursor-pointer">
+                    <input type="file" id="pdf-upload-input" accept="application/pdf" multiple onchange="handlePdfUpload(event)" class="w-full text-xs text-[var(--text-main)] file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:primary-badge file:cursor-pointer cursor-pointer">
                     <div class="flex items-center gap-2 text-[10px] text-[var(--text-sub)] font-bold uppercase tracking-widest">
                         <div class="flex-1 h-px bg-[var(--border-color)]"></div>
                         또는

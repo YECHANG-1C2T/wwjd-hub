@@ -1330,7 +1330,8 @@ function renderResearchResults() {
                     <a href="${p.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-[10px] font-mono-code text-[var(--text-sub)] hover:text-[var(--primary)] font-bold shrink-0">원문 ↗</a>
                 </div>
                 <h4 class="font-bold text-xs text-[var(--text-main)] leading-snug">${p.titleKo}</h4>
-                <span class="text-[10px] text-[var(--text-sub)] truncate">${p.titleEn}${p.authors ? ' · ' + p.authors : ''}</span>
+                ${p.authors ? `<span class="text-[10px] text-[var(--primary)] font-bold truncate">✍️ ${escapeAttr(p.authors)}</span>` : ''}
+                <span class="text-[10px] text-[var(--text-sub)] truncate">${p.titleEn}</span>
                 ${p.summaryKo ? `<span class="text-[9px] text-[var(--primary)] font-bold mt-0.5">${isOpen ? '요약 접기 ▲' : '요약 보기 ▼'}</span>` : ''}
             </div>${summaryHtml}`;
         grid.appendChild(card);
@@ -1487,10 +1488,26 @@ async function archiveWithAISummary(rawText, catLabel) {
     }
 }
 
+async function extractPdfText(file, statusEl, fileLabel) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+        if (statusEl) statusEl.innerText = `${fileLabel}PDF 읽는 중... (${i}/${pdf.numPages}쪽)`;
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        fullText += textContent.items.map(it => it.str).join(' ') + '\n\n';
+    }
+    return fullText.trim();
+}
+
+/* 한 번에 여러 PDF를 선택할 수 있고, 하나씩 순서대로(동시에 X) 처리한다.
+   동시에 여러 건을 AI에 보내면 분당 요청 한도에 더 쉽게 걸리기 때문에,
+   느리더라도 순차 처리가 더 안정적이다. */
 async function handlePdfUpload(event) {
-    const file = event.target.files[0];
+    const files = Array.from(event.target.files || []);
     const statusEl = document.getElementById('pdf-upload-status');
-    if (!file) return;
+    if (files.length === 0) return;
 
     if (typeof pdfjsLib === 'undefined') {
         if (statusEl) statusEl.innerText = 'PDF 처리 도구를 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
@@ -1498,30 +1515,27 @@ async function handlePdfUpload(event) {
     }
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    if (statusEl) statusEl.innerText = 'PDF 읽는 중...';
-    try {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let fullText = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
-            if (statusEl) statusEl.innerText = `PDF 읽는 중... (${i}/${pdf.numPages}쪽)`;
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            fullText += textContent.items.map(it => it.str).join(' ') + '\n\n';
+    let successCount = 0;
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileLabel = files.length > 1 ? `[${i + 1}/${files.length}] ${file.name} · ` : '';
+        try {
+            if (statusEl) statusEl.innerText = `${fileLabel}PDF 읽는 중...`;
+            const fullText = await extractPdfText(file, statusEl, fileLabel);
+            if (!fullText) {
+                if (statusEl) statusEl.innerText = `${fileLabel}텍스트를 추출하지 못했어요 (스캔 이미지로 된 PDF일 수 있어요).`;
+                continue;
+            }
+            if (statusEl) statusEl.innerText = `${fileLabel}AI가 정리하는 중...`;
+            await archiveWithAISummary(fullText, 'PDF 자료');
+            successCount++;
+        } catch (e) {
+            console.error('PDF 처리 실패:', e);
+            if (statusEl) statusEl.innerText = `${fileLabel}처리 중 오류가 발생했어요.`;
         }
-        fullText = fullText.trim();
-
-        if (!fullText) {
-            if (statusEl) statusEl.innerText = '텍스트를 추출하지 못했어요 (스캔 이미지로 된 PDF일 수 있어요).';
-            return;
-        }
-        await archiveWithAISummary(fullText, 'PDF 자료');
-    } catch (e) {
-        console.error('PDF 처리 실패:', e);
-        if (statusEl) statusEl.innerText = 'PDF 처리 중 오류가 발생했어요.';
-    } finally {
-        event.target.value = '';
     }
+    if (statusEl && files.length > 1) statusEl.innerText = `${files.length}개 중 ${successCount}개 서재에 저장 완료!`;
+    event.target.value = '';
 }
 
 async function handleArticlePaste() {
