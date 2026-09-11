@@ -1254,9 +1254,10 @@ function editLinkCategory(id) {
 function reorderLinks(draggedId, targetId) {
     const links = window.state.links;
     const fromIdx = links.findIndex(l => l.id === draggedId);
-    const toIdx = links.findIndex(l => l.id === targetId);
-    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+    const target = links.find(l => l.id === targetId);
+    if (fromIdx === -1 || !target || draggedId === targetId) return;
     const [moved] = links.splice(fromIdx, 1);
+    if (moved.cat !== target.cat) moved.cat = target.cat; // 다른 카테고리 카드 위에 놓으면 그 카테고리로 옮긴다
     links.splice(links.findIndex(l => l.id === targetId), 0, moved);
     renderLinkBoard();
     window.syncToCloud();
