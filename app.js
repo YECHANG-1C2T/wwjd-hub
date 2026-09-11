@@ -1999,7 +1999,7 @@ function renderChatMessages() {
     const container = document.getElementById('chat-messages');
     if (!container) return;
     if (chatHistory.length === 0) {
-        container.innerHTML = `<p class="text-xs text-[var(--text-sub)] text-center py-8">무엇이든 편하게 물어보세요.</p>`;
+        container.innerHTML = `<p class="text-xs text-[var(--text-sub)] text-center py-8">일정·할일·사역현황에 대해 물어보거나, "2시에 회의 잡아줘"처럼 등록도 시켜보세요.</p>`;
         return;
     }
     container.innerHTML = chatHistory.map(m => `
@@ -2032,7 +2032,7 @@ function buildChatSystemInstruction() {
         return `- ${p.title} (기간: ${p.start}~${p.end}, 세부과제 ${done}/${total} 완료)`;
     }).join('\n') || '없음';
 
-    return `당신은 "임예창의 사역공간"이라는 개인 목회 대시보드에 내장된 AI 비서입니다. 아래는 목사님의 실제 최신 데이터입니다. 일정·할일·사역 진행상황에 관한 질문에는 이 데이터를 근거로 답하고, 데이터에 없는 내용은 추측하지 말고 모른다고 답하세요. 그 외의 질문에는 평소처럼 자유롭게 답해도 됩니다.
+    return `당신은 "임예창의 사역공간"이라는 개인 목회 대시보드에 내장된 AI 비서입니다. 이 대시보드의 오늘의 걸음(할일)·주간일정표·사역현황(진행 중인 사역)에 관한 질문과 일정 등록 요청에만 답하세요. 아래는 실제 최신 데이터입니다. 이 데이터를 근거로 답하고, 데이터에 없는 내용은 추측하지 말고 모른다고 답하세요. 위 세 가지와 무관한 일반 질문(날씨, 상식, 잡담 등)을 받으면, "저는 이 홈페이지의 일정·할일·사역현황만 도와드릴 수 있어요"라고 정중히 안내하고 답변을 거절하세요.
 
 [오늘(${todayStr}) 오늘의 걸음]
 ${todayTodos}
