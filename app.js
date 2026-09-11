@@ -1173,13 +1173,44 @@ let openSetlistId = null;
 function addDraftSong() {
     const titleInput = document.getElementById('setlist-song-title-input');
     const keyInput = document.getElementById('setlist-song-key-input');
+    const flowInput = document.getElementById('setlist-song-flow-input');
     const linkInput = document.getElementById('setlist-song-link-input');
     const title = titleInput.value.trim();
     if (!title) return;
-    setlistDraftSongs.push({ id: 'sg_' + Date.now(), title, key: keyInput.value.trim(), link: linkInput.value.trim() });
+    setlistDraftSongs.push({ id: 'sg_' + Date.now(), title, key: keyInput.value.trim(), flow: flowInput.value.trim(), link: linkInput.value.trim() });
     renderDraftSongs();
-    titleInput.value = ''; keyInput.value = ''; linkInput.value = '';
+    titleInput.value = ''; keyInput.value = ''; flowInput.value = ''; linkInput.value = '';
     titleInput.focus();
+}
+
+/* 송폼(가사/코드지) 파일을 Firebase Storage에 올리고, 받은 링크를 곡 링크
+   입력칸에 자동으로 채워준다 — 파일 자체를 Firestore에 넣으면 문서 용량
+   한도를 바로 넘기기 때문에, 파일 보관은 Storage에, 그 주소만 데이터에
+   남기는 방식이다. */
+async function handleSongFormUpload(event) {
+    const file = event.target.files[0];
+    const statusEl = document.getElementById('song-form-upload-status');
+    if (!file) return;
+    if (typeof firebase === 'undefined' || typeof firebase.storage !== 'function') {
+        if (statusEl) statusEl.innerText = '파일 첨부 기능이 아직 준비되지 않았어요.';
+        event.target.value = '';
+        return;
+    }
+    if (statusEl) statusEl.innerText = '업로드 중...';
+    try {
+        const path = 'songforms/' + Date.now() + '_' + file.name;
+        const storageRef = firebase.storage().ref().child(path);
+        await storageRef.put(file);
+        const url = await storageRef.getDownloadURL();
+        const linkInput = document.getElementById('setlist-song-link-input');
+        if (linkInput) linkInput.value = url;
+        if (statusEl) statusEl.innerText = `"${file.name}" 업로드 완료! 링크가 자동으로 채워졌어요.`;
+    } catch (e) {
+        console.error('송폼 업로드 실패:', e);
+        if (statusEl) statusEl.innerText = '업로드에 실패했어요. Storage 설정이 필요할 수 있어요.';
+    } finally {
+        event.target.value = '';
+    }
 }
 
 function removeDraftSong(id) {
@@ -1208,6 +1239,7 @@ function renderDraftSongs() {
             <span class="text-xs font-mono-code font-bold text-[var(--primary)] w-5 shrink-0">${i + 1}</span>
             <div class="min-w-0 flex-1">
                 <span class="font-bold text-sm text-[var(--text-main)] block truncate">${escapeAttr(s.title)}${s.key ? ` <span class="text-[var(--text-sub)] font-mono-code">(Key ${escapeAttr(s.key)})</span>` : ''}</span>
+                ${s.flow ? `<span class="text-[10px] text-[var(--primary)] font-mono-code block truncate">${escapeAttr(s.flow)}</span>` : ''}
                 ${s.link ? `<a href="${escapeAttr(s.link)}" target="_blank" rel="noopener" class="text-[10px] text-[var(--text-sub)] hover:text-[var(--primary)] truncate block">${escapeAttr(s.link)}</a>` : ''}
             </div>
             <div class="flex items-center gap-1 shrink-0">
@@ -1249,6 +1281,7 @@ function buildSetlistShareText(setlist) {
     let text = `🎵 ${setlist.title} 찬양콘티\n\n`;
     setlist.songs.forEach((s, i) => {
         text += `${i + 1}. ${s.title}${s.key ? ' (Key ' + s.key + ')' : ''}\n`;
+        if (s.flow) text += `   ${s.flow}\n`;
         if (s.link) text += `   ${s.link}\n`;
     });
     return text.trim();
@@ -1278,10 +1311,13 @@ function renderSetlists() {
         const songsHtml = isOpen ? `
             <div class="mt-3 pt-3 border-t border-[var(--border-color)] space-y-1.5">
                 ${s.songs.map((sg, i) => `
-                    <div class="flex items-center gap-2 text-xs">
-                        <span class="font-mono-code font-bold text-[var(--primary)] w-4 shrink-0">${i + 1}</span>
-                        <span class="text-[var(--text-main)] font-semibold flex-1 min-w-0 truncate">${escapeAttr(sg.title)}${sg.key ? ' (Key ' + escapeAttr(sg.key) + ')' : ''}</span>
-                        ${sg.link ? `<a href="${escapeAttr(sg.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-[var(--text-sub)] hover:text-[var(--primary)] text-[10px] shrink-0">송폼 ↗</a>` : ''}
+                    <div class="text-xs py-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono-code font-bold text-[var(--primary)] w-4 shrink-0">${i + 1}</span>
+                            <span class="text-[var(--text-main)] font-semibold flex-1 min-w-0 truncate">${escapeAttr(sg.title)}${sg.key ? ' (Key ' + escapeAttr(sg.key) + ')' : ''}</span>
+                            ${sg.link ? `<a href="${escapeAttr(sg.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-[var(--text-sub)] hover:text-[var(--primary)] text-[10px] shrink-0">송폼 ↗</a>` : ''}
+                        </div>
+                        ${sg.flow ? `<div class="pl-6 text-[10px] text-[var(--primary)] font-mono-code truncate">${escapeAttr(sg.flow)}</div>` : ''}
                     </div>
                 `).join('')}
                 <div class="flex gap-2 pt-2">

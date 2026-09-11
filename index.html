@@ -19,6 +19,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
     <!-- PDF 텍스트 추출 (생각의 서재 PDF 아카이빙용, 전부 브라우저 안에서 처리 — 비용 없음) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -361,11 +362,21 @@
                 </div>
                 <input type="text" id="setlist-title-input" placeholder="콘티 이름 (예: 9월 둘째주 주일예배)" class="w-full p-3 text-sm bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-bold">
                 <div id="setlist-draft-songs" class="space-y-2"></div>
-                <div class="flex flex-col sm:flex-row gap-2 p-3 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl">
-                    <input type="text" id="setlist-song-title-input" placeholder="곡명" class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none">
-                    <input type="text" id="setlist-song-key-input" placeholder="키 (예: G)" class="sm:w-24 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none">
-                    <input type="text" id="setlist-song-link-input" placeholder="가사/코드지 링크 (선택)" class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addDraftSong()">
-                    <button onclick="addDraftSong()" class="px-4 py-2.5 primary-badge text-xs font-black rounded-lg shrink-0">+ 곡 추가</button>
+                <div class="p-3 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl space-y-2">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="setlist-song-title-input" placeholder="곡명" class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none">
+                        <input type="text" id="setlist-song-key-input" placeholder="키 (예: G)" class="sm:w-24 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none">
+                    </div>
+                    <input type="text" id="setlist-song-flow-input" placeholder="곡 진행 순서 (예: V1-C-V2-C-V3-C-C-B-C(key up)-rit)" class="w-full p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none font-mono-code">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="setlist-song-link-input" placeholder="가사/코드지 링크 (선택)" class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addDraftSong()">
+                        <label class="px-4 py-2.5 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg text-xs font-bold text-[var(--text-main)] hover:border-[var(--primary)] cursor-pointer flex items-center justify-center gap-1.5 shrink-0" title="송폼(가사/코드지) 파일 올리기">
+                            📎 송폼 첨부
+                            <input type="file" id="setlist-song-file-input" accept="image/*,application/pdf" class="hidden" onchange="handleSongFormUpload(event)">
+                        </label>
+                    </div>
+                    <p id="song-form-upload-status" class="text-[10px] text-[var(--text-sub)]"></p>
+                    <button onclick="addDraftSong()" class="w-full px-4 py-2.5 primary-badge text-xs font-black rounded-lg">+ 곡 추가</button>
                 </div>
                 <button onclick="saveSetlist()" class="w-full px-4 py-3 primary-badge text-sm font-black rounded-xl">콘티 저장</button>
             </div>
