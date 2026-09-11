@@ -5,6 +5,10 @@
 const db = firebase.firestore();
 const appDocRef = db.collection('ministry_data').doc('master_workspace');
 const visitRequestsRef = db.collection('visit_requests');
+const visitSettingsRef = db.collection('visit_settings').doc('availability');
+const visitSlotsRef = db.collection('visit_slots');
+const VISIT_DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const VISIT_DAY_LABELS = { mon: '월', tue: '화', wed: '수', thu: '목', fri: '금', sat: '토', sun: '일' };
 
 /* 구글 캘린더 주간 일정을 주간일정표 각 요일 칸에 함께 표시하기 위한 설정.
    API 키를 발급받아 아래에 붙여넣기 전까지는 조용히 건너뛴다(주간일정표는
@@ -66,6 +70,9 @@ let openAccordionId = null;
 let currentMemoCat = '전체';
 let visitRequests = [];
 let visitFilterStatus = '전체';
+let visitSubView = 'list';
+let visitCalWeekOffset = 0;
+let visitAvailability = { startHour: 9, endHour: 21, available: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } };
 
 /* 페이지를 막 열었을 때(로그인 직후) 클라우드에서 진짜 데이터가 도착하기 전까지는
    window.state가 아직 기본 예시값(defaultTodos 등)인 상태다. 이 짧은 순간에 뭔가를
@@ -92,6 +99,7 @@ let cloudSyncStarted = false;
 function startCloudSync() {
     if (cloudSyncStarted) return;
     startVisitRequestsSync();
+    startVisitAvailabilitySync();
     cloudSyncStarted = true;
     appDocRef.onSnapshot((doc) => {
         initialSnapshotReceived = true;
@@ -141,9 +149,29 @@ function setVisitFilter(status) {
     renderVisitRequests();
 }
 
+function setVisitSubView(view) {
+    visitSubView = view;
+    ['list', 'calendar'].forEach(v => {
+        const panel = document.getElementById('visit-panel-' + v);
+        if (panel) panel.style.display = (v === view) ? '' : 'none';
+    });
+    document.querySelectorAll('.visit-sub-tab-btn').forEach(btn => {
+        const isActive = btn.getAttribute('onclick').includes("'" + view + "'");
+        btn.className = "visit-sub-tab-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap " + (isActive ? 'primary-badge' : 'text-[var(--text-sub)] bg-[var(--primary-light)]');
+    });
+    if (view === 'calendar') renderVisitCalendar();
+}
+
 function formatVisitTimestamp(ts) {
     if (!ts || typeof ts.toDate !== 'function') return '방금 전';
     return ts.toDate().toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function formatVisitSlot(dateStr, timeStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    const label = `${d.getMonth() + 1}.${d.getDate()}(${VISIT_DAY_LABELS[VISIT_DAY_KEYS[(d.getDay() + 6) % 7]]})`;
+    return timeStr ? `${label} ${timeStr}` : label;
 }
 
 function renderVisitRequests() {
@@ -189,7 +217,7 @@ function renderVisitRequests() {
             </div>
             <div class="text-xs text-[var(--text-main)] space-y-1">
                 ${r.phone ? `<div>📞 <a href="tel:${escapeHtml(r.phone)}" class="text-[var(--primary)] font-bold underline">${escapeHtml(r.phone)}</a></div>` : ''}
-                ${(r.preferredDate || r.preferredTime) ? `<div>🗓️ 희망 일시: ${escapeHtml(r.preferredDate || '')} ${escapeHtml(r.preferredTime || '')}</div>` : ''}
+                ${r.slotDate ? `<div>🗓️ 신청 일시: ${escapeHtml(formatVisitSlot(r.slotDate, r.slotTime))}</div>` : ''}
                 ${r.reason ? `<div class="text-[var(--text-sub)]">💬 ${escapeHtml(r.reason)}</div>` : ''}
             </div>
             <div class="flex gap-2 pt-1">
@@ -200,6 +228,8 @@ function renderVisitRequests() {
             </div>
         </div>
     `).join('');
+
+    renderVisitCalendar();
 }
 
 function markVisitStatus(id, status) {
@@ -207,14 +237,176 @@ function markVisitStatus(id, status) {
 }
 
 function deleteVisitRequest(id) {
-    if (!confirm('이 심방신청 내역을 삭제할까요?')) return;
+    if (!confirm('이 심방신청 내역을 삭제할까요? 신청 시간대도 다시 예약 가능하게 풀립니다.')) return;
+    const r = visitRequests.find(v => v.id === id);
     visitRequestsRef.doc(id).delete();
+    if (r && r.slotDate && r.slotTime) {
+        visitSlotsRef.doc(r.slotDate + '_' + r.slotTime).delete().catch(() => {});
+    }
 }
 
 function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+}
+
+/* ==========================================================================
+   [심방신청 가능시간 설정] 요일×시간 반복 템플릿 (visit_settings/availability)
+   ========================================================================== */
+let visitAvailabilitySyncStarted = false;
+function startVisitAvailabilitySync() {
+    if (visitAvailabilitySyncStarted) return;
+    visitAvailabilitySyncStarted = true;
+    visitSettingsRef.onSnapshot((doc) => {
+        if (doc.exists) {
+            const d = doc.data();
+            visitAvailability = {
+                startHour: d.startHour || 9,
+                endHour: d.endHour || 21,
+                available: Object.assign({ mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }, d.available || {})
+            };
+        }
+        renderVisitCalendar();
+    }, (err) => console.warn('가능시간 설정 로드 실패:', err));
+}
+
+function toggleAvailabilitySlot(day, hour) {
+    const arr = visitAvailability.available[day] || (visitAvailability.available[day] = []);
+    const idx = arr.indexOf(hour);
+    if (idx >= 0) arr.splice(idx, 1); else arr.push(hour);
+    visitSettingsRef.set(visitAvailability, { merge: true });
+    renderVisitCalendar();
+}
+
+/* 달력 칸 클릭 → 예약 확인/완료/삭제, 또는 빈 칸에 이름을 적어 바로 예약 추가 */
+function openVisitCell(dateStr, hour) {
+    const timeStr = String(hour).padStart(2, '0') + ':00';
+    const booking = visitRequests.find(r => r.slotDate === dateStr && r.slotTime === timeStr);
+    const d = new Date(dateStr + 'T00:00:00');
+    const dayKey = VISIT_DAY_KEYS[(d.getDay() + 6) % 7];
+    const dateLabel = `${d.getMonth() + 1}월 ${d.getDate()}일(${VISIT_DAY_LABELS[dayKey]}) ${hour}시`;
+
+    document.getElementById('visit-cell-modal-title').textContent = dateLabel;
+    const sub = document.getElementById('visit-cell-modal-sub');
+    const body = document.getElementById('visit-cell-modal-body');
+
+    if (booking) {
+        sub.textContent = booking.status === '완료' ? '완료된 예약이에요' : '예약이 잡혀있어요';
+        body.innerHTML = `
+            <div class="p-3 bg-[var(--primary-light)] rounded-xl border border-[var(--border-color)] text-xs space-y-1 mb-4">
+                <div class="font-black text-sm text-[var(--text-main)]">${escapeHtml(booking.name || '')}</div>
+                ${booking.phone ? `<div>📞 <a href="tel:${escapeHtml(booking.phone)}" class="text-[var(--primary)] font-bold underline">${escapeHtml(booking.phone)}</a></div>` : ''}
+                ${booking.group ? `<div>🏷️ ${escapeHtml(booking.group)}</div>` : ''}
+                ${booking.reason ? `<div class="text-[var(--text-sub)]">💬 ${escapeHtml(booking.reason)}</div>` : ''}
+            </div>
+            <div class="flex gap-2">
+                ${booking.status === '완료'
+                    ? `<button onclick="markVisitStatus('${booking.id}','신규'); closeVisitCellModal();" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)]">다시 신규로</button>`
+                    : `<button onclick="markVisitStatus('${booking.id}','완료'); closeVisitCellModal();" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg primary-badge">완료 처리</button>`}
+                <button onclick="deleteVisitRequest('${booking.id}'); closeVisitCellModal();" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-sub)] hover:text-red-500">삭제</button>
+            </div>
+        `;
+    } else {
+        const isOpen = (visitAvailability.available[dayKey] || []).includes(hour);
+        sub.textContent = isOpen ? '지금은 청년들에게 신청 가능하게 열려있어요' : '지금은 막혀있는 시간이에요';
+        body.innerHTML = `
+            <input type="text" id="visit-cell-name-input" placeholder="이름을 입력하면 바로 예약돼요" class="w-full p-2.5 text-xs bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none mb-3" onkeypress="if(event.key==='Enter') addManualVisitBooking('${dateStr}','${timeStr}')">
+            <div class="flex gap-2">
+                <button onclick="addManualVisitBooking('${dateStr}','${timeStr}')" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg primary-badge">이름 넣고 예약</button>
+                <button onclick="toggleAvailabilitySlot('${dayKey}', ${hour}); closeVisitCellModal();" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)]">${isOpen ? '이 시간 막기' : '이 시간 열기'}</button>
+            </div>
+        `;
+    }
+
+    document.getElementById('visit-cell-modal').classList.add('show');
+    setTimeout(() => { const input = document.getElementById('visit-cell-name-input'); if (input) input.focus(); }, 50);
+}
+
+function closeVisitCellModal() {
+    document.getElementById('visit-cell-modal').classList.remove('show');
+}
+
+function addManualVisitBooking(dateStr, timeStr) {
+    const input = document.getElementById('visit-cell-name-input');
+    const name = input ? input.value.trim() : '';
+    if (!name) { if (input) input.focus(); return; }
+
+    const slotRef = visitSlotsRef.doc(dateStr + '_' + timeStr);
+    const requestRef = visitRequestsRef.doc();
+    db.runTransaction((tx) => tx.get(slotRef).then((slotDoc) => {
+        if (slotDoc.exists) throw new Error('SLOT_TAKEN');
+        tx.set(slotRef, { date: dateStr, time: timeStr, requestId: requestRef.id });
+        tx.set(requestRef, {
+            name: name, phone: '', group: '', reason: '',
+            slotDate: dateStr, slotTime: timeStr,
+            status: '신규', source: 'manual',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    })).then(() => closeVisitCellModal())
+        .catch((err) => {
+            console.warn('수동 예약 추가 실패:', err);
+            alert('이미 예약된 시간이에요. 잠시 후 다시 시도해주세요.');
+            closeVisitCellModal();
+        });
+}
+
+/* ==========================================================================
+   [심방신청 달력] 이번 주 기준 예약 현황 그리드
+   ========================================================================== */
+function getVisitWeekDates(offsetWeeks) {
+    const now = new Date();
+    const mondayOffset = now.getDay() === 0 ? -6 : 1 - now.getDay();
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset + offsetWeeks * 7);
+    return VISIT_DAY_KEYS.map((key, i) => {
+        const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return { key, dateObj: d, dateStr, label: `${d.getMonth() + 1}.${d.getDate()}` };
+    });
+}
+
+function shiftVisitCalWeek(delta) {
+    visitCalWeekOffset += delta;
+    renderVisitCalendar();
+}
+
+function renderVisitCalendar() {
+    const el = document.getElementById('visit-calendar-grid');
+    if (!el || visitSubView !== 'calendar') return;
+    const days = getVisitWeekDates(visitCalWeekOffset);
+    const rangeEl = document.getElementById('visit-cal-range');
+    if (rangeEl) rangeEl.textContent = `${days[0].label} ~ ${days[6].label}`;
+
+    const hours = [];
+    for (let h = visitAvailability.startHour; h < visitAvailability.endHour; h++) hours.push(h);
+
+    const bookedMap = {};
+    visitRequests.forEach(r => {
+        if (r.slotDate && r.slotTime) bookedMap[r.slotDate + '_' + parseInt(r.slotTime)] = r;
+    });
+
+    let html = `<div class="grid gap-1" style="grid-template-columns: 44px repeat(7, minmax(64px, 1fr)); min-width: 620px;">`;
+    html += '<div></div>' + days.map(d => `<div class="text-center pb-1"><div class="text-[10px] font-black text-[var(--text-sub)]">${VISIT_DAY_LABELS[d.key]}</div><div class="text-[9px] font-mono-code text-[var(--text-sub)]">${d.label}</div></div>`).join('');
+    hours.forEach(h => {
+        html += `<div class="text-[9px] font-mono-code font-bold text-[var(--text-sub)] flex items-center justify-end pr-1">${h}시</div>`;
+        days.forEach(d => {
+            const open = (visitAvailability.available[d.key] || []).includes(h);
+            const booking = bookedMap[d.dateStr + '_' + h];
+            let cls = 'h-9 rounded-md flex items-center justify-center text-[9px] font-bold leading-tight px-0.5 overflow-hidden text-center cursor-pointer transition-transform active:scale-95 ';
+            let label = '';
+            if (booking) {
+                cls += booking.status === '완료' ? 'bg-[var(--border-color)] text-[var(--text-sub)]' : 'bg-[var(--primary)] text-white';
+                label = escapeHtml(booking.name || '');
+            } else if (open) {
+                cls += 'bg-emerald-400/40 hover:bg-emerald-400/60';
+            } else {
+                cls += 'bg-[var(--wash)] hover:bg-[var(--border-color)]';
+            }
+            html += `<div class="${cls}" onclick="openVisitCell('${d.dateStr}', ${h})" title="${booking ? escapeAttr(booking.name) + (booking.phone ? ' · ' + escapeAttr(booking.phone) : '') : ''}">${label}</div>`;
+        });
+    });
+    html += '</div>';
+    el.innerHTML = html;
 }
 
 /* ==========================================================================
@@ -2212,3 +2404,4 @@ renderMemos();
 renderThoughts();
 renderSetlists();
 renderDraftSongs();
+setVisitSubView('list');

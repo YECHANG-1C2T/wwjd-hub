@@ -232,14 +232,46 @@
                         신청 페이지 링크: <a href="apply/" target="_blank" class="text-[var(--primary)] underline">apply/</a>
                     </div>
                 </div>
-                <div class="flex gap-2" id="visit-filter-tabs">
-                    <button onclick="setVisitFilter('전체')" class="visit-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">전체</button>
-                    <button onclick="setVisitFilter('신규')" class="visit-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">신규</button>
-                    <button onclick="setVisitFilter('완료')" class="visit-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">완료</button>
+                <div class="flex gap-2" id="visit-sub-tabs">
+                    <button onclick="setVisitSubView('list')" class="visit-sub-tab-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">목록</button>
+                    <button onclick="setVisitSubView('calendar')" class="visit-sub-tab-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">주간 달력</button>
                 </div>
-                <div id="visit-requests-list" class="space-y-3"></div>
+
+                <!-- 목록 패널 -->
+                <div id="visit-panel-list" class="visit-panel space-y-4">
+                    <div class="flex gap-2" id="visit-filter-tabs">
+                        <button onclick="setVisitFilter('전체')" class="visit-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">전체</button>
+                        <button onclick="setVisitFilter('신규')" class="visit-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">신규</button>
+                        <button onclick="setVisitFilter('완료')" class="visit-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">완료</button>
+                    </div>
+                    <div id="visit-requests-list" class="space-y-3"></div>
+                </div>
+
+                <!-- 주간 달력 패널: 가능시간 표시 + 예약된 이름 표시 + 빈 칸 클릭해서 직접 이름 입력 가능 -->
+                <div id="visit-panel-calendar" class="visit-panel space-y-4" style="display:none;">
+                    <div class="flex justify-between items-center">
+                        <button onclick="shiftVisitCalWeek(-1)" class="w-7 h-7 flex items-center justify-center rounded-full text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] font-black text-base shrink-0">‹</button>
+                        <span id="visit-cal-range" class="text-xs font-bold text-[var(--text-main)] font-mono-code"></span>
+                        <button onclick="shiftVisitCalWeek(1)" class="w-7 h-7 flex items-center justify-center rounded-full text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] font-black text-base shrink-0">›</button>
+                    </div>
+                    <div class="flex flex-wrap gap-3 text-[10px] text-[var(--text-sub)] font-bold">
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block bg-emerald-400/70"></span>가능 (눌러서 이름 입력/막기)</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block bg-[var(--wash)] border border-[var(--border-color)]"></span>비활성 (눌러서 열기)</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm inline-block bg-[var(--primary)]"></span>예약됨 (눌러서 확인)</span>
+                    </div>
+                    <div id="visit-calendar-grid" class="visit-grid-scroll"></div>
+                </div>
             </div>
         </section>
+
+        <!-- 심방신청 달력 칸 클릭 모달 -->
+        <div id="visit-cell-modal" class="modal-overlay" onclick="closeVisitCellModal()">
+            <div class="modal-content" onclick="event.stopPropagation()" style="max-width:360px;">
+                <h3 id="visit-cell-modal-title" class="font-black text-base text-[var(--text-main)] mb-1">시간대</h3>
+                <p id="visit-cell-modal-sub" class="text-xs text-[var(--text-sub)] font-semibold mb-4"></p>
+                <div id="visit-cell-modal-body"></div>
+            </div>
+        </div>
 
         <!-- ================= [2] 일정 화면 ================= -->
         <section id="view-calendar" class="page-view space-y-6 md:space-y-8">
