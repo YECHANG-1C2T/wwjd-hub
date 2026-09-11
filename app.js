@@ -54,7 +54,8 @@ window.state = {
     projects: defaultProjects,
     links: defaultLinks,
     memos: [{ id: 'm1', cat: '교회 공통', title: '하반기 목회 계획', date: '2026.08.28', content: '소그룹 모임 장소 재배치 논의 완료.' }],
-    thoughts: [{ id: 'th1', cat: '설교착상', stage: '숙성', title: '팀켈러 일과 영성', createdAt: '2026.08.28 15:58', updatedAt: '2026.08.28 15:58', content: '<h1>소명으로서의 일터</h1><p>복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 <mark>거룩한 소명의 자리</mark>로 변화시킨다.</p>' }]
+    thoughts: [{ id: 'th1', cat: '설교착상', stage: '숙성', title: '팀켈러 일과 영성', createdAt: '2026.08.28 15:58', updatedAt: '2026.08.28 15:58', content: '<h1>소명으로서의 일터</h1><p>복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 <mark>거룩한 소명의 자리</mark>로 변화시킨다.</p>' }],
+    setlists: []
 };
 
 let currentActiveThoughtId = null;
@@ -99,6 +100,7 @@ function startCloudSync() {
             if (data.links && data.links.length > 0) window.state.links = data.links;
             if (data.memos) window.state.memos = data.memos;
             if (data.thoughts) window.state.thoughts = data.thoughts;
+            if (data.setlists) window.state.setlists = data.setlists;
             if (data.theme) window.state.theme = data.theme;
             if (data.thoughtZoom) window.state.thoughtZoom = data.thoughtZoom;
 
@@ -112,6 +114,7 @@ function startCloudSync() {
             renderLinkBoard();
             renderMemos();
             renderThoughts();
+            renderSetlists();
         }
     });
 }
@@ -1161,6 +1164,145 @@ function reorderLinks(draggedId, targetId) {
     window.syncToCloud();
 }
 
+/* ==========================================================================
+   [찬양콘티]
+   ========================================================================== */
+let setlistDraftSongs = [];
+let openSetlistId = null;
+
+function addDraftSong() {
+    const titleInput = document.getElementById('setlist-song-title-input');
+    const keyInput = document.getElementById('setlist-song-key-input');
+    const linkInput = document.getElementById('setlist-song-link-input');
+    const title = titleInput.value.trim();
+    if (!title) return;
+    setlistDraftSongs.push({ id: 'sg_' + Date.now(), title, key: keyInput.value.trim(), link: linkInput.value.trim() });
+    renderDraftSongs();
+    titleInput.value = ''; keyInput.value = ''; linkInput.value = '';
+    titleInput.focus();
+}
+
+function removeDraftSong(id) {
+    setlistDraftSongs = setlistDraftSongs.filter(s => s.id !== id);
+    renderDraftSongs();
+}
+
+function moveDraftSong(id, delta) {
+    const idx = setlistDraftSongs.findIndex(s => s.id === id);
+    const newIdx = idx + delta;
+    if (idx === -1 || newIdx < 0 || newIdx >= setlistDraftSongs.length) return;
+    const [item] = setlistDraftSongs.splice(idx, 1);
+    setlistDraftSongs.splice(newIdx, 0, item);
+    renderDraftSongs();
+}
+
+function renderDraftSongs() {
+    const container = document.getElementById('setlist-draft-songs');
+    if (!container) return;
+    if (setlistDraftSongs.length === 0) {
+        container.innerHTML = `<p class="text-xs text-[var(--text-sub)] py-1">아직 추가된 곡이 없어요.</p>`;
+        return;
+    }
+    container.innerHTML = setlistDraftSongs.map((s, i) => `
+        <div class="flex items-center gap-2 p-2.5 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl">
+            <span class="text-xs font-mono-code font-bold text-[var(--primary)] w-5 shrink-0">${i + 1}</span>
+            <div class="min-w-0 flex-1">
+                <span class="font-bold text-sm text-[var(--text-main)] block truncate">${escapeAttr(s.title)}${s.key ? ` <span class="text-[var(--text-sub)] font-mono-code">(Key ${escapeAttr(s.key)})</span>` : ''}</span>
+                ${s.link ? `<a href="${escapeAttr(s.link)}" target="_blank" rel="noopener" class="text-[10px] text-[var(--text-sub)] hover:text-[var(--primary)] truncate block">${escapeAttr(s.link)}</a>` : ''}
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+                <button onclick="moveDraftSong('${s.id}', -1)" class="text-[var(--text-sub)] hover:text-[var(--primary)] font-bold px-1" title="위로">▲</button>
+                <button onclick="moveDraftSong('${s.id}', 1)" class="text-[var(--text-sub)] hover:text-[var(--primary)] font-bold px-1" title="아래로">▼</button>
+                <button onclick="removeDraftSong('${s.id}')" class="text-red-400 font-bold px-1">✕</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function saveSetlist() {
+    const titleInput = document.getElementById('setlist-title-input');
+    const title = titleInput.value.trim();
+    if (!title) { alert('콘티 이름을 입력해주세요.'); titleInput.focus(); return; }
+    if (setlistDraftSongs.length === 0) { alert('곡을 최소 1개 이상 추가해주세요.'); return; }
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+    window.state.setlists.unshift({ id: 'sl_' + Date.now(), title, date: dateStr, songs: setlistDraftSongs });
+    setlistDraftSongs = [];
+    titleInput.value = '';
+    renderDraftSongs();
+    renderSetlists();
+    window.syncToCloud();
+}
+
+function deleteSetlist(id) {
+    window.state.setlists = window.state.setlists.filter(s => s.id !== id);
+    renderSetlists();
+    window.syncToCloud();
+}
+
+function toggleSetlistView(id) {
+    openSetlistId = openSetlistId === id ? null : id;
+    renderSetlists();
+}
+
+function buildSetlistShareText(setlist) {
+    let text = `🎵 ${setlist.title} 찬양콘티\n\n`;
+    setlist.songs.forEach((s, i) => {
+        text += `${i + 1}. ${s.title}${s.key ? ' (Key ' + s.key + ')' : ''}\n`;
+        if (s.link) text += `   ${s.link}\n`;
+    });
+    return text.trim();
+}
+
+function copySetlistText(id) {
+    const setlist = window.state.setlists.find(s => s.id === id);
+    if (!setlist) return;
+    const text = buildSetlistShareText(setlist);
+    navigator.clipboard.writeText(text).then(() => {
+        alert('복사했어요! 카톡 등에 붙여넣기 하시면 돼요.');
+    }).catch(() => {
+        alert('복사에 실패했어요. 직접 선택해서 복사해주세요.');
+    });
+}
+
+function renderSetlists() {
+    const container = document.getElementById('setlist-archive-list');
+    if (!container) return;
+    const list = window.state.setlists || [];
+    if (list.length === 0) {
+        container.innerHTML = `<p class="text-xs text-[var(--text-sub)] py-2">아직 저장된 콘티가 없어요.</p>`;
+        return;
+    }
+    container.innerHTML = list.map(s => {
+        const isOpen = openSetlistId === s.id;
+        const songsHtml = isOpen ? `
+            <div class="mt-3 pt-3 border-t border-[var(--border-color)] space-y-1.5">
+                ${s.songs.map((sg, i) => `
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="font-mono-code font-bold text-[var(--primary)] w-4 shrink-0">${i + 1}</span>
+                        <span class="text-[var(--text-main)] font-semibold flex-1 min-w-0 truncate">${escapeAttr(sg.title)}${sg.key ? ' (Key ' + escapeAttr(sg.key) + ')' : ''}</span>
+                        ${sg.link ? `<a href="${escapeAttr(sg.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-[var(--text-sub)] hover:text-[var(--primary)] text-[10px] shrink-0">송폼 ↗</a>` : ''}
+                    </div>
+                `).join('')}
+                <div class="flex gap-2 pt-2">
+                    <button onclick="event.stopPropagation(); copySetlistText('${s.id}')" class="flex-1 px-3 py-2 primary-badge text-[11px] font-black rounded-lg">📋 카톡용 텍스트 복사</button>
+                    <button onclick="event.stopPropagation(); deleteSetlist('${s.id}')" class="px-3 py-2 text-[11px] text-red-400 font-bold border border-[var(--border-color)] rounded-lg">삭제</button>
+                </div>
+            </div>` : '';
+        return `
+            <div class="glass-card p-4 cursor-pointer" onclick="toggleSetlistView('${s.id}')">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                        <h4 class="font-bold text-sm text-[var(--text-main)] truncate">${escapeAttr(s.title)}</h4>
+                        <span class="text-[10px] text-[var(--text-sub)] font-mono-code">${s.date} · ${s.songs.length}곡</span>
+                    </div>
+                    <span class="text-xs text-[var(--text-sub)] font-bold shrink-0">${isOpen ? '▲' : '▼'}</span>
+                </div>
+                ${songsHtml}
+            </div>`;
+    }).join('');
+}
+
 function renderMemos() {
     const list = document.getElementById('memo-archive-list');
     if (!list) return;
@@ -1914,3 +2056,5 @@ renderProjects();
 renderLinkBoard();
 renderMemos();
 renderThoughts();
+renderSetlists();
+renderDraftSongs();
