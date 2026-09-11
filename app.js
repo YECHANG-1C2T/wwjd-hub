@@ -1464,11 +1464,15 @@ ${rawText.slice(0, 80000)}`;
     return JSON.parse(jsonText);
 }
 
+/* 성공 여부를 반드시 boolean으로 돌려준다 — 예전엔 실패해도 예외를 안으로만
+   삼키고 아무것도 반환하지 않아서, 여러 파일을 순서대로 처리할 때 실패한
+   것까지 "성공"으로 세어버리는 버그가 있었다(5개 중 1개만 진짜 저장됐는데
+   "5개 저장 완료"라고 나온 사례). */
 async function archiveWithAISummary(rawText, catLabel) {
     const statusEl = document.getElementById('pdf-upload-status');
     if (!rawText || !rawText.trim()) {
         if (statusEl) statusEl.innerText = '내용이 비어있어요.';
-        return;
+        return false;
     }
     if (statusEl) statusEl.innerText = 'AI가 정리하는 중...';
     try {
@@ -1479,12 +1483,14 @@ async function archiveWithAISummary(rawText, catLabel) {
         window.state.thoughts.unshift({ id: 'th_' + Date.now(), cat: catLabel, stage: '씨앗', title, createdAt: timeStr, updatedAt: timeStr, content });
         renderThoughts(); window.syncToCloud();
         if (statusEl) statusEl.innerText = `"${title}" 서재에 저장 완료!`;
+        return true;
     } catch (e) {
         console.error('AI 아카이빙 실패:', e);
         if (window.aiStatus.archive.state !== 'error' && window.aiStatus.archive.state !== 'warn') {
             setAiStatus('archive', 'error', 'AI 요약에 실패했어요.');
         }
         if (statusEl) statusEl.innerText = e.message || 'AI 요약에 실패했어요.';
+        return false;
     }
 }
 
@@ -1519,6 +1525,7 @@ async function processPdfFileList(files) {
 
     let successCount = 0;
     for (let i = 0; i < files.length; i++) {
+        if (i > 0) await new Promise(r => setTimeout(r, 3000));
         const file = files[i];
         const fileLabel = files.length > 1 ? `[${i + 1}/${files.length}] ${file.name} · ` : '';
         try {
@@ -1529,8 +1536,8 @@ async function processPdfFileList(files) {
                 continue;
             }
             if (statusEl) statusEl.innerText = `${fileLabel}AI가 정리하는 중...`;
-            await archiveWithAISummary(fullText, 'PDF 자료');
-            successCount++;
+            const ok = await archiveWithAISummary(fullText, 'PDF 자료');
+            if (ok) successCount++;
         } catch (e) {
             console.error('PDF 처리 실패:', e);
             if (statusEl) statusEl.innerText = `${fileLabel}처리 중 오류가 발생했어요.`;
