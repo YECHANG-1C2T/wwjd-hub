@@ -650,12 +650,12 @@
                 <button onclick="forwardCurrentThoughtToSermon()" class="text-xs font-bold text-[var(--primary)] hover:underline">➔ 설교 아이디어로 전송</button>
             </div>
             
-            <h3 id="modal-thought-title" contenteditable="true" onblur="updateModalThoughtTitle(this.innerText)" class="text-lg font-black text-[var(--text-main)] mb-3 outline-none border-b border-transparent focus:border-[var(--primary)]"></h3>
-            
-            <div id="modal-text" contenteditable="true" onblur="updateModalThoughtContent(this.innerHTML)" class="min-h-[200px] max-h-[55vh] overflow-y-auto bg-[var(--primary-light)] p-5 rounded-2xl outline-none thought-body"></div>
-            
+            <h3 id="modal-thought-title" contenteditable="true" class="text-lg font-black text-[var(--text-main)] mb-3 outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text"></h3>
+
+            <div id="modal-text" contenteditable="true" class="min-h-[200px] max-h-[55vh] overflow-y-auto bg-[var(--primary-light)] p-5 rounded-2xl outline-none thought-body cursor-text"></div>
+
             <div class="mt-6 flex justify-between items-center">
-                <span class="text-[11px] text-[var(--text-sub)] font-mono-code font-bold">실시간 무음 자동 저장</span>
+                <span class="text-[11px] text-[var(--text-sub)] font-mono-code font-bold">✎ 제목·내용을 바로 눌러 수정할 수 있어요 · 닫으면 자동 저장</span>
                 <button onclick="closeThoughtModal()" class="px-5 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] font-bold text-xs rounded-xl text-[var(--text-main)] hover:border-[var(--primary)]">완료 및 닫기</button>
             </div>
         </div>
