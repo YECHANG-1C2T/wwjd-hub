@@ -220,6 +220,27 @@
             </div>
         </section>
 
+        <!-- ================= [1.5] 심방신청 목록 ================= -->
+        <section id="view-visits" class="page-view space-y-6 md:space-y-8">
+            <div class="glass-card p-6 md:p-8 space-y-5">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[var(--border-color)] pb-4">
+                    <div>
+                        <span class="text-xs uppercase font-mono-code font-black tracking-widest primary-badge px-3 py-1 rounded-full inline-block mb-1">Visit Requests</span>
+                        <h2 class="text-xl md:text-2xl font-black text-[var(--text-main)]">청년 심방신청</h2>
+                    </div>
+                    <div class="text-[11px] text-[var(--text-sub)] font-semibold">
+                        신청 페이지 링크: <a href="apply/" target="_blank" class="text-[var(--primary)] underline">apply/</a>
+                    </div>
+                </div>
+                <div class="flex gap-2" id="visit-filter-tabs">
+                    <button onclick="setVisitFilter('전체')" class="visit-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">전체</button>
+                    <button onclick="setVisitFilter('신규')" class="visit-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">신규</button>
+                    <button onclick="setVisitFilter('완료')" class="visit-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap">완료</button>
+                </div>
+                <div id="visit-requests-list" class="space-y-3"></div>
+            </div>
+        </section>
+
         <!-- ================= [2] 일정 화면 ================= -->
         <section id="view-calendar" class="page-view space-y-6 md:space-y-8">
             <div class="glass-card p-6 md:p-8 space-y-6">
@@ -535,6 +556,7 @@
     <!-- 하단 고정 네비게이션 바 -->
     <nav class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 bg-[var(--nav-bg)] backdrop-blur-2xl border border-[var(--border-color)] px-3 py-2.5 rounded-full flex gap-1.5 shadow-2xl z-50 max-w-[95vw] overflow-x-auto transition-colors duration-300">
         <button onclick="switchView('home', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-black primary-badge transition-all whitespace-nowrap shadow-xs">홈</button>
+        <button onclick="switchView('visits', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap relative">심방신청<span id="visit-badge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full items-center justify-center">0</span></button>
         <button onclick="switchView('calendar', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">일정</button>
         <button onclick="switchView('dashboard', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">사역현황</button>
         <button onclick="switchView('links', event)" class="nav-tab px-4 py-2.5 rounded-full text-xs font-bold text-[var(--text-sub)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all whitespace-nowrap">링크보드</button>

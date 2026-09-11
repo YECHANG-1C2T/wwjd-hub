@@ -4,6 +4,7 @@
    ========================================================================== */
 const db = firebase.firestore();
 const appDocRef = db.collection('ministry_data').doc('master_workspace');
+const visitRequestsRef = db.collection('visit_requests');
 
 /* 구글 캘린더 주간 일정을 주간일정표 각 요일 칸에 함께 표시하기 위한 설정.
    API 키를 발급받아 아래에 붙여넣기 전까지는 조용히 건너뛴다(주간일정표는
@@ -63,6 +64,8 @@ let activeNarrativeIdx = 0;
 let liveNaverNewsList = [];
 let openAccordionId = null;
 let currentMemoCat = '전체';
+let visitRequests = [];
+let visitFilterStatus = '전체';
 
 /* 페이지를 막 열었을 때(로그인 직후) 클라우드에서 진짜 데이터가 도착하기 전까지는
    window.state가 아직 기본 예시값(defaultTodos 등)인 상태다. 이 짧은 순간에 뭔가를
@@ -88,6 +91,7 @@ window.syncToCloud = function() {
 let cloudSyncStarted = false;
 function startCloudSync() {
     if (cloudSyncStarted) return;
+    startVisitRequestsSync();
     cloudSyncStarted = true;
     appDocRef.onSnapshot((doc) => {
         initialSnapshotReceived = true;
@@ -117,6 +121,100 @@ function startCloudSync() {
             renderSetlists();
         }
     });
+}
+
+/* ==========================================================================
+   [심방신청] 청년 심방신청 폼 제출 목록 (별도 apply/ 페이지에서 청년들이 제출)
+   ========================================================================== */
+let visitRequestsSyncStarted = false;
+function startVisitRequestsSync() {
+    if (visitRequestsSyncStarted) return;
+    visitRequestsSyncStarted = true;
+    visitRequestsRef.orderBy('createdAt', 'desc').onSnapshot((snap) => {
+        visitRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderVisitRequests();
+    }, (err) => console.warn('심방신청 목록 로드 실패:', err));
+}
+
+function setVisitFilter(status) {
+    visitFilterStatus = status;
+    renderVisitRequests();
+}
+
+function formatVisitTimestamp(ts) {
+    if (!ts || typeof ts.toDate !== 'function') return '방금 전';
+    return ts.toDate().toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function renderVisitRequests() {
+    const tabsContainer = document.getElementById('visit-filter-tabs');
+    if (tabsContainer) {
+        tabsContainer.querySelectorAll('.visit-filter-btn').forEach(btn => {
+            const isActive = btn.textContent.trim() === visitFilterStatus;
+            btn.className = "visit-filter-btn px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap " + (isActive ? 'primary-badge' : 'text-[var(--text-sub)] bg-[var(--primary-light)]');
+        });
+    }
+
+    const badge = document.getElementById('visit-badge');
+    const newCount = visitRequests.filter(r => r.status !== '완료').length;
+    if (badge) {
+        badge.textContent = newCount;
+        badge.classList.toggle('hidden', newCount === 0);
+        badge.classList.toggle('flex', newCount > 0);
+    }
+
+    const list = document.getElementById('visit-requests-list');
+    if (!list) return;
+
+    const filtered = visitRequests.filter(r => {
+        if (visitFilterStatus === '전체') return true;
+        if (visitFilterStatus === '신규') return r.status !== '완료';
+        return r.status === '완료';
+    });
+
+    if (filtered.length === 0) {
+        list.innerHTML = `<p class="text-xs text-[var(--text-sub)] py-2">신청 내역이 없습니다.</p>`;
+        return;
+    }
+
+    list.innerHTML = filtered.map(r => `
+        <div class="p-4 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl space-y-2 ${r.status === '완료' ? 'opacity-60' : ''}">
+            <div class="flex justify-between items-start gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm font-black text-[var(--text-main)]">${escapeHtml(r.name || '이름없음')}</span>
+                    ${r.group ? `<span class="text-[10px] font-mono-code font-bold primary-badge px-2 py-0.5 rounded-full">${escapeHtml(r.group)}</span>` : ''}
+                    ${r.status === '완료' ? `<span class="text-[10px] font-mono-code font-bold px-2 py-0.5 rounded-full bg-[var(--border-color)] text-[var(--text-sub)]">완료</span>` : `<span class="text-[10px] font-mono-code font-bold px-2 py-0.5 rounded-full bg-red-500 text-white">신규</span>`}
+                </div>
+                <span class="text-[10px] text-[var(--text-sub)] font-mono-code font-bold whitespace-nowrap">${formatVisitTimestamp(r.createdAt)}</span>
+            </div>
+            <div class="text-xs text-[var(--text-main)] space-y-1">
+                ${r.phone ? `<div>📞 <a href="tel:${escapeHtml(r.phone)}" class="text-[var(--primary)] font-bold underline">${escapeHtml(r.phone)}</a></div>` : ''}
+                ${(r.preferredDate || r.preferredTime) ? `<div>🗓️ 희망 일시: ${escapeHtml(r.preferredDate || '')} ${escapeHtml(r.preferredTime || '')}</div>` : ''}
+                ${r.reason ? `<div class="text-[var(--text-sub)]">💬 ${escapeHtml(r.reason)}</div>` : ''}
+            </div>
+            <div class="flex gap-2 pt-1">
+                ${r.status === '완료'
+                    ? `<button onclick="markVisitStatus('${r.id}', '신규')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-sub)]">다시 신규로</button>`
+                    : `<button onclick="markVisitStatus('${r.id}', '완료')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg primary-badge">완료 처리</button>`}
+                <button onclick="deleteVisitRequest('${r.id}')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-sub)] hover:text-red-500">삭제</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function markVisitStatus(id, status) {
+    visitRequestsRef.doc(id).update({ status });
+}
+
+function deleteVisitRequest(id) {
+    if (!confirm('이 심방신청 내역을 삭제할까요?')) return;
+    visitRequestsRef.doc(id).delete();
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
 }
 
 /* ==========================================================================

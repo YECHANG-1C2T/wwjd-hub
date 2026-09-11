@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>심방신청</title>
+<link rel="icon" href="data:,">
+<style>
+    :root {
+        --bg-color: #f7f5f2;
+        --card-bg: #ffffff;
+        --primary: #781423;
+        --primary-light: rgba(120, 20, 35, 0.08);
+        --border-color: rgba(120, 20, 35, 0.16);
+        --text-main: #1c1917;
+        --text-sub: #57534e;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+        background: var(--bg-color);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        padding: 32px 16px 60px;
+    }
+    .wrap { width: 100%; max-width: 480px; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header .eyebrow {
+        display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+        color: var(--primary); background: var(--primary-light); padding: 4px 12px; border-radius: 999px;
+        margin-bottom: 10px; text-transform: uppercase;
+    }
+    .header h1 { font-size: 22px; font-weight: 900; margin: 0 0 8px; }
+    .header p { font-size: 13px; color: var(--text-sub); margin: 0; line-height: 1.6; }
+    .card {
+        background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px;
+        padding: 24px 20px; box-shadow: 0 10px 30px rgba(120,20,35,0.06);
+    }
+    label { display: block; font-size: 13px; font-weight: 800; margin: 18px 0 6px; }
+    label:first-of-type { margin-top: 0; }
+    label .req { color: var(--primary); }
+    label .opt { font-weight: 600; color: var(--text-sub); font-size: 11px; }
+    input, select, textarea {
+        width: 100%; padding: 12px 14px; font-size: 14px; border-radius: 12px;
+        border: 1px solid var(--border-color); background: var(--primary-light); color: var(--text-main);
+        font-family: inherit; outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    textarea { resize: vertical; min-height: 80px; }
+    .row2 { display: flex; gap: 8px; }
+    .row2 > * { flex: 1; }
+    button[type="submit"] {
+        width: 100%; margin-top: 24px; padding: 15px; font-size: 15px; font-weight: 900;
+        border: none; border-radius: 14px; background: var(--primary); color: #fff; cursor: pointer;
+    }
+    button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
+    .privacy { font-size: 11px; color: var(--text-sub); text-align: center; margin-top: 12px; line-height: 1.6; }
+    .error { font-size: 12px; color: var(--primary); font-weight: 700; margin-top: 8px; display: none; }
+    #success {
+        display: none; text-align: center; padding: 50px 20px;
+    }
+    #success .icon { font-size: 44px; margin-bottom: 14px; }
+    #success h2 { font-size: 19px; font-weight: 900; margin: 0 0 10px; }
+    #success p { font-size: 13px; color: var(--text-sub); line-height: 1.7; margin: 0 0 24px; }
+    #success button {
+        padding: 11px 22px; font-size: 13px; font-weight: 800; border-radius: 12px;
+        border: 1px solid var(--border-color); background: var(--primary-light); color: var(--primary); cursor: pointer;
+    }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="header">
+        <span class="eyebrow">Visit Request</span>
+        <h1>🕊️ 심방신청</h1>
+        <p>편하게 뵙고 이야기 나누고 싶은 마음을<br>남겨주세요. 확인 후 연락드릴게요.</p>
+    </div>
+
+    <div class="card" id="form-card">
+        <form id="visit-form">
+            <label>이름 <span class="req">*</span></label>
+            <input type="text" id="f-name" required placeholder="이름을 입력해주세요">
+
+            <label>연락처 <span class="req">*</span></label>
+            <input type="tel" id="f-phone" required placeholder="010-0000-0000">
+
+            <label>소속 <span class="opt">(선택)</span></label>
+            <select id="f-group">
+                <option value="">선택 안 함</option>
+                <option value="청년교구">청년교구</option>
+                <option value="청년금요기도회">청년금요기도회</option>
+                <option value="1청2팀">1청2팀</option>
+                <option value="수련회">수련회</option>
+                <option value="기타">기타</option>
+            </select>
+
+            <label>희망 날짜/시간 <span class="opt">(선택)</span></label>
+            <div class="row2">
+                <input type="date" id="f-date">
+                <select id="f-time">
+                    <option value="">시간대 무관</option>
+                    <option value="오전">오전</option>
+                    <option value="오후">오후</option>
+                    <option value="저녁">저녁</option>
+                </select>
+            </div>
+
+            <label>나누고 싶은 이야기 <span class="opt">(선택)</span></label>
+            <textarea id="f-reason" placeholder="심방을 신청하는 이유나 나누고 싶은 이야기를 편하게 적어주세요"></textarea>
+
+            <div class="error" id="form-error">이름과 연락처를 입력해주세요.</div>
+            <button type="submit" id="submit-btn">신청하기</button>
+            <p class="privacy">입력하신 정보는 심방 연락을 위해서만 사용되며,<br>담당 목사님에게만 전달됩니다.</p>
+        </form>
+    </div>
+
+    <div class="card" id="success">
+        <div class="icon">✅</div>
+        <h2>신청이 접수되었습니다</h2>
+        <p>소중한 마음 감사합니다.<br>확인 후 연락드릴게요!</p>
+        <button onclick="resetForm()">다시 신청하기</button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAI5ZHYd_Mi7JogsgZAYsBERsbPMD5m544",
+        authDomain: "wwjd-hub.firebaseapp.com",
+        projectId: "wwjd-hub",
+        storageBucket: "wwjd-hub.firebasestorage.app",
+        messagingSenderId: "518785715153",
+        appId: "1:518785715153:web:2fd76cfe4a1aabd6bd2ef0",
+        measurementId: "G-FCN8CSHR7Y"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const form = document.getElementById('visit-form');
+    const errorEl = document.getElementById('form-error');
+    const submitBtn = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('f-name').value.trim();
+        const phone = document.getElementById('f-phone').value.trim();
+
+        if (!name || !phone) {
+            errorEl.style.display = 'block';
+            return;
+        }
+        errorEl.style.display = 'none';
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = '접수 중...';
+
+        db.collection('visit_requests').add({
+            name: name,
+            phone: phone,
+            group: document.getElementById('f-group').value,
+            preferredDate: document.getElementById('f-date').value,
+            preferredTime: document.getElementById('f-time').value,
+            reason: document.getElementById('f-reason').value.trim(),
+            status: '신규',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(function() {
+            document.getElementById('form-card').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+        }).catch(function(err) {
+            console.error(err);
+            errorEl.textContent = '접수 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            errorEl.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = '신청하기';
+        });
+    });
+
+    function resetForm() {
+        form.reset();
+        document.getElementById('success').style.display = 'none';
+        document.getElementById('form-card').style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = '신청하기';
+    }
+</script>
+</body>
+</html>
