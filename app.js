@@ -1041,10 +1041,30 @@ function updateHomeTodoText(id, newText) {
     if (t && t.text !== newText.trim()) { t.text = newText.trim(); renderTodos(); window.syncToCloud(); }
 }
 
+function dateStrToWeekdayKey(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][d.getDay()];
+}
+
+/* 오늘의 걸음을 등록할 때 주간일정표에도 같은 시간으로 함께 넣어두는데(짝을
+   이루는 id가 따로 없어 느슨하게만 연결되어 있음), 시간을 나중에 고치면
+   그 짝도 같이 맞춰야 두 화면이 계속 어긋나지 않는다. 텍스트와 원래 시간이
+   같은 항목을 그날 요일 칸에서 찾아 함께 바꾼다. */
 function updateTodoTime(id, newTime) {
     if (!newTime) return;
     const t = window.state.todos.find(item => item.id === id);
-    if (t && t.time !== newTime) { t.time = newTime; renderTodos(); window.syncToCloud(); }
+    if (!t || t.time === newTime) return;
+    const oldTime = t.time;
+    t.time = newTime;
+
+    const dayKey = dateStrToWeekdayKey(getEffectiveTodoDate(t));
+    const weeklyDay = window.state.weekly[dayKey];
+    if (weeklyDay) {
+        const match = weeklyDay.find(w => w.text === t.text && w.time === oldTime);
+        if (match) match.time = newTime;
+    }
+
+    renderTodos(); renderWeeklyGrid(); window.syncToCloud();
 }
 
 function addHomeTodo() {
@@ -1646,16 +1666,16 @@ function renderMemos() {
         div.className = "px-4 py-3 bg-[var(--card-bg)] space-y-1 group hover:bg-[var(--primary-light)] transition-colors";
         div.innerHTML = `
             <div class="flex justify-between items-center gap-2">
-                <div class="flex items-center gap-2 min-w-0">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
                     <span class="text-[10px] primary-badge font-black px-2.5 py-0.5 rounded-full shrink-0">${m.cat}</span>
-                    <h4 class="font-bold text-xs text-[var(--text-main)] truncate">${m.title}</h4>
+                    <h4 contenteditable="true" onblur="updateMemoTitle('${m.id}', this.innerText)" class="font-bold text-xs text-[var(--text-main)] truncate outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${escapeAttr(m.title)}</h4>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <span class="text-[10px] text-[var(--text-sub)] font-mono-code">${m.date}</span>
                     <button onclick="deleteMemo('${m.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
                 </div>
             </div>
-            <p class="text-xs text-[var(--text-sub)] leading-relaxed whitespace-pre-wrap">${m.content}</p>`;
+            <p contenteditable="true" onblur="updateMemoContent('${m.id}', this.innerText)" class="text-xs text-[var(--text-sub)] leading-relaxed whitespace-pre-wrap outline-none focus:text-[var(--text-main)] cursor-text">${escapeAttr(m.content)}</p>`;
         list.appendChild(div);
     });
 }
@@ -1686,6 +1706,18 @@ function filterMemoCat(cat) {
 function deleteMemo(id) {
     window.state.memos = window.state.memos.filter(m => m.id !== id);
     renderMemos(); window.syncToCloud();
+}
+
+function updateMemoTitle(id, newTitle) {
+    const trimmed = newTitle.trim();
+    if (!trimmed) return;
+    const m = window.state.memos.find(item => item.id === id);
+    if (m && m.title !== trimmed) { m.title = trimmed; renderMemos(); window.syncToCloud(); }
+}
+
+function updateMemoContent(id, newContent) {
+    const m = window.state.memos.find(item => item.id === id);
+    if (m && m.content !== newContent) { m.content = newContent; renderMemos(); window.syncToCloud(); }
 }
 
 /* ==========================================================================
