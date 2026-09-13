@@ -944,6 +944,16 @@ const TODO_STATUS_STYLE = {
     '연기': 'bg-amber-500/15 text-amber-500 border border-amber-500/30'
 };
 
+/* 분류마다 옅은 파스텔톤 배지 색을 줘서, 체크할 때 한눈에 어떤 종류의
+   걸음인지 구분되도록 한다. 테마가 바뀌어도 항상 같은 색으로 알아볼 수
+   있도록 테마 변수 대신 고정된 색을 쓴다. */
+const TODO_CAT_STYLE = {
+    '회의': 'bg-sky-500/15 text-sky-500',
+    '심방': 'bg-purple-500/15 text-purple-500',
+    '사역': 'bg-emerald-500/15 text-emerald-500',
+    '가정': 'bg-orange-500/15 text-orange-500'
+};
+
 function getLocalDateStr(d) {
     d = d || new Date();
     const y = d.getFullYear();
@@ -1024,6 +1034,7 @@ function renderHomeTodos() {
         div.innerHTML = `
             <div class="flex items-center gap-2 min-w-0 flex-1 mr-1">
                 <input type="time" value="${t.time}" onclick="event.stopPropagation()" onchange="updateTodoTime('${t.id}', this.value)" class="text-[10px] font-mono-code font-bold text-[var(--primary)] bg-transparent outline-none shrink-0 w-[62px] cursor-pointer">
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${TODO_CAT_STYLE[t.cat] || 'primary-badge'}">${t.cat}</span>
                 <span contenteditable="true" onclick="event.stopPropagation()" onblur="updateHomeTodoText('${t.id}', this.innerText)" class="font-bold ${t.status === '완료' ? 'line-through text-[var(--text-sub)] opacity-60' : 'text-[var(--text-main)]'} outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text truncate min-w-0" title="${escapeAttr(t.text)}">${t.text}</span>
                 ${isOverdue ? `<span class="text-[9px] font-bold text-amber-500 shrink-0">지연</span>` : ''}
             </div>
@@ -1106,7 +1117,7 @@ function renderTodos() {
                 ${isOverdue ? `<span class="text-[9px] font-bold text-amber-500 shrink-0">지연</span>` : ''}
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-                <span class="text-[10px] primary-badge font-black px-2 py-0.5 rounded-full">${item.cat}</span>
+                <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${TODO_CAT_STYLE[item.cat] || 'primary-badge'}">${item.cat}</span>
                 <button onclick="cycleTodoStatus('${item.id}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${TODO_STATUS_STYLE[item.status] || TODO_STATUS_STYLE['시작안함']}">${item.status}</button>
                 <button onclick="deleteTodo('${item.id}')" class="text-[11px] text-red-400 font-bold px-1 hover-reveal-action">✕</button>
             </div>`;
