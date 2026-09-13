@@ -888,13 +888,14 @@ function renderWeeklyGrid() {
                         <span class="font-bold text-[11px] text-[var(--text-main)] block mt-0.5">${escapeAttr(item.text)}</span>
                     </div>`;
             } else {
+                const catBorder = TODO_CAT_BORDER[item.cat] || 'border-l-[var(--border-color)]';
                 schedHtml += `
-                    <div class="bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] leading-snug group relative">
+                    <div class="bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] border-l-4 ${catBorder} leading-snug group relative" title="${item.cat || ''}">
                         <div class="flex justify-between items-start">
                             <b class="text-[var(--primary)] font-mono-code font-bold text-[10px]">${item.time}</b>
                             <button onclick="deleteWeekly('${d.key}', '${item.id}')" class="text-[9px] text-red-400 hover-reveal-action font-bold">✕</button>
                         </div>
-                        <span class="font-bold text-[11px] text-[var(--text-main)] block mt-0.5">${item.text}</span>
+                        <span class="font-bold text-[11px] text-[var(--text-main)] block mt-0.5">${escapeAttr(item.text)}</span>
                     </div>`;
             }
         });
@@ -911,15 +912,16 @@ function addQuickScheduleFromHome() {
     const parts = inputVal.split(' ');
     if (parts.length > 1 && parts[0].includes(':')) { time = parts[0]; text = parts.slice(1).join(' '); }
 
+    let inferredCat = '사역';
+    if (text.includes('심방')) inferredCat = '심방';
+    else if (text.includes('회의')) inferredCat = '회의';
+    else if (text.includes('가정')) inferredCat = '가정';
+
     window.state.weekly[day] = window.state.weekly[day] || [];
-    window.state.weekly[day].push({ id: 'w_' + Date.now(), time, text });
+    window.state.weekly[day].push({ id: 'w_' + Date.now(), time, text, cat: inferredCat });
 
     const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
     if (day === todayKey) {
-        let inferredCat = '사역';
-        if (text.includes('심방')) inferredCat = '심방';
-        else if (text.includes('회의')) inferredCat = '회의';
-        else if (text.includes('가정')) inferredCat = '가정';
         window.state.todos.push({ id: 't_' + Date.now(), time, cat: inferredCat, text, status: '시작안함', date: getLocalDateStr() });
     }
     renderWeeklyGrid(); renderTodos(); renderHomeTodos(); window.syncToCloud();
@@ -952,6 +954,15 @@ const TODO_CAT_STYLE = {
     '심방': 'bg-purple-500/15 text-purple-500',
     '사역': 'bg-emerald-500/15 text-emerald-500',
     '가정': 'bg-orange-500/15 text-orange-500'
+};
+
+/* 주간일정표 칸은 배지를 넣기엔 너무 좁아서, 같은 색으로 왼쪽 테두리만
+   칠해 구분한다. */
+const TODO_CAT_BORDER = {
+    '회의': 'border-l-sky-500',
+    '심방': 'border-l-purple-500',
+    '사역': 'border-l-emerald-500',
+    '가정': 'border-l-orange-500'
 };
 
 function getLocalDateStr(d) {
@@ -1088,7 +1099,7 @@ function addHomeTodo() {
 
     const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
     window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
-    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text });
+    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text, cat });
 
     renderTodos(); renderWeeklyGrid(); window.syncToCloud();
     input.value = '';
@@ -1135,7 +1146,7 @@ function addTodoInline() {
 
     const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
     window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
-    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text });
+    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text, cat });
 
     renderTodos(); renderWeeklyGrid(); window.syncToCloud();
     document.getElementById('todo-input-bar').value = '';
@@ -2318,19 +2329,24 @@ function executeChatFunctionCall(call) {
     if (call.name === 'add_todo') {
         if (!args.text) return { error: '내용이 없어서 등록하지 못했어요.' };
         const time = args.time || '10:00';
-        window.state.todos.push({ id: 't_' + Date.now(), time, cat: args.category || '사역', text: args.text, status: '시작안함', date: getLocalDateStr() });
+        const cat = args.category || '사역';
+        window.state.todos.push({ id: 't_' + Date.now(), time, cat, text: args.text, status: '시작안함', date: getLocalDateStr() });
         window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
-        window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text: args.text });
+        window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text: args.text, cat });
         renderTodos(); renderWeeklyGrid(); window.syncToCloud();
         return { success: true, message: `${time}에 "${args.text}" 오늘의 걸음으로 등록했습니다.` };
     }
 
     if (call.name === 'add_weekly_schedule') {
         if (!args.day || !args.time || !args.text) return { error: '요일/시간/내용이 부족해서 등록하지 못했어요.' };
+        let inferredCat = '사역';
+        if (args.text.includes('심방')) inferredCat = '심방';
+        else if (args.text.includes('회의')) inferredCat = '회의';
+        else if (args.text.includes('가정')) inferredCat = '가정';
         window.state.weekly[args.day] = window.state.weekly[args.day] || [];
-        window.state.weekly[args.day].push({ id: 'w_' + Date.now(), time: args.time, text: args.text });
+        window.state.weekly[args.day].push({ id: 'w_' + Date.now(), time: args.time, text: args.text, cat: inferredCat });
         if (args.day === todayKey) {
-            window.state.todos.push({ id: 't_' + Date.now(), time: args.time, cat: '사역', text: args.text, status: '시작안함', date: getLocalDateStr() });
+            window.state.todos.push({ id: 't_' + Date.now(), time: args.time, cat: inferredCat, text: args.text, status: '시작안함', date: getLocalDateStr() });
         }
         renderWeeklyGrid(); renderTodos(); window.syncToCloud();
         const dayNames = { mon: '월', tue: '화', wed: '수', thu: '목', fri: '금', sat: '토', sun: '일' };
@@ -2420,7 +2436,7 @@ function submitFab() {
 
     const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
     window.state.weekly[todayKey] = window.state.weekly[todayKey] || [];
-    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text });
+    window.state.weekly[todayKey].push({ id: 'w_' + Date.now(), time, text, cat: '사역' });
 
     renderTodos(); renderWeeklyGrid(); window.syncToCloud();
     closeModal('fab-modal');
