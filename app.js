@@ -59,7 +59,8 @@ window.state = {
     links: defaultLinks,
     memos: [{ id: 'm1', cat: '교회 공통', title: '하반기 목회 계획', date: '2026.08.28', content: '소그룹 모임 장소 재배치 논의 완료.' }],
     thoughts: [{ id: 'th1', cat: '설교착상', stage: '숙성', title: '팀켈러 일과 영성', createdAt: '2026.08.28 15:58', updatedAt: '2026.08.28 15:58', content: '<h1>소명으로서의 일터</h1><p>복음은 우리의 일터를 개인의 야망을 위한 수단에서, 이웃을 섬기고 하나님의 창조 세계를 돌보는 <mark>거룩한 소명의 자리</mark>로 변화시킨다.</p>' }],
-    setlists: []
+    setlists: [],
+    favoriteSongs: []
 };
 
 let currentActiveThoughtId = null;
@@ -111,6 +112,7 @@ function startCloudSync() {
             if (data.memos) window.state.memos = data.memos;
             if (data.thoughts) window.state.thoughts = data.thoughts;
             if (data.setlists) window.state.setlists = data.setlists;
+            if (data.favoriteSongs) window.state.favoriteSongs = data.favoriteSongs;
             if (data.theme) window.state.theme = data.theme;
             if (data.thoughtZoom) window.state.thoughtZoom = data.thoughtZoom;
 
@@ -125,6 +127,7 @@ function startCloudSync() {
             renderMemos();
             renderThoughts();
             renderSetlists();
+            renderFavoriteSongButtons();
         }
     });
 }
@@ -1499,6 +1502,50 @@ function reorderLinks(draggedId, targetId) {
 let setlistDraftSongs = [];
 let openSetlistId = null;
 
+function insertFlowToken(token) {
+    const input = document.getElementById('setlist-song-flow-input');
+    if (!input) return;
+    const trimmed = input.value.replace(/-+$/, '');
+    input.value = trimmed ? trimmed + '-' + token : token;
+    input.focus();
+}
+
+function fillSongTitle(title) {
+    const input = document.getElementById('setlist-song-title-input');
+    if (input) { input.value = title; input.focus(); }
+}
+
+function renderFavoriteSongButtons() {
+    const container = document.getElementById('favorite-song-buttons');
+    if (!container) return;
+    const songs = window.state.favoriteSongs || [];
+    if (songs.length === 0) {
+        container.innerHTML = `<span class="text-[10px] text-[var(--text-sub)]">자주 쓰는 곡을 등록해두면 여기서 바로 선택할 수 있어요.</span>`;
+        return;
+    }
+    container.innerHTML = songs.map(s => `
+        <span class="inline-flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-[11px] font-bold bg-[var(--card-bg)] border border-[var(--border-color)]">
+            <button type="button" onclick="fillSongTitle('${escapeAttr(s.title)}')" class="text-[var(--text-main)] hover:text-[var(--primary)]">${escapeHtml(s.title)}</button>
+            <button type="button" onclick="deleteFavoriteSong('${s.id}')" class="text-red-400 font-black px-1" title="목록에서 삭제">✕</button>
+        </span>
+    `).join('');
+}
+
+function addFavoriteSong() {
+    const title = (prompt('자주 쓰는 곡 이름을 입력하세요:') || '').trim();
+    if (!title) return;
+    window.state.favoriteSongs = window.state.favoriteSongs || [];
+    window.state.favoriteSongs.push({ id: 'fs_' + Date.now(), title });
+    renderFavoriteSongButtons();
+    window.syncToCloud();
+}
+
+function deleteFavoriteSong(id) {
+    window.state.favoriteSongs = (window.state.favoriteSongs || []).filter(s => s.id !== id);
+    renderFavoriteSongButtons();
+    window.syncToCloud();
+}
+
 function addDraftSong() {
     const titleInput = document.getElementById('setlist-song-title-input');
     const keyInput = document.getElementById('setlist-song-key-input');
@@ -2463,4 +2510,5 @@ renderMemos();
 renderThoughts();
 renderSetlists();
 renderDraftSongs();
+renderFavoriteSongButtons();
 setVisitSubView('list');

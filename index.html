@@ -416,9 +416,23 @@
                 <input type="text" id="setlist-title-input" placeholder="콘티 이름 (예: 9월 둘째주 주일예배)" class="w-full p-3 text-sm bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl outline-none font-bold">
                 <div id="setlist-draft-songs" class="space-y-2"></div>
                 <div class="p-3 bg-[var(--primary-light)] border border-[var(--border-color)] rounded-2xl space-y-2">
+                    <div class="flex flex-wrap items-center gap-1.5" id="favorite-song-buttons"></div>
+                    <button type="button" onclick="addFavoriteSong()" class="text-[10px] font-bold text-[var(--primary)] hover:underline">+ 자주 쓰는 곡 등록</button>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <input type="text" id="setlist-song-title-input" placeholder="곡명" class="flex-1 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none">
                         <input type="text" id="setlist-song-key-input" placeholder="키 (예: G)" class="sm:w-24 p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none">
+                    </div>
+                    <div class="flex flex-wrap gap-1">
+                        <button type="button" onclick="insertFlowToken('Intro')" class="px-2 py-1 rounded-md text-[10px] font-mono-code font-bold bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)]">Intro</button>
+                        <button type="button" onclick="insertFlowToken('V1')" class="px-2 py-1 rounded-md text-[10px] font-mono-code font-bold bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)]">V1</button>
+                        <button type="button" onclick="insertFlowToken('V2')" class="px-2 py-1 rounded-md text-[10px] font-mono-code font-bold bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)]">V2</button>
+                        <button type="button" onclick="insertFlowToken('V3')" class="px-2 py-1 rounded-md text-[10px] font-mono-code font-bold bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)]">V3</button>
+                        <button type="button" onclick="insertFlowToken('C')" class="px-2 py-1 rounded-md text-[10px] font-mono-code font-bold bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)]">C</button>
+                        <button type="button" onclick="insertFlowToken('B')" class="px-2 py-1 rounded-md text-[10px] font-mono-code font-bold bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)]">B</button>
+                        <button type="button" onclick="insertFlowToken('key up')" class="px-2 py-1 rounded-md text-[10px] font-mono-code font-bold bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)]">key up</button>
+                        <button type="button" onclick="insertFlowToken('rit')" class="px-2 py-1 rounded-md text-[10px] font-mono-code font-bold bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)]">rit</button>
+                        <button type="button" onclick="insertFlowToken('Outro')" class="px-2 py-1 rounded-md text-[10px] font-mono-code font-bold bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)]">Outro</button>
+                        <button type="button" onclick="document.getElementById('setlist-song-flow-input').value=''" class="px-2 py-1 rounded-md text-[10px] font-mono-code font-bold text-red-400 border border-[var(--border-color)] hover:border-red-400">지우기</button>
                     </div>
                     <input type="text" id="setlist-song-flow-input" placeholder="곡 진행 순서 (예: V1-C-V2-C-V3-C-C-B-C(key up)-rit)" class="w-full p-2.5 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none font-mono-code">
                     <div class="flex flex-col sm:flex-row gap-2">
