@@ -2342,7 +2342,22 @@ function openThoughtModal(id) {
     document.getElementById('modal-thought-stage-select').value = thought.stage || '씨앗';
     document.getElementById('modal-thought-title').innerText = thought.title;
     document.getElementById('modal-text').innerHTML = thought.content;
+    updateModalPhilosophyToggleUI(thought.isPhilosophy);
     document.getElementById('thought-modal').classList.add('show');
+}
+
+function updateModalPhilosophyToggleUI(isPhilosophy) {
+    const btn = document.getElementById('modal-philosophy-toggle');
+    if (!btn) return;
+    btn.innerText = isPhilosophy ? '⭐ 해제' : '⭐로 지정';
+    btn.className = isPhilosophy ? 'text-xs font-bold text-amber-500' : 'text-xs font-bold text-[var(--text-sub)] hover:text-amber-500';
+}
+
+function toggleModalPhilosophyAnchor() {
+    if (!currentActiveThoughtId) return;
+    togglePhilosophyAnchor(currentActiveThoughtId);
+    const thought = window.state.thoughts.find(t => t.id === currentActiveThoughtId);
+    updateModalPhilosophyToggleUI(thought && thought.isPhilosophy);
 }
 
 function closeThoughtModal() {
