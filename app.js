@@ -1816,7 +1816,18 @@ function renderMemos() {
         return;
     }
 
+    const philosophyDocs = window.state.thoughts.filter(t => t.isPhilosophy);
+
     matched.forEach(m => {
+        const linkOptions = philosophyDocs
+            .map(p => `<option value="${p.id}" ${m.philosophyId === p.id ? 'selected' : ''}>${escapeAttr(p.title)}</option>`)
+            .join('');
+        const linkSelect = philosophyDocs.length > 0 ? `
+            <select onchange="linkMemoToPhilosophy('${m.id}', this.value)" class="text-[10px] font-bold bg-[var(--primary-light)] text-[var(--text-sub)] rounded-full px-2 py-0.5 outline-none border-none shrink-0">
+                <option value="">🔗 철학과 연결...</option>
+                ${linkOptions}
+            </select>` : '';
+
         const div = document.createElement('div');
         div.className = "px-4 py-3 bg-[var(--card-bg)] space-y-1 group hover:bg-[var(--primary-light)] transition-colors";
         div.innerHTML = `
@@ -1830,9 +1841,17 @@ function renderMemos() {
                     <button onclick="deleteMemo('${m.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
                 </div>
             </div>
-            <p contenteditable="true" onblur="updateMemoContent('${m.id}', this.innerText)" class="text-xs text-[var(--text-sub)] leading-relaxed whitespace-pre-wrap outline-none focus:text-[var(--text-main)] cursor-text">${escapeAttr(m.content)}</p>`;
+            <p contenteditable="true" onblur="updateMemoContent('${m.id}', this.innerText)" class="text-xs text-[var(--text-sub)] leading-relaxed whitespace-pre-wrap outline-none focus:text-[var(--text-main)] cursor-text">${escapeAttr(m.content)}</p>
+            ${linkSelect ? `<div class="pt-1">${linkSelect}</div>` : ''}`;
         list.appendChild(div);
     });
+}
+
+function linkMemoToPhilosophy(id, philosophyId) {
+    const m = window.state.memos.find(item => item.id === id);
+    if (!m) return;
+    m.philosophyId = philosophyId || null;
+    renderMemos(); window.syncToCloud();
 }
 
 function saveTodayMemo() {
@@ -2074,7 +2093,10 @@ function renderThoughts() {
     if (!grid) return;
     grid.innerHTML = '';
 
-    window.state.thoughts.forEach(th => {
+    const philosophyDocs = window.state.thoughts.filter(t => t.isPhilosophy);
+    const sorted = [...window.state.thoughts].sort((a, b) => (b.isPhilosophy ? 1 : 0) - (a.isPhilosophy ? 1 : 0));
+
+    sorted.forEach(th => {
         const stage = th.stage || '씨앗';
         let stageDot = '🌱';
         if (stage === '숙성') stageDot = '📖';
@@ -2084,14 +2106,27 @@ function renderThoughts() {
         const isModified = th.updatedAt && th.updatedAt !== th.createdAt;
         const modifiedText = isModified ? `<span class="text-[9px] text-[var(--text-sub)] opacity-75 font-mono-code font-bold">· 수정 ${th.updatedAt.split(' ')[1]}</span>` : '';
 
+        const linkOptions = philosophyDocs
+            .filter(p => p.id !== th.id)
+            .map(p => `<option value="${p.id}" ${th.philosophyId === p.id ? 'selected' : ''}>${escapeAttr(p.title)}</option>`)
+            .join('');
+        const linkSelect = (!th.isPhilosophy && philosophyDocs.length > 0) ? `
+                <select onclick="event.stopPropagation()" onchange="event.stopPropagation(); linkThoughtToPhilosophy('${th.id}', this.value)" class="text-[10px] font-bold bg-[var(--primary-light)] text-[var(--text-sub)] rounded-full px-2 py-1 outline-none border-none">
+                    <option value="">🔗 철학과 연결...</option>
+                    ${linkOptions}
+                </select>` : '';
+
         const div = document.createElement('div');
-        div.className = "glass-card p-6 space-y-4 cursor-pointer hover:border-[var(--primary)] transition-all flex flex-col justify-between group";
+        div.className = th.isPhilosophy
+            ? "glass-card p-6 space-y-4 cursor-pointer transition-all flex flex-col justify-between group border-2"
+            : "glass-card p-6 space-y-4 cursor-pointer hover:border-[var(--primary)] transition-all flex flex-col justify-between group";
+        if (th.isPhilosophy) div.style.borderColor = '#eab308';
         div.onclick = function() { openThoughtModal(th.id); };
         div.innerHTML = `
             <div>
                 <div class="flex justify-between items-center mb-1">
                     <div class="flex items-center gap-2 overflow-hidden">
-                        <span class="bookmark-ribbon primary-badge">${stageDot} #${th.cat || '서재'}</span>
+                        <span class="bookmark-ribbon primary-badge">${th.isPhilosophy ? '⭐ 목회철학' : `${stageDot} #${th.cat || '서재'}`}</span>
                         <span class="text-[10px] font-mono-code text-[var(--text-sub)] font-bold shrink-0">${createdText}</span>
                         ${modifiedText}
                     </div>
@@ -2100,10 +2135,31 @@ function renderThoughts() {
                 <h4 contenteditable="true" onclick="event.stopPropagation()" onblur="updateCardThoughtTitle('${th.id}', this.innerText)" class="font-black text-sm text-[var(--text-main)] outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${th.title}</h4>
                 <div class="mt-3 line-clamp-3 leading-relaxed thought-body font-medium">${th.content}</div>
             </div>
-            <button class="text-xs font-bold text-[var(--text-sub)] text-left hover:text-[var(--primary)] pt-2 border-t border-[var(--border-color)]" onclick="event.stopPropagation(); forwardToSermonIdea('${th.id}')">➔ 설교 아이디어로 전송</button>
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-[var(--border-color)]">
+                <button class="text-xs font-bold text-[var(--text-sub)] text-left hover:text-[var(--primary)]" onclick="event.stopPropagation(); forwardToSermonIdea('${th.id}')">➔ 설교 아이디어로 전송</button>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    ${linkSelect}
+                    <button onclick="event.stopPropagation(); togglePhilosophyAnchor('${th.id}')" class="text-[10px] font-bold rounded-full px-2 py-1 ${th.isPhilosophy ? 'text-amber-500' : 'text-[var(--text-sub)] hover:text-amber-500'}">${th.isPhilosophy ? '⭐ 해제' : '⭐로 지정'}</button>
+                </div>
+            </div>
         `;
         grid.appendChild(div);
     });
+}
+
+function togglePhilosophyAnchor(id) {
+    const t = window.state.thoughts.find(item => item.id === id);
+    if (!t) return;
+    t.isPhilosophy = !t.isPhilosophy;
+    if (t.isPhilosophy) t.philosophyId = null;
+    renderThoughts(); window.syncToCloud();
+}
+
+function linkThoughtToPhilosophy(id, philosophyId) {
+    const t = window.state.thoughts.find(item => item.id === id);
+    if (!t) return;
+    t.philosophyId = philosophyId || null;
+    renderThoughts(); window.syncToCloud();
 }
 
 function updateCardThoughtTitle(id, newTitle) {
@@ -2580,8 +2636,8 @@ function submitFab() {
    레이아웃(외부 라이브러리 없음). 노드=회의록/생각의서재/사역현황/찬양콘티/
    심방신청, 굵은 선=실제 연결(서재→설교아이디어 전송), 옅은 선=같은 날 기록.
    ========================================================================== */
-const GRAPH_TYPE_COLORS = { memo: '#60a5fa', thought: '#f59e0b', project: '#34d399', setlist: '#f472b6', visit: '#a78bfa' };
-const GRAPH_TYPE_LABELS = { memo: '회의록', thought: '생각의서재', project: '사역현황', setlist: '찬양콘티', visit: '심방신청' };
+const GRAPH_TYPE_COLORS = { memo: '#60a5fa', thought: '#f59e0b', project: '#34d399', setlist: '#f472b6', visit: '#a78bfa', philosophy: '#eab308' };
+const GRAPH_TYPE_LABELS = { memo: '회의록', thought: '생각의서재', project: '사역현황', setlist: '찬양콘티', visit: '심방신청', philosophy: '목회철학' };
 
 let ministryGraphSim = null;
 let ministryGraphAnimHandle = null;
@@ -2605,7 +2661,7 @@ function buildMinistryGraphData() {
     const edges = [];
 
     (window.state.memos || []).slice(0, 60).forEach(m => nodes.push({ id: 'memo_' + m.id, type: 'memo', label: m.title, dateKey: graphDateKey(m.date) }));
-    (window.state.thoughts || []).slice(0, 60).forEach(t => nodes.push({ id: 'thought_' + t.id, type: 'thought', label: t.title, dateKey: graphDateKey(t.createdAt) }));
+    (window.state.thoughts || []).slice(0, 60).forEach(t => nodes.push({ id: 'thought_' + t.id, type: t.isPhilosophy ? 'philosophy' : 'thought', label: t.title, dateKey: graphDateKey(t.createdAt) }));
     (window.state.projects || []).slice(0, 60).forEach(p => nodes.push({ id: 'project_' + p.id, type: 'project', label: p.title, dateKey: graphDateKey(p.start) }));
     (window.state.setlists || []).slice(0, 60).forEach(s => nodes.push({ id: 'setlist_' + s.id, type: 'setlist', label: s.title, dateKey: graphDateKey(s.date) }));
     (visitRequests || []).slice(0, 60).forEach(r => nodes.push({ id: 'visit_' + r.id, type: 'visit', label: r.name || '이름없음', dateKey: graphDateKey(r.createdAt) }));
@@ -2616,6 +2672,16 @@ function buildMinistryGraphData() {
             const source = (window.state.thoughts || []).find(t => t.title === originalTitle);
             if (source) edges.push({ a: 'thought_' + source.id, b: 'memo_' + m.id, kind: 'strong' });
         }
+    });
+
+    /* 목회철학 허브: 다른 기록에서 명시적으로 '철학과 연결'한 항목만 굵은 선으로
+       이어준다 — 같은 날 기록됐다고 자동으로 엮이는 weak edge와는 다르게,
+       철학과의 연결은 사용자가 직접 고른 것만 반영한다. */
+    (window.state.thoughts || []).forEach(t => {
+        if (t.philosophyId) edges.push({ a: 'thought_' + t.philosophyId, b: 'thought_' + t.id, kind: 'strong' });
+    });
+    (window.state.memos || []).forEach(m => {
+        if (m.philosophyId) edges.push({ a: 'thought_' + m.philosophyId, b: 'memo_' + m.id, kind: 'strong' });
     });
 
     const byDate = {};
@@ -2682,10 +2748,12 @@ function drawMinistryGraph() {
         html += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${e.kind === 'strong' ? 'var(--primary)' : 'var(--text-sub)'}" stroke-opacity="${e.kind === 'strong' ? 0.55 : 0.18}" stroke-width="${e.kind === 'strong' ? 1.6 : 1}"></line>`;
     });
     s.nodes.forEach(n => {
-        const r = n.type === 'project' ? 9 : 7;
+        const r = n.type === 'philosophy' ? 13 : (n.type === 'project' ? 9 : 7);
+        const fontWeight = n.type === 'philosophy' ? 'bold' : 'normal';
         html += `<g class="graph-node" data-id="${n.id}" style="cursor:pointer" transform="translate(${n.x.toFixed(1)},${n.y.toFixed(1)})">
+            ${n.type === 'philosophy' ? `<circle r="${r + 4}" fill="none" stroke="${GRAPH_TYPE_COLORS.philosophy}" stroke-opacity="0.35" stroke-width="1.5"></circle>` : ''}
             <circle r="${r}" fill="${GRAPH_TYPE_COLORS[n.type]}" stroke="var(--bg-color)" stroke-width="2"></circle>
-            <text y="${r + 12}" text-anchor="middle" font-size="9" fill="var(--text-sub)" style="pointer-events:none; user-select:none;">${escapeHtml((n.label || '').slice(0, 10))}</text>
+            <text y="${r + 12}" text-anchor="middle" font-size="9" font-weight="${fontWeight}" fill="var(--text-sub)" style="pointer-events:none; user-select:none;">${escapeHtml((n.label || '').slice(0, 10))}</text>
         </g>`;
     });
     svg.innerHTML = html;
