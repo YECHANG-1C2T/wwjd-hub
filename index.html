@@ -47,14 +47,14 @@
             <span class="text-xs font-bold text-[var(--text-sub)] hidden lg:inline">예수를 닮아가는 남편, 아빠, 목사 '임예창'</span>
         </div>
 
-        <div class="flex items-center gap-2 md:gap-4 text-xs font-mono-code font-bold text-[var(--text-main)]">
-            <div class="bg-[var(--card-bg)] px-3 py-1.5 rounded-full border border-[var(--border-color)] flex items-center gap-2 shadow-2xs">
+        <div class="flex items-center gap-2 md:gap-4 text-xs font-mono-code font-bold text-[var(--text-main)] min-w-0 overflow-x-auto no-scrollbar">
+            <div class="bg-[var(--card-bg)] px-3 py-1.5 rounded-full border border-[var(--border-color)] flex items-center gap-2 shadow-2xs shrink-0">
                 <span id="global-header-clock" class="text-[var(--primary)] font-black">00:00:00</span>
                 <span class="text-[var(--text-sub)] opacity-50">|</span>
                 <span id="global-header-weather" class="text-[11px] truncate">☀️ 분당 26°C · 경기광주 25°C</span>
             </div>
 
-            <div class="flex items-center bg-[var(--card-bg)] px-2 py-1 rounded-full border border-[var(--border-color)] shadow-2xs">
+            <div class="flex items-center bg-[var(--card-bg)] px-2 py-1 rounded-full border border-[var(--border-color)] shadow-2xs shrink-0">
                 <button onclick="switchTheme('burgundy')" id="btn-theme-burgundy" class="px-3 py-1 rounded-full font-bold text-[11px] transition-all">버건디</button>
                 <button onclick="switchTheme('cosmic')" id="btn-theme-cosmic" class="px-3 py-1 rounded-full font-bold text-[11px] transition-all">코스믹</button>
                 <button onclick="switchTheme('forest')" id="btn-theme-forest" class="px-3 py-1 rounded-full font-bold text-[11px] transition-all">포레스트</button>
@@ -62,11 +62,11 @@
                 <button onclick="switchTheme('waters')" id="btn-theme-waters" class="px-3 py-1 rounded-full font-bold text-[11px] transition-all">물가</button>
             </div>
 
-            <button onclick="openAiStatusPanel()" title="AI 상태" class="p-2 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)] transition-all shadow-2xs flex items-center justify-center">
+            <button onclick="openAiStatusPanel()" title="AI 상태" class="p-2 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] hover:border-[var(--primary)] transition-all shadow-2xs flex items-center justify-center shrink-0">
                 <span id="ai-status-dot" class="w-2 h-2 rounded-full bg-[var(--text-sub)] block"></span>
             </button>
 
-            <button onclick="logout()" title="로그아웃" class="p-2 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-sub)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all shadow-2xs">
+            <button onclick="logout()" title="로그아웃" class="p-2 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-sub)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all shadow-2xs shrink-0">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
             </button>
         </div>
@@ -200,7 +200,9 @@
                     <button onclick="addQuickScheduleFromHome()" class="px-4 py-2 primary-badge text-xs font-black rounded-lg">등록</button>
                 </div>
 
-                <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 650px; overflow-x: auto;" id="weekly-grid-view"></div>
+                <div class="overflow-x-auto">
+                    <div class="grid grid-cols-7 gap-1.5 md:gap-2 text-xs" style="min-width: 650px;" id="weekly-grid-view"></div>
+                </div>
             </div>
 
             <!-- 네이버 뉴스 8대 브리프 -->
