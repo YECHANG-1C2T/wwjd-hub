@@ -2642,6 +2642,12 @@ const GRAPH_TYPE_LABELS = { memo: '회의록', thought: '생각의서재', proje
 let ministryGraphSim = null;
 let ministryGraphAnimHandle = null;
 let ministryGraphDrag = null;
+let graphPhilosophyOnly = false;
+
+function toggleGraphPhilosophyOnly(checked) {
+    graphPhilosophyOnly = checked;
+    renderMinistryGraph();
+}
 
 function graphDateKey(raw) {
     if (!raw) return null;
@@ -2676,12 +2682,13 @@ function buildMinistryGraphData() {
 
     /* 목회철학 허브: 다른 기록에서 명시적으로 '철학과 연결'한 항목만 굵은 선으로
        이어준다 — 같은 날 기록됐다고 자동으로 엮이는 weak edge와는 다르게,
-       철학과의 연결은 사용자가 직접 고른 것만 반영한다. */
+       철학과의 연결은 사용자가 직접 고른 것만 반영한다. kind를 'philosophy'로
+       따로 표시해서, "목회철학만 보기" 필터가 이 연결만 골라낼 수 있게 한다. */
     (window.state.thoughts || []).forEach(t => {
-        if (t.philosophyId) edges.push({ a: 'thought_' + t.philosophyId, b: 'thought_' + t.id, kind: 'strong' });
+        if (t.philosophyId) edges.push({ a: 'thought_' + t.philosophyId, b: 'thought_' + t.id, kind: 'philosophy' });
     });
     (window.state.memos || []).forEach(m => {
-        if (m.philosophyId) edges.push({ a: 'thought_' + m.philosophyId, b: 'memo_' + m.id, kind: 'strong' });
+        if (m.philosophyId) edges.push({ a: 'thought_' + m.philosophyId, b: 'memo_' + m.id, kind: 'philosophy' });
     });
 
     const byDate = {};
@@ -2718,7 +2725,7 @@ function stepGraphSim(sim) {
         if (!a || !b) return;
         const dx = b.x - a.x, dy = b.y - a.y;
         const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
-        const targetLen = e.kind === 'strong' ? SPRING_LEN : WEAK_LEN;
+        const targetLen = (e.kind === 'strong' || e.kind === 'philosophy') ? SPRING_LEN : WEAK_LEN;
         const force = (dist - targetLen) * SPRING;
         const fx = (dx / dist) * force, fy = (dy / dist) * force;
         a.vx += fx; a.vy += fy;
@@ -2745,7 +2752,10 @@ function drawMinistryGraph() {
     s.edges.forEach(e => {
         const a = s.nodeById.get(e.a), b = s.nodeById.get(e.b);
         if (!a || !b) return;
-        html += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${e.kind === 'strong' ? 'var(--primary)' : 'var(--text-sub)'}" stroke-opacity="${e.kind === 'strong' ? 0.55 : 0.18}" stroke-width="${e.kind === 'strong' ? 1.6 : 1}"></line>`;
+        const stroke = e.kind === 'philosophy' ? '#eab308' : (e.kind === 'strong' ? 'var(--primary)' : 'var(--text-sub)');
+        const opacity = e.kind === 'philosophy' ? 0.75 : (e.kind === 'strong' ? 0.55 : 0.18);
+        const width = e.kind === 'philosophy' ? 2 : (e.kind === 'strong' ? 1.6 : 1);
+        html += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${stroke}" stroke-opacity="${opacity}" stroke-width="${width}"></line>`;
     });
     s.nodes.forEach(n => {
         const r = n.type === 'philosophy' ? 13 : (n.type === 'project' ? 9 : 7);
@@ -2832,7 +2842,16 @@ function renderMinistryGraph() {
     const statsRow = document.getElementById('graph-stats-row');
     if (!svg) return;
 
-    const { nodes, edges } = buildMinistryGraphData();
+    let { nodes, edges } = buildMinistryGraphData();
+
+    if (graphPhilosophyOnly) {
+        const philosophyEdges = edges.filter(e => e.kind === 'philosophy');
+        const keepIds = new Set();
+        nodes.forEach(n => { if (n.type === 'philosophy') keepIds.add(n.id); });
+        philosophyEdges.forEach(e => { keepIds.add(e.a); keepIds.add(e.b); });
+        nodes = nodes.filter(n => keepIds.has(n.id));
+        edges = philosophyEdges;
+    }
 
     if (legend) {
         legend.innerHTML = Object.keys(GRAPH_TYPE_LABELS).map(t =>
@@ -2851,7 +2870,10 @@ function renderMinistryGraph() {
     }
 
     if (nodes.length === 0) {
-        svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle" fill="var(--text-sub)" font-size="13">아직 기록이 쌓이지 않았어요. 회의록·생각의서재·사역현황·찬양콘티를 채워가면 여기 그래프가 자라납니다.</text>`;
+        const msg = graphPhilosophyOnly
+            ? '아직 목회철학으로 지정하거나 연결한 기록이 없어요. 생각의 서재에서 문서를 "⭐로 지정"하고, 다른 기록들을 그 철학과 연결해보세요.'
+            : '아직 기록이 쌓이지 않았어요. 회의록·생각의서재·사역현황·찬양콘티를 채워가면 여기 그래프가 자라납니다.';
+        svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle" fill="var(--text-sub)" font-size="13">${msg}</text>`;
         return;
     }
 
