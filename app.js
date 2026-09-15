@@ -893,12 +893,18 @@ function renderWeeklyGrid() {
             } else {
                 const catBorder = TODO_CAT_BORDER[item.cat] || 'border-l-[var(--border-color)]';
                 schedHtml += `
-                    <div class="bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] border-l-4 ${catBorder} leading-snug group relative" title="${item.cat || ''}">
-                        <div class="flex justify-between items-start">
-                            <b class="text-[var(--primary)] font-mono-code font-bold text-[10px]">${item.time}</b>
+                    <div class="bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] border-l-4 ${catBorder} leading-snug group relative space-y-0.5" title="${item.cat || ''}">
+                        <div class="flex justify-between items-start gap-1">
+                            <input type="time" value="${item.time}" onchange="updateWeeklyTime('${d.key}', '${item.id}', this.value)" class="text-[var(--primary)] font-mono-code font-bold text-[10px] bg-transparent outline-none w-[46px] cursor-pointer">
                             <button onclick="deleteWeekly('${d.key}', '${item.id}')" class="text-[9px] text-red-400 hover-reveal-action font-bold">✕</button>
                         </div>
-                        <span class="font-bold text-[11px] text-[var(--text-main)] block mt-0.5">${escapeAttr(item.text)}</span>
+                        <span contenteditable="true" onblur="updateWeeklyText('${d.key}', '${item.id}', this.innerText)" class="font-bold text-[11px] text-[var(--text-main)] block outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${escapeAttr(item.text)}</span>
+                        <select onchange="updateWeeklyCat('${d.key}', '${item.id}', this.value)" class="text-[9px] font-bold rounded-md px-1 py-0.5 outline-none border border-[var(--border-color)] bg-[var(--primary-light)] text-[var(--text-main)] w-full">
+                            <option value="회의" ${item.cat === '회의' ? 'selected' : ''}>회의</option>
+                            <option value="심방" ${item.cat === '심방' ? 'selected' : ''}>심방</option>
+                            <option value="사역" ${!item.cat || item.cat === '사역' ? 'selected' : ''}>사역</option>
+                            <option value="가정" ${item.cat === '가정' ? 'selected' : ''}>가정</option>
+                        </select>
                     </div>`;
             }
         });
@@ -933,7 +939,31 @@ function addQuickScheduleFromHome() {
 
 function deleteWeekly(day, id) {
     window.state.weekly[day] = window.state.weekly[day].filter(i => i.id !== id);
-    renderWeeklyGrid(); window.syncToCloud();
+    renderWeeklyGrid(); renderTodos(); window.syncToCloud();
+}
+
+function updateWeeklyText(day, id, newText) {
+    const item = (window.state.weekly[day] || []).find(i => i.id === id);
+    if (item && newText.trim() && item.text !== newText.trim()) {
+        item.text = newText.trim();
+        renderWeeklyGrid(); renderTodos(); window.syncToCloud();
+    }
+}
+
+function updateWeeklyTime(day, id, newTime) {
+    const item = (window.state.weekly[day] || []).find(i => i.id === id);
+    if (item && newTime) {
+        item.time = newTime;
+        renderWeeklyGrid(); renderTodos(); window.syncToCloud();
+    }
+}
+
+function updateWeeklyCat(day, id, newCat) {
+    const item = (window.state.weekly[day] || []).find(i => i.id === id);
+    if (item) {
+        item.cat = newCat;
+        renderWeeklyGrid(); renderTodos(); window.syncToCloud();
+    }
 }
 
 function openGoogleCalendar() {
@@ -1016,6 +1046,17 @@ function renderTodoViewDateLabel() {
 /* 지금 화살표로 보고 있는 날짜의 걸음 목록. '오늘'을 볼 때는 아직 완료되지 않은
    지난 날짜의 걸음도 함께 끌어와 보여준다 — 날짜가 지나도 잊히지 않도록 자동으로
    최신화되는 셈이다. 지난 날짜를 직접 볼 때는 그날의 원래 기록만 그대로 보여준다. */
+/* 주간일정표(반복 일정)를 그 요일이 돌아올 때마다 오늘의 걸음에도 겹쳐 보여준다.
+   예전엔 등록한 그 날 하루만 todos에 복사되고 다음 주부터는 다시 안 보였다.
+   이미 그 날짜에 실제 걸음(같은 텍스트+시간)이 있으면 중복 표시하지 않는다. */
+function getWeeklyOverlayForDate(dateStr) {
+    const dayKey = dateStrToWeekdayKey(dateStr);
+    return (window.state.weekly[dayKey] || []).map(item => ({
+        id: item.id, day: dayKey, time: item.time, text: item.text, cat: item.cat || '사역',
+        status: '반복', date: dateStr, kind: 'weekly'
+    }));
+}
+
 function getTodosForViewDate() {
     const viewDate = window.todoViewDate;
     const todayStr = getLocalDateStr();
@@ -1024,7 +1065,24 @@ function getTodosForViewDate() {
         const overdue = window.state.todos.filter(t => getEffectiveTodoDate(t) < todayStr && t.status !== '완료');
         list = list.concat(overdue);
     }
+
+    const weeklyOverlay = getWeeklyOverlayForDate(viewDate).filter(w =>
+        !list.some(t => t.text === w.text && t.time === w.time)
+    );
+    list = list.concat(weeklyOverlay);
+
     return list.slice().sort((a, b) => a.time.localeCompare(b.time));
+}
+
+/* 오늘의 걸음에 겹쳐 보이는 반복 일정(🔁)은 그 자체로는 완료 상태가 없는
+   "템플릿"이다. 상태를 건드리는 순간 그 날짜만의 진짜 걸음으로 떼어내
+   (주간일정표 원본은 그대로 두고) 이후로는 그 날짜의 독립된 기록으로 다룬다. */
+function materializeWeeklyTodo(weeklyId, day, dateStr) {
+    const w = (window.state.weekly[day] || []).find(i => i.id === weeklyId);
+    if (!w) return null;
+    const todo = { id: 't_' + Date.now(), time: w.time, cat: w.cat || '사역', text: w.text, status: '시작안함', date: dateStr };
+    window.state.todos.push(todo);
+    return todo;
 }
 
 function renderHomeTodos() {
@@ -1043,21 +1101,29 @@ function renderHomeTodos() {
     }
     list.forEach(t => {
         const isOverdue = getEffectiveTodoDate(t) < todayStr && t.status !== '완료';
+        const isWeekly = t.kind === 'weekly';
         const div = document.createElement('div');
-        div.className = "bg-[var(--card-bg)] p-2.5 rounded-xl border border-[var(--border-color)] flex items-center justify-between group";
+        div.className = `bg-[var(--card-bg)] p-2.5 rounded-xl border ${isWeekly ? 'border-dashed' : ''} border-[var(--border-color)] flex items-center justify-between group`;
         div.innerHTML = `
             <div class="flex items-center gap-2 min-w-0 flex-1 mr-1">
-                <input type="time" value="${t.time}" onclick="event.stopPropagation()" onchange="updateTodoTime('${t.id}', this.value)" class="text-[10px] font-mono-code font-bold text-[var(--primary)] bg-transparent outline-none shrink-0 w-[62px] cursor-pointer">
+                ${isWeekly ? `<span class="text-[9px] shrink-0" title="주간 일정표 반복 일정">🔁</span>` : ''}
+                <input type="time" value="${t.time}" onclick="event.stopPropagation()" onchange="${isWeekly ? `onWeeklyOverlayTimeChange('${t.id}', '${t.day}', '${t.date}', this.value)` : `updateTodoTime('${t.id}', this.value)`}" class="text-[10px] font-mono-code font-bold text-[var(--primary)] bg-transparent outline-none shrink-0 w-[62px] cursor-pointer">
                 <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${TODO_CAT_STYLE[t.cat] || 'primary-badge'}">${t.cat}</span>
-                <span contenteditable="true" onclick="event.stopPropagation()" onblur="updateHomeTodoText('${t.id}', this.innerText)" class="font-bold ${t.status === '완료' ? 'line-through text-[var(--text-sub)] opacity-60' : 'text-[var(--text-main)]'} outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text truncate min-w-0" title="${escapeAttr(t.text)}">${t.text}</span>
+                <span ${isWeekly ? '' : 'contenteditable="true"'} onclick="event.stopPropagation()" ${isWeekly ? `onblur="onWeeklyOverlayTextChange('${t.id}', '${t.day}', '${t.date}', this.innerText)"` : `onblur="updateHomeTodoText('${t.id}', this.innerText)"`} class="font-bold ${t.status === '완료' ? 'line-through text-[var(--text-sub)] opacity-60' : 'text-[var(--text-main)]'} outline-none border-b border-transparent focus:border-[var(--primary)] ${isWeekly ? '' : 'cursor-text'} truncate min-w-0" title="${escapeAttr(t.text)}">${t.text}</span>
                 ${isOverdue ? `<span class="text-[9px] font-bold text-amber-500 shrink-0">지연</span>` : ''}
             </div>
             <div class="flex items-center gap-1 shrink-0">
-                <button onclick="cycleTodoStatus('${t.id}')" class="text-[10px] px-2 py-0.5 font-bold rounded-lg ${TODO_STATUS_STYLE[t.status] || TODO_STATUS_STYLE['시작안함']}">${t.status}</button>
-                <button onclick="deleteTodo('${t.id}')" class="text-[10px] text-red-400 hover-reveal-action font-bold px-1">✕</button>
+                <button onclick="${isWeekly ? `onWeeklyOverlayStatusClick('${t.id}', '${t.day}', '${t.date}')` : `cycleTodoStatus('${t.id}')`}" class="text-[10px] px-2 py-0.5 font-bold rounded-lg ${isWeekly ? 'bg-[var(--bg-color)] text-[var(--text-sub)] border border-dashed border-[var(--border-color)]' : (TODO_STATUS_STYLE[t.status] || TODO_STATUS_STYLE['시작안함'])}">${isWeekly ? '반복' : t.status}</button>
+                <button onclick="${isWeekly ? `deleteWeeklyOverlay('${t.id}', '${t.day}')` : `deleteTodo('${t.id}')`}" class="text-[10px] text-red-400 hover-reveal-action font-bold px-1">✕</button>
             </div>`;
         container.appendChild(div);
     });
+}
+
+function onWeeklyOverlayTextChange(weeklyId, day, dateStr, newText) {
+    if (!newText.trim()) return;
+    const todo = materializeWeeklyTodo(weeklyId, day, dateStr);
+    if (todo) { todo.text = newText.trim(); renderTodos(); window.syncToCloud(); }
 }
 
 function updateHomeTodoText(id, newText) {
@@ -1122,22 +1188,42 @@ function renderTodos() {
     }
     list.forEach(item => {
         const isOverdue = getEffectiveTodoDate(item) < todayStr && item.status !== '완료';
+        const isWeekly = item.kind === 'weekly';
         const div = document.createElement('div');
-        div.className = "p-4 bg-[var(--primary-light)] rounded-2xl border border-[var(--border-color)] flex items-center justify-between group";
+        div.className = `p-4 bg-[var(--primary-light)] rounded-2xl border ${isWeekly ? 'border-dashed' : ''} border-[var(--border-color)] flex items-center justify-between group`;
         div.innerHTML = `
             <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-                <input type="time" value="${item.time}" onchange="updateTodoTime('${item.id}', this.value)" class="text-xs font-mono-code font-bold text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)] outline-none cursor-pointer">
+                ${isWeekly ? `<span class="text-[10px] shrink-0" title="주간 일정표 반복 일정 — 건드리면 이 날짜만의 걸음으로 떨어져 나옵니다">🔁</span>` : ''}
+                <input type="time" value="${item.time}" onchange="${isWeekly ? `onWeeklyOverlayTimeChange('${item.id}', '${item.day}', '${item.date}', this.value)` : `updateTodoTime('${item.id}', this.value)`}" class="text-xs font-mono-code font-bold text-[var(--primary)] bg-[var(--card-bg)] px-2 py-0.5 rounded-md border border-[var(--border-color)] outline-none cursor-pointer">
                 <span class="font-bold ${item.status==='완료' ? 'line-through text-[var(--text-sub)] opacity-50' : 'text-[var(--text-main)]'} truncate min-w-0" title="${escapeAttr(item.text)}">${item.text}</span>
                 ${isOverdue ? `<span class="text-[9px] font-bold text-amber-500 shrink-0">지연</span>` : ''}
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
                 <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${TODO_CAT_STYLE[item.cat] || 'primary-badge'}">${item.cat}</span>
-                <button onclick="cycleTodoStatus('${item.id}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${TODO_STATUS_STYLE[item.status] || TODO_STATUS_STYLE['시작안함']}">${item.status}</button>
-                <button onclick="deleteTodo('${item.id}')" class="text-[11px] text-red-400 font-bold px-1 hover-reveal-action">✕</button>
+                <button onclick="${isWeekly ? `onWeeklyOverlayStatusClick('${item.id}', '${item.day}', '${item.date}')` : `cycleTodoStatus('${item.id}')`}" class="text-[11px] font-bold px-2.5 py-1 rounded-lg ${isWeekly ? 'bg-[var(--card-bg)] text-[var(--text-sub)] border border-dashed border-[var(--border-color)]' : (TODO_STATUS_STYLE[item.status] || TODO_STATUS_STYLE['시작안함'])}">${isWeekly ? '반복' : item.status}</button>
+                <button onclick="${isWeekly ? `deleteWeeklyOverlay('${item.id}', '${item.day}')` : `deleteTodo('${item.id}')`}" class="text-[11px] text-red-400 font-bold px-1 hover-reveal-action">✕</button>
             </div>`;
         container.appendChild(div);
     });
     renderHomeTodos();
+}
+
+function onWeeklyOverlayTimeChange(weeklyId, day, dateStr, newTime) {
+    const todo = materializeWeeklyTodo(weeklyId, day, dateStr);
+    if (todo) { todo.time = newTime; renderTodos(); window.syncToCloud(); }
+}
+
+function onWeeklyOverlayStatusClick(weeklyId, day, dateStr) {
+    const todo = materializeWeeklyTodo(weeklyId, day, dateStr);
+    if (!todo) return;
+    const idx = TODO_STATUS_CYCLE.indexOf(todo.status);
+    todo.status = TODO_STATUS_CYCLE[(idx === -1 ? 0 : idx + 1) % TODO_STATUS_CYCLE.length];
+    renderTodos(); window.syncToCloud();
+}
+
+function deleteWeeklyOverlay(weeklyId, day) {
+    if (!confirm('이 반복 일정을 주간 일정표에서 완전히 삭제할까요? 앞으로 이 요일에 다시 나타나지 않습니다.')) return;
+    deleteWeekly(day, weeklyId);
 }
 
 function addTodoInline() {
