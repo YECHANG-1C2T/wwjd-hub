@@ -2490,6 +2490,234 @@ function submitFab() {
 }
 
 /* ==========================================================================
+   [사역흐름] 옵시디언 그래프뷰 방식 - 순수 SVG + 직접 구현한 force-directed
+   레이아웃(외부 라이브러리 없음). 노드=회의록/생각의서재/사역현황/찬양콘티/
+   심방신청, 굵은 선=실제 연결(서재→설교아이디어 전송), 옅은 선=같은 날 기록.
+   ========================================================================== */
+const GRAPH_TYPE_COLORS = { memo: '#60a5fa', thought: '#f59e0b', project: '#34d399', setlist: '#f472b6', visit: '#a78bfa' };
+const GRAPH_TYPE_LABELS = { memo: '회의록', thought: '생각의서재', project: '사역현황', setlist: '찬양콘티', visit: '심방신청' };
+
+let ministryGraphSim = null;
+let ministryGraphAnimHandle = null;
+let ministryGraphDrag = null;
+
+function graphDateKey(raw) {
+    if (!raw) return null;
+    if (typeof raw === 'object' && typeof raw.toDate === 'function') {
+        const d = raw.toDate();
+        return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+    }
+    if (typeof raw === 'string') {
+        const datePart = raw.split(' ')[0];
+        return /^\d{4}\.\d{1,2}\.\d{1,2}$/.test(datePart) ? datePart : null;
+    }
+    return null;
+}
+
+function buildMinistryGraphData() {
+    const nodes = [];
+    const edges = [];
+
+    (window.state.memos || []).slice(0, 60).forEach(m => nodes.push({ id: 'memo_' + m.id, type: 'memo', label: m.title, dateKey: graphDateKey(m.date) }));
+    (window.state.thoughts || []).slice(0, 60).forEach(t => nodes.push({ id: 'thought_' + t.id, type: 'thought', label: t.title, dateKey: graphDateKey(t.createdAt) }));
+    (window.state.projects || []).slice(0, 60).forEach(p => nodes.push({ id: 'project_' + p.id, type: 'project', label: p.title, dateKey: graphDateKey(p.start) }));
+    (window.state.setlists || []).slice(0, 60).forEach(s => nodes.push({ id: 'setlist_' + s.id, type: 'setlist', label: s.title, dateKey: graphDateKey(s.date) }));
+    (visitRequests || []).slice(0, 60).forEach(r => nodes.push({ id: 'visit_' + r.id, type: 'visit', label: r.name || '이름없음', dateKey: graphDateKey(r.createdAt) }));
+
+    (window.state.memos || []).forEach(m => {
+        if (m.cat === '설교 아이디어' && m.title && m.title.startsWith('[서재 착상] ')) {
+            const originalTitle = m.title.replace('[서재 착상] ', '');
+            const source = (window.state.thoughts || []).find(t => t.title === originalTitle);
+            if (source) edges.push({ a: 'thought_' + source.id, b: 'memo_' + m.id, kind: 'strong' });
+        }
+    });
+
+    const byDate = {};
+    nodes.forEach(n => { if (n.dateKey) (byDate[n.dateKey] = byDate[n.dateKey] || []).push(n); });
+    Object.values(byDate).forEach(group => {
+        if (group.length < 2 || group.length > 8) return;
+        for (let i = 0; i < group.length; i++) {
+            for (let j = i + 1; j < group.length; j++) edges.push({ a: group[i].id, b: group[j].id, kind: 'weak' });
+        }
+    });
+
+    return { nodes, edges };
+}
+
+function stepGraphSim(sim) {
+    const { nodes, edges, width, height, nodeById } = sim;
+    const REPULSION = 1800, SPRING = 0.02, SPRING_LEN = 60, WEAK_LEN = 100, DAMPING = 0.82, CENTER_PULL = 0.008;
+    let kinetic = 0;
+
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+            const a = nodes[i], b = nodes[j];
+            const dx = a.x - b.x, dy = a.y - b.y;
+            const distSq = Math.max(dx * dx + dy * dy, 25);
+            const dist = Math.sqrt(distSq);
+            const force = REPULSION / distSq;
+            const fx = (dx / dist) * force, fy = (dy / dist) * force;
+            a.vx += fx; a.vy += fy;
+            b.vx -= fx; b.vy -= fy;
+        }
+    }
+    edges.forEach(e => {
+        const a = nodeById.get(e.a), b = nodeById.get(e.b);
+        if (!a || !b) return;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+        const targetLen = e.kind === 'strong' ? SPRING_LEN : WEAK_LEN;
+        const force = (dist - targetLen) * SPRING;
+        const fx = (dx / dist) * force, fy = (dy / dist) * force;
+        a.vx += fx; a.vy += fy;
+        b.vx -= fx; b.vy -= fy;
+    });
+    nodes.forEach(n => {
+        if (n.fixed) { n.vx = 0; n.vy = 0; return; }
+        n.vx += (width / 2 - n.x) * CENTER_PULL;
+        n.vy += (height / 2 - n.y) * CENTER_PULL;
+        n.vx *= DAMPING; n.vy *= DAMPING;
+        n.x += n.vx; n.y += n.vy;
+        n.x = Math.max(20, Math.min(width - 20, n.x));
+        n.y = Math.max(20, Math.min(height - 20, n.y));
+        kinetic += n.vx * n.vx + n.vy * n.vy;
+    });
+    return kinetic;
+}
+
+function drawMinistryGraph() {
+    const svg = document.getElementById('ministry-graph-svg');
+    const s = ministryGraphSim;
+    if (!svg || !s) return;
+    let html = '';
+    s.edges.forEach(e => {
+        const a = s.nodeById.get(e.a), b = s.nodeById.get(e.b);
+        if (!a || !b) return;
+        html += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${e.kind === 'strong' ? 'var(--primary)' : 'var(--text-sub)'}" stroke-opacity="${e.kind === 'strong' ? 0.55 : 0.18}" stroke-width="${e.kind === 'strong' ? 1.6 : 1}"></line>`;
+    });
+    s.nodes.forEach(n => {
+        const r = n.type === 'project' ? 9 : 7;
+        html += `<g class="graph-node" data-id="${n.id}" style="cursor:pointer" transform="translate(${n.x.toFixed(1)},${n.y.toFixed(1)})">
+            <circle r="${r}" fill="${GRAPH_TYPE_COLORS[n.type]}" stroke="var(--bg-color)" stroke-width="2"></circle>
+            <text y="${r + 12}" text-anchor="middle" font-size="9" fill="var(--text-sub)" style="pointer-events:none; user-select:none;">${escapeHtml((n.label || '').slice(0, 10))}</text>
+        </g>`;
+    });
+    svg.innerHTML = html;
+    svg.querySelectorAll('.graph-node').forEach(el => {
+        el.addEventListener('pointerdown', onGraphNodePointerDown);
+    });
+}
+
+function runMinistryGraphSim(maxFrames) {
+    let frame = 0;
+    function tick() {
+        const kinetic = stepGraphSim(ministryGraphSim);
+        drawMinistryGraph();
+        frame++;
+        if (kinetic > 0.4 && frame < maxFrames) {
+            ministryGraphAnimHandle = requestAnimationFrame(tick);
+        } else {
+            ministryGraphAnimHandle = null;
+        }
+    }
+    if (ministryGraphAnimHandle) cancelAnimationFrame(ministryGraphAnimHandle);
+    tick();
+}
+
+function onGraphNodePointerDown(e) {
+    e.preventDefault();
+    const id = e.currentTarget.getAttribute('data-id');
+    const node = ministryGraphSim.nodeById.get(id);
+    if (!node) return;
+    const svg = document.getElementById('ministry-graph-svg');
+    const rect = svg.getBoundingClientRect();
+    node.fixed = true;
+    ministryGraphDrag = { id, moved: false, startX: e.clientX, startY: e.clientY };
+
+    function onMove(ev) {
+        const x = ev.clientX - rect.left, y = ev.clientY - rect.top;
+        node.x = x; node.y = y;
+        if (Math.abs(ev.clientX - ministryGraphDrag.startX) > 3 || Math.abs(ev.clientY - ministryGraphDrag.startY) > 3) {
+            ministryGraphDrag.moved = true;
+        }
+        if (!ministryGraphAnimHandle) runMinistryGraphSim(120);
+    }
+    function onUp() {
+        node.fixed = false;
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        if (!ministryGraphDrag.moved) navigateToGraphNode(id);
+        if (!ministryGraphAnimHandle) runMinistryGraphSim(120);
+        ministryGraphDrag = null;
+    }
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+}
+
+function navigateToGraphNode(id) {
+    if (id.startsWith('memo_')) {
+        switchView('meetings');
+    } else if (id.startsWith('thought_')) {
+        const tid = id.replace('thought_', '');
+        switchView('assets');
+        setTimeout(() => { if (typeof openThoughtModal === 'function') openThoughtModal(tid); }, 50);
+    } else if (id.startsWith('project_')) {
+        switchView('dashboard');
+    } else if (id.startsWith('setlist_')) {
+        const sid = id.replace('setlist_', '');
+        switchView('setlist');
+        if (typeof toggleSetlistView === 'function') toggleSetlistView(sid);
+    } else if (id.startsWith('visit_')) {
+        switchView('visits');
+    }
+}
+
+function renderMinistryGraph() {
+    const svg = document.getElementById('ministry-graph-svg');
+    const legend = document.getElementById('graph-legend');
+    const statsRow = document.getElementById('graph-stats-row');
+    if (!svg) return;
+
+    const { nodes, edges } = buildMinistryGraphData();
+
+    if (legend) {
+        legend.innerHTML = Object.keys(GRAPH_TYPE_LABELS).map(t =>
+            `<span class="flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)]"><span class="w-2 h-2 rounded-full inline-block" style="background:${GRAPH_TYPE_COLORS[t]}"></span>${GRAPH_TYPE_LABELS[t]}</span>`
+        ).join('');
+    }
+    if (statsRow) {
+        const counts = {};
+        nodes.forEach(n => { counts[n.type] = (counts[n.type] || 0) + 1; });
+        statsRow.innerHTML = Object.keys(GRAPH_TYPE_LABELS).map(t => `
+            <div class="p-3 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl text-center">
+                <span class="text-lg font-black block" style="color:${GRAPH_TYPE_COLORS[t]}">${counts[t] || 0}</span>
+                <span class="text-[10px] text-[var(--text-sub)] font-bold">${GRAPH_TYPE_LABELS[t]}</span>
+            </div>
+        `).join('');
+    }
+
+    if (nodes.length === 0) {
+        svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle" fill="var(--text-sub)" font-size="13">아직 기록이 쌓이지 않았어요. 회의록·생각의서재·사역현황·찬양콘티를 채워가면 여기 그래프가 자라납니다.</text>`;
+        return;
+    }
+
+    const rect = svg.getBoundingClientRect();
+    const width = rect.width || 800, height = rect.height || 500;
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+    const positioned = nodes.map(n => ({
+        ...n,
+        x: width / 2 + (Math.random() - 0.5) * width * 0.7,
+        y: height / 2 + (Math.random() - 0.5) * height * 0.7,
+        vx: 0, vy: 0, fixed: false
+    }));
+    ministryGraphSim = { nodes: positioned, edges, width, height };
+    ministryGraphSim.nodeById = new Map(positioned.map(n => [n.id, n]));
+
+    runMinistryGraphSim(400);
+}
+
+/* ==========================================================================
    [INITIALIZATION]
    ========================================================================== */
 initTheologyNarrative();
