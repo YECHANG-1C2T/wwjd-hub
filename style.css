@@ -85,29 +85,26 @@ body.theme-dawn {
     --highlight-tint: rgba(235, 160, 110, 0.12);
 }
 
-/* 5. 🌊 쉴 만한 물가 (Dark, 블루/틸 — 3차 조정: primary를 밝은 시안으로 교체해 코스믹처럼
-   "본문 글씨로도 그대로 읽히는" 색으로 통일. index.html 곳곳의 text-[var(--primary)]가
-   버튼 밖에서도 쓰이기 때문에, 어두운 버튼용 색은 더 이상 primary로 두지 않는다.
-   명도대비 검증 완료: 텍스트 10.3:1, 버튼(밝은 배경+짙은 글씨) 11.5:1 */
-body.theme-waters {
-    --bg-color: #0A2A36;
-    --card-bg: rgba(20, 40, 48, 0.7);
-    --primary: #6EE7F0;
-    --primary-hover: #58D2DC;
-    --primary-text: #062028;
-    --primary-light: rgba(110, 231, 240, 0.1);
-    --border-color: rgba(110, 231, 240, 0.28);
-    --text-main: #EAF6F5;
-    --text-sub: #D9EFED;
-    --nav-bg: rgba(10, 42, 54, 0.85);
-    --hero-bg: linear-gradient(135deg, #0A1F28 0%, #164C5C 50%, #2E8FA3 100%);
-    --hero-title-color: #EAF6F5;
-    --hero-quote-color: #F5FBFA;
-    --hero-clock-color: #FFFFFF;
-    --ambient-glow-color: rgba(110, 231, 240, 0.18);
-    --ambient-glow-color-outer: rgba(30, 90, 104, 0.1);
-    --gif-opacity: 0;
-    --highlight-tint: rgba(111, 202, 218, 0.12);
+/* 5. ⚫ 블랙 (Dark, 무채색 미니멀 — 네온/자연톤 없이 검정+실버로만 정리한
+   깔끔한 다크 테마. 명도대비: 본문 15.8:1, 보조텍스트 7.9:1, 버튼(밝은
+   배경+짙은 글씨) 15:1 이상 */
+body.theme-noir {
+    --bg-color: #0a0a0a;
+    --card-bg: rgba(24, 24, 27, 0.85);
+    --primary: #e4e4e7;
+    --primary-hover: #c9c9ce;
+    --primary-text: #0a0a0a;
+    --primary-light: rgba(228, 228, 231, 0.08);
+    --border-color: rgba(255, 255, 255, 0.12);
+    --text-main: #fafafa;
+    --text-sub: #a1a1aa;
+    --nav-bg: rgba(10, 10, 10, 0.92);
+    --hero-bg: linear-gradient(135deg, #000000 0%, #1c1c1f 55%, #000000 100%);
+    --hero-title-color: #ffffff;
+    --hero-quote-color: rgba(228, 228, 231, 0.85);
+    --hero-clock-color: #ffffff;
+    --gif-opacity: 0.22;
+    --highlight-tint: rgba(228, 228, 231, 0.15);
 }
 
 /* 🪵 [완전 탈바꿈] 생각의 서재 - 내추럴 웜 오크 아틀리에 (Warm Oak Atelier) */
@@ -279,7 +276,8 @@ body.in-study-room #cabin-lamp-glow {
 .hero-gif { opacity: var(--gif-opacity); mix-blend-mode: screen; transition: opacity 0.6s ease; }
 
 /* 히어로 배경 숨쉬는 글로우 — 용광로 GIF 대신 테마별 색(--ambient-glow-color)만
-   갈아끼우는 순수 CSS 앰비언트. 포레스트=오로라, 새벽=떠오르는 빛, 물가=물빛 반짝임 */
+   갈아끼우는 순수 CSS 앰비언트. 포레스트=오로라, 새벽=떠오르는 빛. 블랙 테마는
+   네온/자연 글로우 없이 무채색으로 깔끔하게 유지하므로 여기 포함하지 않는다. */
 .forest-aurora-glow {
     position: absolute;
     width: 320px; height: 320px; border-radius: 50%;
@@ -289,8 +287,7 @@ body.in-study-room #cabin-lamp-glow {
 }
 
 body.theme-forest .forest-aurora-glow,
-body.theme-dawn .forest-aurora-glow,
-body.theme-waters .forest-aurora-glow { display: block; }
+body.theme-dawn .forest-aurora-glow { display: block; }
 
 @media (prefers-reduced-motion: reduce) {
     .forest-aurora-glow { animation: none; opacity: 0.22; }

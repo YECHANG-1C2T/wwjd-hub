@@ -4,11 +4,12 @@
 
 /* 1. 3대 테마 스위처 & 히어로 카드 분위기 연출 */
 function switchTheme(themeName, shouldSync = true) {
+    if (themeName === 'waters') themeName = 'noir'; // 물가 테마 폐지 — 예전에 저장된 값 이관
     if (window.state) window.state.theme = themeName;
     const isStudy = document.getElementById('view-assets')?.classList.contains('active');
     document.body.className = 'theme-' + themeName + (isStudy ? ' in-study-room' : '') + ' selection:bg-[var(--primary)] selection:text-[var(--primary-text)]';
 
-    ['burgundy', 'cosmic', 'forest', 'dawn', 'waters'].forEach(t => {
+    ['burgundy', 'cosmic', 'forest', 'dawn', 'noir'].forEach(t => {
         const btn = document.getElementById('btn-theme-' + t);
         if (btn) {
             if (t === themeName) {
@@ -39,9 +40,9 @@ function switchTheme(themeName, shouldSync = true) {
     } else if (themeName === 'dawn') {
         if (heroBadge) heroBadge.innerText = "🌅 Dawn Prayer Hour";
         if (heroDesc) heroDesc.innerText = "“날이 새기 전에 일어나 부르짖으며, 주의 말씀을 바라는 새벽의 여명”";
-    } else if (themeName === 'waters') {
-        if (heroBadge) heroBadge.innerText = "🌊 Still Waters";
-        if (heroDesc) heroDesc.innerText = "“쉴 만한 물 가으로 인도하시는도다, 내 영혼을 소생시키시고”";
+    } else if (themeName === 'noir') {
+        if (heroBadge) heroBadge.innerText = "⚫ Quiet Discipline";
+        if (heroDesc) heroDesc.innerText = "“내가 내 몸을 쳐 복종하게 함은, 고요히 절제하며 나아가는 자의 걸음”";
     } else {
         if (heroBadge) heroBadge.innerText = "Spiritual Furnace Control Tower";
         if (heroDesc) heroDesc.innerText = "“하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라”";
