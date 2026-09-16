@@ -1429,6 +1429,23 @@ function deleteProject(id) {
 
 let currentLinkCat = '전체';
 
+/* 링크보드는 두 층으로 나뉜다: l.cat(섹션 — 청년교구/1청2팀/청년금요기도회/
+   교회 공통처럼 "어디 소속인가")과 l.type(카테고리 — 종합/보고/큐시트/정기처럼
+   "어떤 성격의 링크인가"). 색깔은 type을 따라간다. */
+const LINK_TYPE_STYLE = {
+    '종합': 'bg-sky-500/15 text-sky-500',
+    '보고': 'bg-violet-500/15 text-violet-500',
+    '큐시트': 'bg-rose-500/15 text-rose-500',
+    '정기': 'bg-emerald-500/15 text-emerald-500'
+};
+const LINK_TYPE_BORDER = {
+    '종합': 'border-l-sky-500',
+    '보고': 'border-l-violet-500',
+    '큐시트': 'border-l-rose-500',
+    '정기': 'border-l-emerald-500'
+};
+const LINK_SECTION_ORDER = ['청년교구', '1청2팀', '청년금요기도회', '교회 공통'];
+
 function renderLinkBoard() {
     const filterContainer = document.getElementById('link-cat-filter');
     const grid = document.getElementById('link-board-grid');
@@ -1451,9 +1468,14 @@ function renderLinkBoard() {
         return;
     }
 
-    /* 전체보기일 때는 카테고리별로 묶어서 소제목과 함께 보여준다.
-       특정 카테고리만 골랐을 땐 그 한 그룹만 남으므로 자연히 동일한 모양이 된다. */
-    const groupOrder = currentLinkCat === '전체' ? cats.filter(c => c !== '전체') : [currentLinkCat];
+    /* 전체보기일 때는 섹션(cat)별로 묶어서 소제목과 함께 보여준다.
+       특정 섹션만 골랐을 땐 그 한 그룹만 남으므로 자연히 동일한 모양이 된다.
+       정렬은 LINK_SECTION_ORDER를 우선하고, 그 목록에 없는 섹션은 뒤에 이어붙인다. */
+    const sectionsPresent = currentLinkCat === '전체' ? cats.filter(c => c !== '전체') : [currentLinkCat];
+    const groupOrder = [
+        ...LINK_SECTION_ORDER.filter(s => sectionsPresent.includes(s)),
+        ...sectionsPresent.filter(s => !LINK_SECTION_ORDER.includes(s))
+    ];
     groupOrder.forEach(cat => {
         const items = filtered.filter(l => l.cat === cat);
         if (items.length === 0) return;
@@ -1461,32 +1483,40 @@ function renderLinkBoard() {
         const group = document.createElement('div');
         group.className = "space-y-2.5";
         const header = document.createElement('div');
-        header.className = "flex items-center gap-2";
+        header.className = "flex items-center gap-2.5 bg-[var(--primary-light)] rounded-xl px-3.5 py-2 border-l-4 border-l-[var(--primary)]";
         header.innerHTML = `
-            <span class="text-[11px] font-black text-[var(--primary)] uppercase tracking-wider">${cat}</span>
-            <span class="text-[10px] font-mono-code text-[var(--text-sub)] font-bold">${items.length}</span>
-            <div class="flex-1 h-px bg-[var(--border-color)]"></div>`;
+            <span class="text-[13px] font-black text-[var(--primary)] tracking-wide">${cat}</span>
+            <span class="text-[10px] font-mono-code text-[var(--text-sub)] font-bold primary-badge px-2 py-0.5 rounded-full">${items.length}</span>`;
         group.appendChild(header);
 
         const cardGrid = document.createElement('div');
         cardGrid.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3";
         items.forEach(l => {
+            const type = l.type || '종합';
+            const typeOptions = Object.keys(LINK_TYPE_STYLE)
+                .map(t => `<option value="${t}" ${type === t ? 'selected' : ''}>${t}</option>`)
+                .join('');
             const card = document.createElement('a');
             card.href = l.url;
             card.target = '_blank';
             card.rel = 'noopener';
             card.draggable = true;
-            card.className = "glass-card p-3.5 flex items-center justify-between gap-2 hover:border-[var(--primary)] transition-all group cursor-grab active:cursor-grabbing";
+            card.className = `glass-card p-3.5 flex flex-col gap-2 hover:border-[var(--primary)] transition-all group cursor-grab active:cursor-grabbing border-l-4 ${LINK_TYPE_BORDER[type]}`;
             card.title = l.title;
             card.innerHTML = `
-                <div class="min-w-0 flex-1 flex items-center gap-1.5">
-                    <span class="text-[var(--text-sub)] opacity-0 group-hover:opacity-60 transition-opacity shrink-0 select-none" title="끌어서 순서 바꾸기">⠿</span>
-                    <h4 class="font-bold text-sm text-[var(--text-main)] line-clamp-2 min-w-0">${l.title}</h4>
+                <div class="flex items-center justify-between gap-2">
+                    <div class="min-w-0 flex-1 flex items-center gap-1.5">
+                        <span class="text-[var(--text-sub)] opacity-0 group-hover:opacity-60 transition-opacity shrink-0 select-none" title="끌어서 순서 바꾸기">⠿</span>
+                        <h4 class="font-bold text-sm text-[var(--text-main)] line-clamp-2 min-w-0">${l.title}</h4>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="event.preventDefault(); event.stopPropagation(); editLinkCategory('${l.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] hover-reveal-action font-bold" title="섹션 변경">✎</button>
+                        <button onclick="event.preventDefault(); event.stopPropagation(); deleteLink('${l.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                    <button onclick="event.preventDefault(); event.stopPropagation(); editLinkCategory('${l.id}')" class="text-[11px] text-[var(--text-sub)] hover:text-[var(--primary)] hover-reveal-action font-bold" title="카테고리 변경">✎</button>
-                    <button onclick="event.preventDefault(); event.stopPropagation(); deleteLink('${l.id}')" class="text-[11px] text-red-400 hover-reveal-action font-bold">✕</button>
-                </div>`;
+                <select onclick="event.preventDefault(); event.stopPropagation()" onchange="event.stopPropagation(); updateLinkType('${l.id}', this.value)" class="text-[10px] font-bold rounded-full px-2 py-0.5 outline-none border-none w-fit ${LINK_TYPE_STYLE[type]}">
+                    ${typeOptions}
+                </select>`;
             card.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', l.id);
                 e.dataTransfer.effectAllowed = 'move';
@@ -1531,11 +1561,19 @@ function deleteLink(id) {
     renderLinkBoard(); window.syncToCloud();
 }
 
+function updateLinkType(id, type) {
+    const link = window.state.links.find(l => l.id === id);
+    if (!link) return;
+    link.type = type;
+    renderLinkBoard();
+    window.syncToCloud();
+}
+
 function editLinkCategory(id) {
     const link = window.state.links.find(l => l.id === id);
     if (!link) return;
     const existingCats = [...new Set(window.state.links.map(l => l.cat))].join(', ');
-    const newCat = prompt(`새 카테고리를 입력하세요 (기존: ${existingCats})`, link.cat);
+    const newCat = prompt(`새 섹션을 입력하세요 (기존: ${existingCats})`, link.cat);
     if (newCat === null) return;
     const trimmed = newCat.trim();
     if (!trimmed || trimmed === link.cat) return;
