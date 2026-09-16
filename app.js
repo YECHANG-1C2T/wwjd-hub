@@ -1094,7 +1094,6 @@ function renderHomeTodos() {
     const list = getTodosForViewDate();
     const pendingCount = list.filter(t => t.status !== '완료').length;
     if (badge) badge.innerText = pendingCount;
-    renderTodoSparkline();
     if (list.length === 0) {
         container.innerHTML = `<p class="text-xs text-[var(--text-sub)] col-span-full py-1">이 날짜에 등록된 걸음이 없습니다.</p>`;
         return;
@@ -1254,28 +1253,6 @@ function cycleTodoStatus(id) {
    끝낸 날과, 한가해서 2개 등록해 2개 다 끝낸 날이 그래프에서 구분이 안 됐다.
    이제 그날 등록한 오늘의 걸음 대비 완료 "비율"을 보여줘서, 실제로 계획
    대비 얼마나 해냈는지가 드러나도록 바꿨다. */
-function renderTodoSparkline() {
-    const svg = document.getElementById('todo-sparkline');
-    if (!svg) return;
-    const rates = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dayStr = getLocalDateStr(d);
-        const dayTodos = window.state.todos.filter(t => getEffectiveTodoDate(t) === dayStr);
-        const doneCount = dayTodos.filter(t => t.status === '완료').length;
-        rates.push(dayTodos.length > 0 ? doneCount / dayTodos.length : 0);
-    }
-    const w = 56, h = 20, step = w / (rates.length - 1);
-    const points = rates.map((v, i) => `${(i * step).toFixed(1)},${(h - 2 - v * (h - 4)).toFixed(1)}`).join(' ');
-    const primary = getComputedStyle(document.body).getPropertyValue('--primary').trim() || '#34d399';
-    svg.setAttribute('title', `최근 7일 완료율 (오늘 ${Math.round(rates[6] * 100)}%)`);
-    svg.innerHTML = `
-        <polyline points="${points}" fill="none" stroke="${primary}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"></polyline>
-        <circle cx="${(6 * step).toFixed(1)}" cy="${(h - 2 - rates[6] * (h - 4)).toFixed(1)}" r="2" fill="${primary}"></circle>
-    `;
-}
-
 function deleteTodo(id) {
     window.state.todos = window.state.todos.filter(t => t.id !== id);
     renderTodos(); window.syncToCloud();
@@ -1824,7 +1801,7 @@ function renderMemos() {
             .join('');
         const linkSelect = philosophyDocs.length > 0 ? `
             <select onchange="linkMemoToPhilosophy('${m.id}', this.value)" class="text-[10px] font-bold bg-[var(--primary-light)] text-[var(--text-sub)] rounded-full px-2 py-0.5 outline-none border-none shrink-0">
-                <option value="">🔗 철학과 연결...</option>
+                <option value="">⭐ 철학과 연결</option>
                 ${linkOptions}
             </select>` : '';
 
@@ -2112,7 +2089,7 @@ function renderThoughts() {
             .join('');
         const linkSelect = (!th.isPhilosophy && philosophyDocs.length > 0) ? `
                 <select onclick="event.stopPropagation()" onchange="event.stopPropagation(); linkThoughtToPhilosophy('${th.id}', this.value)" class="text-[10px] font-bold bg-[var(--primary-light)] text-[var(--text-sub)] rounded-full px-2 py-1 outline-none border-none">
-                    <option value="">🔗 철학과 연결...</option>
+                    <option value="">⭐ 철학과 연결</option>
                     ${linkOptions}
                 </select>` : '';
 
