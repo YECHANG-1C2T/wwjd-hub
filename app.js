@@ -482,6 +482,27 @@ updateHeroClock();
 /* ==========================================================================
    [TODAY REFLECTION & LIVE NEWS]
    ========================================================================== */
+/* Today Reflection 카드는 era 텍스트의 키워드로 대략적인 시대/장르를 추정해
+   배지·테두리 색을 다르게 입힌다 — 매번 같은 색이 아니라 "지금 어떤 결의
+   이야기인지"가 색만 봐도 언뜻 느껴지도록. 정교한 분류가 아니라 장식적
+   구분이므로, 여러 키워드에 걸치는 항목은 먼저 매치되는 규칙을 따른다. */
+const ERA_THEME_RULES = [
+    { test: /한국|일제강점기|조선/, badge: 'bg-teal-500/15 text-teal-500 border-teal-500/25', border: 'border-l-teal-500' },
+    { test: /찬송|Hymn/i, badge: 'bg-fuchsia-500/15 text-fuchsia-500 border-fuchsia-500/25', border: 'border-l-fuchsia-500' },
+    { test: /선교|순교|Martyr|Mission/i, badge: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/25', border: 'border-l-emerald-500' },
+    { test: /종교개혁|개혁파|개혁주의|루터파|Reformation|Reformed/i, badge: 'bg-rose-500/15 text-rose-500 border-rose-500/25', border: 'border-l-rose-500' },
+    { test: /청교도|언약도|대각성|부흥|Puritan|Awakening|Revival/i, badge: 'bg-indigo-500/15 text-indigo-500 border-indigo-500/25', border: 'border-l-indigo-500' },
+    { test: /중세|가톨릭|스콜라|Medieval|Catholic/i, badge: 'bg-violet-500/15 text-violet-500 border-violet-500/25', border: 'border-l-violet-500' },
+    { test: /교부|속사도|사막|동방|서방|Patristic|Desert|Father/i, badge: 'bg-amber-500/15 text-amber-500 border-amber-500/25', border: 'border-l-amber-500' },
+    { test: /근대|현대|세기|프린스턴|변증|복음주의|근본주의|Modern|Evangelical|Apolog/i, badge: 'bg-sky-500/15 text-sky-500 border-sky-500/25', border: 'border-l-sky-500' }
+];
+const ERA_THEME_DEFAULT = { badge: 'bg-[var(--primary-light)] text-[var(--primary)] border-[var(--border-color)]', border: 'border-l-[var(--primary)]' };
+
+function getEraTheme(eraText) {
+    const rule = ERA_THEME_RULES.find(r => r.test.test(eraText || ''));
+    return rule || ERA_THEME_DEFAULT;
+}
+
 function initTheologyNarrative() {
     const now = new Date();
     const start = new Date(now.getFullYear(), 0, 0);
@@ -497,10 +518,22 @@ function rotateTheologyNarrative() {
 
 function renderTheologyNarrative() {
     const item = masterTheologyNarratives[activeNarrativeIdx];
-    document.getElementById('theology-era-badge').innerText = item.era;
+    const theme = getEraTheme(item.era);
+
+    const badge = document.getElementById('theology-era-badge');
+    badge.innerText = item.era;
+    badge.className = `text-[10px] font-mono-code px-2.5 py-0.5 rounded-full border font-bold ${theme.badge}`;
+
+    const card = document.getElementById('theology-card');
+    if (card) card.className = `glass-card p-6 md:p-7 border-l-4 space-y-4 ${theme.border}`;
+
+    const progress = document.getElementById('theology-progress');
+    if (progress) progress.innerText = `${activeNarrativeIdx + 1} / ${masterTheologyNarratives.length}`;
+
     document.getElementById('theology-question').innerText = item.question;
     document.getElementById('theology-declaration').innerText = item.declaration;
     document.getElementById('theology-source').innerText = `— ${item.author} · ${item.work}`;
+    document.getElementById('theology-history-teaser').innerText = item.history;
     document.getElementById('theology-contemporary').innerText = item.contemporary;
 }
 

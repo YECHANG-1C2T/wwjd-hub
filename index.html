@@ -116,11 +116,12 @@
             </div>
 
             <!-- 🏛️ Today Reflection -->
-            <div class="glass-card p-6 md:p-7 border-l-4 border-l-[var(--primary)] space-y-4">
+            <div id="theology-card" class="glass-card p-6 md:p-7 border-l-4 border-l-[var(--primary)] space-y-4">
                 <div class="flex flex-wrap justify-between items-center gap-2">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-[11px] font-mono-code font-extrabold text-[var(--primary)] uppercase tracking-wider">Today Reflection</span>
                         <span id="theology-era-badge" class="text-[10px] font-mono-code px-2.5 py-0.5 rounded-full bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--border-color)] font-bold">시대별 신학 내러티브</span>
+                        <span id="theology-progress" class="text-[9px] font-mono-code text-[var(--text-sub)] font-bold opacity-70"></span>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="rotateTheologyNarrative()" class="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--text-main)] text-[11px] font-bold rounded-xl transition-all hover:bg-[var(--primary-light)]">
@@ -140,6 +141,11 @@
                 <div>
                     <h3 id="theology-declaration" class="text-base md:text-lg font-black text-[var(--text-main)] leading-relaxed"></h3>
                     <p id="theology-source" class="text-xs text-[var(--text-sub)] font-mono-code font-bold mt-1"></p>
+                </div>
+
+                <div class="border-t border-[var(--border-color)] pt-2">
+                    <span class="text-[10px] font-mono-code font-bold text-[var(--text-sub)] block mb-0.5">🕰️ 역사적 배경</span>
+                    <p id="theology-history-teaser" class="text-xs text-[var(--text-sub)] leading-relaxed line-clamp-2"></p>
                 </div>
 
                 <div class="pt-2 border-t border-[var(--border-color)] flex items-start gap-2">
