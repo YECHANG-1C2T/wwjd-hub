@@ -10,6 +10,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
   :root{
@@ -80,6 +81,7 @@
   .post .row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--ink-dim);margin-bottom:6px;}
   .post .row b{color:var(--ink);font-weight:700;}
   .post p{margin:0;font-size:14.5px;white-space:pre-wrap;}
+  .post-img{display:block;max-width:100%;max-height:360px;border-radius:10px;margin:8px 0;object-fit:cover;}
   .divider-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
   .divider-label::after{content:"";flex:1;height:1px;background:var(--line);}
   .thread{display:flex;flex-direction:column;gap:8px;}
@@ -115,12 +117,33 @@
   .m-attendees{font-size:12px;color:var(--ink-dim);margin-bottom:6px;}
   .m-attendees span{background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 9px;margin-right:5px;display:inline-block;margin-bottom:3px;}
   .m-summary{font-size:14px;margin:0;white-space:pre-wrap;}
+  .m-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .m-actions{display:flex;gap:6px;flex:none;}
+  .m-actions button{font-family:inherit;font-size:11.5px;font-weight:700;color:var(--ink-dim);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;cursor:pointer;}
+  .m-actions .m-delbtn{color:var(--danger);}
+  .m-add-row{padding-top:14px;}
+  .m-add-row:first-child{padding-top:0;}
+  .m-edit-form{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-top:1px solid var(--line);}
+  .m-edit-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .m-edit-form input,.m-edit-form textarea{font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);}
+  .m-edit-form textarea{min-height:90px;resize:vertical;}
+  .m-edit-form .m-f-date{width:140px;}
+  .m-edit-form .m-f-title{flex:1;min-width:140px;}
+  .m-edit-actions{display:flex;align-items:center;gap:10px;justify-content:flex-end;}
   .notice{background:var(--brand-soft);color:var(--brand);border-radius:10px;padding:10px 14px;font-size:12.5px;margin-bottom:34px;}
   .notice.warn{background:#3A2426;color:var(--danger);}
   footer{text-align:center;font-size:12px;color:var(--ink-dim);margin-top:40px;}
   .post-form{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;padding:12px;border:1px dashed var(--line);border-radius:12px;background:var(--surface-2);}
   .post-form textarea{font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);min-height:56px;resize:vertical;width:100%;}
-  .post-form-actions{display:flex;align-items:center;gap:10px;justify-content:flex-end;}
+  .post-form-actions{display:flex;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+  .post-form-actions .save-status{margin-right:auto;}
+  .img-pick-row{display:flex;align-items:center;gap:10px;}
+  .img-pick-row label.pickbtn{font-family:inherit;font-weight:700;font-size:12.5px;color:var(--ink-dim);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;}
+  .img-pick-row input[type=file]{display:none;}
+  .img-preview{display:none;align-items:center;gap:8px;font-size:12px;color:var(--ink-dim);}
+  .img-preview.show{display:flex;}
+  .img-preview img{width:40px;height:40px;object-fit:cover;border-radius:6px;}
+  .img-preview button{font-family:inherit;font-size:12px;color:var(--danger);background:none;border:none;cursor:pointer;padding:0;}
   .btn{font-family:inherit;font-weight:700;font-size:13px;padding:8px 16px;border-radius:999px;border:none;cursor:pointer;background:var(--stripe,var(--brand));color:var(--on-accent);}
   .btn:disabled{opacity:.55;cursor:default;}
   .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink-dim);}
@@ -154,10 +177,11 @@
     <div><div class="eyebrow">1청2팀 · 소모임 현황판</div><h1>동아리 소식판</h1></div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
       <div class="today" id="todayLabel"></div>
-      <div class="who">이름 <input type="text" id="myNameInput" placeholder="예: 김성실" style="width:100px;font-family:inherit;font-size:12.5px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);"></div>
+      <div class="who">이름 <input type="text" id="myNameInput" placeholder="예: 김성실" style="width:110px;font-family:inherit;font-size:13px;font-weight:700;padding:5px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);"></div>
     </div>
   </header>
   <div class="notice">이름을 적어두시면 소식·댓글·채팅에 자동으로 붙어요. 동아리장님은 아래에서 소식·일정·댓글을 직접 남기고, 동아리 정보도 수정하실 수 있어요.</div>
+  <div class="notice warn" id="nameGate" hidden>👆 오른쪽 위에 <b>이름을 먼저 적어주세요!</b> 이름을 적어야 소식·댓글·채팅을 남길 수 있어요.</div>
   <div class="notice warn" id="syncErrorNotice" hidden></div>
   <div class="overview" id="overview"></div>
   <section id="calendarSection">
@@ -170,7 +194,7 @@
     <div class="panel" id="clubPanel"></div>
   </section>
   <section>
-    <div class="section-head"><h2>부서 공통 회의</h2><span class="sub">4개 동아리가 함께 모인 회의 기록</span></div>
+    <div class="section-head"><h2>부서 공통 회의</h2><span class="sub">4개 동아리가 함께 모인 회의 기록 · 누구나 추가·수정 가능</span></div>
     <div class="panel"><div class="timeline" id="meetingTimeline"></div></div>
   </section>
   <section id="chatSection">
@@ -200,12 +224,15 @@
   };
   firebase.initializeApp(firebaseConfig);
   var db = firebase.firestore();
+  var storage = firebase.storage();
   var CLUB_COL = db.collection("club_board");
   var CHAT_COL = CLUB_COL.doc("_chat").collection("messages");
+  var MEETINGS_COL = CLUB_COL.doc("_meetings").collection("items");
 
   var MAX_TEXT_LEN = 500;
   var MAX_LIST_LEN = 200;
   var CHAT_LIMIT = 100;
+  var MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
   var ICONS = {
     soccer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><polygon points="12,7.5 15.5,10 14.2,14.2 9.8,14.2 8.5,10" fill="currentColor" stroke="none"/><line x1="12" y1="3" x2="12" y2="7.5"/><line x1="15.5" y1="10" x2="19.7" y2="8.6"/><line x1="14.2" y1="14.2" x2="16.5" y2="18"/><line x1="9.8" y1="14.2" x2="7.5" y2="18"/><line x1="8.5" y1="10" x2="4.3" y2="8.6"/></svg>',
@@ -236,6 +263,11 @@
   var pendingWrites = {};
   var WEEKDAYS = ["일","월","화","수","목","금","토"];
   var activeTab = state.clubs[0].id;
+  /* preserved across re-renders (e.g. someone else's post arriving mid-typing)
+     so a realtime update never wipes out a draft you haven't submitted yet */
+  var pendingPostText = "";
+  var pendingCommentText = "";
+  var pendingPostFile = null; /* File object can't survive a DOM rebuild, so we just keep the reference and re-show its preview */
   var todayForCal = new Date();
   var calYear = todayForCal.getFullYear();
   var calMonth = todayForCal.getMonth();
@@ -285,8 +317,28 @@
   }
   var myNameInput = document.getElementById("myNameInput");
   myNameInput.value = getMyName();
-  myNameInput.addEventListener("change", function(){ setMyName(myNameInput.value.trim()); });
-  myNameInput.addEventListener("blur", function(){ setMyName(myNameInput.value.trim()); });
+  function refreshNameGate(){
+    var gate = document.getElementById("nameGate");
+    if(gate) gate.hidden = !!getMyName();
+  }
+  function commitName(){
+    setMyName(myNameInput.value.trim());
+    refreshNameGate();
+  }
+  myNameInput.addEventListener("change", commitName);
+  myNameInput.addEventListener("blur", commitName);
+  refreshNameGate();
+
+  /** Focuses the name field and shows the gate banner; returns false so a
+   * caller can `if(!requireName()) return;` before saving a post/comment/chat. */
+  function requireName(){
+    if(getMyName()) return true;
+    var gate = document.getElementById("nameGate");
+    if(gate) gate.hidden = false;
+    myNameInput.focus();
+    myNameInput.scrollIntoView({ behavior:"smooth", block:"center" });
+    return false;
+  }
 
   /* ---- realtime sync: one doc per club (club_board/{clubId}) + club_board/_meetings ----
      Each club leader writes only their own club's doc, so concurrent edits to
@@ -296,9 +348,8 @@
     if(unsubscribeCol) return;
     unsubscribeCol = CLUB_COL.onSnapshot(function(snap){
       var byId = {};
-      var meetingsData = null;
       snap.forEach(function(doc){
-        if(doc.id === "_meetings"){ meetingsData = doc.data(); return; }
+        if(doc.id === "_meetings" || doc.id === "_chat") return; /* not a club doc */
         byId[doc.id] = doc.data();
       });
       state.clubs = CLUB_IDS.map(function(id){
@@ -308,7 +359,6 @@
         }
         return makeClub(id, byId[id]);
       });
-      state.meetings = (meetingsData && meetingsData.meetings) || [];
       CLUB_IDS.forEach(function(id){
         if(!byId[id] && !pendingWrites[id]){
           pendingWrites[id] = true;
@@ -323,17 +373,40 @@
     });
   }
 
-  function saveClub(clubId, statusElId){
-    var c = clubById(clubId);
-    if(!c) return Promise.resolve({ ok:false });
+  /* ---- meetings: each meeting is its own doc under club_board/_meetings/items,
+     same reasoning as the per-club split — editing one meeting never clobbers
+     another, and two people editing different meetings never race. ---- */
+  var unsubscribeMeetings = null;
+  function startMeetingsSync(){
+    if(unsubscribeMeetings) return;
+    unsubscribeMeetings = MEETINGS_COL.onSnapshot(function(snap){
+      var list = [];
+      snap.forEach(function(doc){
+        var d = doc.data();
+        d.id = doc.id;
+        list.push(d);
+      });
+      list.sort(function(a,b){ return (b.date||"") < (a.date||"") ? -1 : 1; });
+      state.meetings = list;
+      renderCalendar();
+      renderMeetings();
+      renderPanel();
+    }, function(err){
+      console.error("meetings sync error", err);
+      showSyncError(err);
+    });
+  }
+
+  /* ---- partial writes only (never rewrite the whole club doc) ----
+     Two people saving the SAME club near-simultaneously used to race: both
+     read the same in-memory state, and whichever .set() landed second wiped
+     out the other's change. `update()` touching only the changed field(s),
+     with arrayUnion for list fields, makes near-simultaneous edits to a
+     club (two posts, or a post + an info edit) merge instead of clobber. */
+  function patchClub(clubId, fields, statusElId){
     if(statusElId) setStatus(statusElId, "저장 중...", false);
     pendingWrites[clubId] = true;
-    var payload = {
-      name:c.name, tagline:c.tagline, icon:c.icon, css:c.css, soft:c.soft,
-      leaderName:c.leaderName, memberCount:c.memberCount,
-      updates:c.updates, comments:c.comments, events:c.events
-    };
-    return CLUB_COL.doc(clubId).set(payload).then(function(){
+    return CLUB_COL.doc(clubId).update(fields).then(function(){
       if(statusElId) setStatus(statusElId, "저장됐어요.", false);
       return { ok:true };
     }).catch(function(err){
@@ -461,16 +534,25 @@
     Array.prototype.forEach.call(el.querySelectorAll(".tab-btn"), function(btn){
       btn.addEventListener("click", function(){
         activeTab = btn.getAttribute("data-tab");
+        clearPostDraft();
         renderTabs();
         renderPanel();
       });
     });
   }
 
+  function clearPostDraft(){
+    pendingPostText = "";
+    pendingCommentText = "";
+    pendingPostFile = null;
+  }
+
   function renderOverview(){
     var el = document.getElementById("overview");
     el.innerHTML = state.clubs.map(function(c){
-      var latest = c.updates[0];
+      var latest = (c.updates || []).reduce(function(best, u){
+        return (!best || (u.createdAt||"") > (best.createdAt||"")) ? u : best;
+      }, null);
       var latestHtml = latest
         ? '<em>'+esc(latest.authorName||"익명")+'</em> · '+esc((latest.text||"").slice(0,60))
         : '아직 등록된 소식이 없어요';
@@ -486,6 +568,7 @@
     Array.prototype.forEach.call(el.querySelectorAll(".club-card"), function(card){
       card.addEventListener("click", function(){
         activeTab = card.getAttribute("data-tab");
+        clearPostDraft();
         renderTabs(); renderOverview(); renderPanel();
       });
     });
@@ -522,10 +605,14 @@
         '<div class="save-status" id="evStatus"></div>'+
       '</div>';
 
-    var feedHtml = c.updates.length ? c.updates.map(function(u){
+    var sortedUpdates = (c.updates || []).slice().sort(function(a,b){
+      return (b.createdAt||"") < (a.createdAt||"") ? -1 : 1;
+    }).slice(0, MAX_LIST_LEN);
+    var feedHtml = sortedUpdates.length ? sortedUpdates.map(function(u){
       return (
         '<div class="post">'+
           '<div class="row"><b>'+esc(u.authorName||"익명")+'</b><span class="num">'+fmtDateTime(u.createdAt)+'</span></div>'+
+          (u.imageUrl ? '<img class="post-img" src="'+esc(u.imageUrl)+'" alt="">' : '')+
           '<p>'+esc(u.text||"")+'</p>'+
         '</div>'
       );
@@ -533,14 +620,22 @@
 
     var postFormHtml =
       '<div class="post-form">'+
-        '<textarea id="postText" placeholder="이번 주 활동 소식을 남겨주세요"></textarea>'+
+        '<textarea id="postText" placeholder="이번 주 활동 소식을 남겨주세요">'+esc(pendingPostText)+'</textarea>'+
+        '<div class="img-pick-row">'+
+          '<label class="pickbtn" for="postImage">📷 사진 첨부</label>'+
+          '<input type="file" id="postImage" accept="image/*">'+
+          '<div class="img-preview" id="postImagePreview"><img id="postImagePreviewImg" alt=""><span id="postImageFileName"></span><button type="button" id="postImageRemoveBtn">지우기</button></div>'+
+        '</div>'+
         '<div class="post-form-actions">'+
           '<span class="save-status" id="postStatus"></span>'+
           '<button type="button" class="btn" id="postSubmitBtn">소식 남기기</button>'+
         '</div>'+
       '</div>';
 
-    var commentsHtml = c.comments.length ? c.comments.map(function(cm){
+    var sortedComments = (c.comments || []).slice().sort(function(a,b){
+      return (a.createdAt||"") < (b.createdAt||"") ? -1 : 1;
+    }).slice(-MAX_LIST_LEN);
+    var commentsHtml = sortedComments.length ? sortedComments.map(function(cm){
       return '<div class="bubble"><b>'+esc(cm.authorName||"익명")+'</b>'+esc(cm.text||"")+'</div>';
     }).join("") : '<div class="empty">아직 나눈 이야기가 없어요.</div>';
 
@@ -584,21 +679,135 @@
     panel.querySelector("#evAddBtn").addEventListener("click", function(){ onAddEvent(c.id); });
     panel.querySelector("#postSubmitBtn").addEventListener("click", function(){ onAddUpdate(c.id); });
     panel.querySelector("#cmSubmitBtn").addEventListener("click", function(){ onAddComment(c.id); });
+
+    /* preserve in-progress drafts across a re-render triggered by someone else's edit */
+    var postTextEl = panel.querySelector("#postText");
+    postTextEl.addEventListener("input", function(){ pendingPostText = postTextEl.value; });
+    var cmTextEl = panel.querySelector("#cmText");
+    cmTextEl.value = pendingCommentText;
+    cmTextEl.addEventListener("input", function(){ pendingCommentText = cmTextEl.value; });
+
+    panel.querySelector("#postImage").addEventListener("change", function(){
+      pendingPostFile = this.files[0] || null;
+      updatePostImagePreview();
+    });
+    panel.querySelector("#postImageRemoveBtn").addEventListener("click", function(){
+      pendingPostFile = null;
+      panel.querySelector("#postImage").value = "";
+      updatePostImagePreview();
+    });
+    updatePostImagePreview();
+  }
+
+  function updatePostImagePreview(){
+    var wrap = document.getElementById("postImagePreview");
+    if(!wrap) return;
+    var img = document.getElementById("postImagePreviewImg");
+    var nameEl = document.getElementById("postImageFileName");
+    if(pendingPostFile){
+      wrap.classList.add("show");
+      img.src = URL.createObjectURL(pendingPostFile);
+      nameEl.textContent = pendingPostFile.name;
+    } else {
+      wrap.classList.remove("show");
+      img.removeAttribute("src");
+      nameEl.textContent = "";
+    }
+  }
+
+  var editingMeetingId = null; /* null: none | "new": add form | a meeting id: editing that one */
+
+  function meetingEditFormHtml(m){
+    var mid = m ? m.id : "new";
+    return (
+      '<div class="m-edit-form" data-mid="'+esc(mid)+'">'+
+        '<div class="m-edit-row">'+
+          '<input type="date" class="m-f-date" value="'+esc(m ? m.date : "")+'">'+
+          '<input type="text" class="m-f-title" placeholder="회의 제목" value="'+esc(m ? m.title : "")+'">'+
+        '</div>'+
+        '<input type="text" class="m-f-attendees" placeholder="참석자 (쉼표로 구분)" value="'+esc(m ? m.attendees : "")+'">'+
+        '<textarea class="m-f-summary" placeholder="회의 내용을 자세히 적어주세요">'+esc(m ? m.summary : "")+'</textarea>'+
+        '<div class="m-edit-actions">'+
+          '<span class="save-status" id="meetingStatus"></span>'+
+          '<button type="button" class="btn ghost m-cancel-btn">취소</button>'+
+          '<button type="button" class="btn m-save-btn">저장</button>'+
+        '</div>'+
+      '</div>'
+    );
   }
 
   function renderMeetings(){
     var el = document.getElementById("meetingTimeline");
-    el.innerHTML = state.meetings.length ? state.meetings.map(function(m){
+    var itemsHtml = state.meetings.length ? state.meetings.map(function(m){
+      if(editingMeetingId === m.id) return meetingEditFormHtml(m);
       var attendees = (m.attendees||"").split(",").map(function(s){ return s.trim(); }).filter(Boolean);
       return (
         '<div class="m-item">'+
           '<div class="m-date num">'+fmtDate(m.date)+'</div>'+
-          '<div><p class="m-title">'+esc(m.title)+'</p>'+
-          (attendees.length ? '<div class="m-attendees">'+attendees.map(function(a){return '<span>'+esc(a)+'</span>';}).join("")+'</div>' : '')+
-          '<p class="m-summary">'+esc(m.summary)+'</p></div>'+
+          '<div>'+
+            '<div class="m-head-row"><p class="m-title">'+esc(m.title)+'</p>'+
+              '<span class="m-actions">'+
+                '<button type="button" class="m-editbtn" data-mid="'+esc(m.id)+'">수정</button>'+
+                '<button type="button" class="m-delbtn" data-mid="'+esc(m.id)+'">삭제</button>'+
+              '</span>'+
+            '</div>'+
+            (attendees.length ? '<div class="m-attendees">'+attendees.map(function(a){return '<span>'+esc(a)+'</span>';}).join("")+'</div>' : '')+
+            '<p class="m-summary">'+esc(m.summary)+'</p>'+
+          '</div>'+
         '</div>'
       );
     }).join("") : '<div class="empty">아직 등록된 회의록이 없어요.</div>';
+
+    var addAreaHtml = editingMeetingId === "new"
+      ? meetingEditFormHtml(null)
+      : '<div class="m-add-row"><button type="button" class="btn ghost" id="meetingAddToggleBtn">+ 회의록 추가</button></div>';
+
+    el.innerHTML = itemsHtml + addAreaHtml;
+
+    Array.prototype.forEach.call(el.querySelectorAll(".m-editbtn"), function(btn){
+      btn.addEventListener("click", function(){
+        editingMeetingId = btn.getAttribute("data-mid");
+        renderMeetings();
+      });
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".m-delbtn"), function(btn){
+      btn.addEventListener("click", function(){ onDeleteMeeting(btn.getAttribute("data-mid")); });
+    });
+    var addBtn = el.querySelector("#meetingAddToggleBtn");
+    if(addBtn) addBtn.addEventListener("click", function(){ editingMeetingId = "new"; renderMeetings(); });
+
+    var form = el.querySelector(".m-edit-form");
+    if(form){
+      form.querySelector(".m-save-btn").addEventListener("click", function(){ onSaveMeeting(form.getAttribute("data-mid")); });
+      form.querySelector(".m-cancel-btn").addEventListener("click", function(){ editingMeetingId = null; renderMeetings(); });
+    }
+  }
+
+  function onSaveMeeting(mid){
+    var el = document.getElementById("meetingTimeline");
+    var form = el.querySelector('.m-edit-form[data-mid="'+mid+'"]');
+    if(!form) return;
+    var date = form.querySelector(".m-f-date").value;
+    var title = form.querySelector(".m-f-title").value.trim().slice(0, 100);
+    var attendees = form.querySelector(".m-f-attendees").value.trim().slice(0, 200);
+    var summary = form.querySelector(".m-f-summary").value.trim().slice(0, 3000);
+    if(!date || !title){ setStatus("meetingStatus", "날짜와 제목을 입력해주세요.", true); return; }
+    setStatus("meetingStatus", "저장 중...", false);
+    var data = { date:date, title:title, attendees:attendees, summary:summary };
+    var promise = (mid === "new") ? MEETINGS_COL.add(data) : MEETINGS_COL.doc(mid).set(data, { merge:true });
+    promise.then(function(){
+      editingMeetingId = null;
+      /* startMeetingsSync's onSnapshot will re-render with the saved copy */
+    }).catch(function(err){
+      setStatus("meetingStatus", "저장 실패: " + (err && err.message || ""), true);
+    });
+  }
+
+  function onDeleteMeeting(mid){
+    if(!confirm("이 회의록을 삭제할까요?")) return;
+    MEETINGS_COL.doc(mid).delete().catch(function(err){
+      alert("삭제 실패: " + (err && err.message || ""));
+    });
   }
 
   /* ---- write actions ---- */
@@ -607,27 +816,52 @@
   }
 
   function onAddUpdate(clubId){
+    if(!requireName()) return;
     var textEl = document.getElementById("postText");
     var text = (textEl.value || "").trim();
     if(!text){ setStatus("postStatus", "내용을 입력해주세요.", true); return; }
     if(text.length > MAX_TEXT_LEN){ setStatus("postStatus", MAX_TEXT_LEN+"자 이내로 적어주세요.", true); return; }
-    var c = clubById(clubId);
-    c.updates.unshift({ authorName: currentAuthorName(), text: text, createdAt: new Date().toISOString() });
-    if(c.updates.length > MAX_LIST_LEN) c.updates.length = MAX_LIST_LEN;
-    renderOverview(); renderPanel();
-    saveClub(clubId, "postStatus");
+    var file = pendingPostFile;
+    if(file && file.size > MAX_IMAGE_BYTES){ setStatus("postStatus", "사진은 5MB 이하로 올려주세요.", true); return; }
+
+    var btn = document.getElementById("postSubmitBtn");
+    if(btn) btn.disabled = true;
+
+    var uploadPromise;
+    if(file){
+      setStatus("postStatus", "사진 올리는 중...", false);
+      var path = "club_board/" + clubId + "/" + uid() + "_" + file.name.replace(/[^A-Za-z0-9._-]/g, "_");
+      uploadPromise = storage.ref(path).put(file).then(function(snap){ return snap.ref.getDownloadURL(); });
+    } else {
+      uploadPromise = Promise.resolve(null);
+    }
+
+    uploadPromise.then(function(imageUrl){
+      var c = clubById(clubId);
+      var item = { authorName: currentAuthorName(), text: text, createdAt: new Date().toISOString() };
+      if(imageUrl) item.imageUrl = imageUrl;
+      c.updates.unshift(item);
+      pendingPostText = "";
+      pendingPostFile = null;
+      renderOverview(); renderPanel();
+      patchClub(clubId, { updates: firebase.firestore.FieldValue.arrayUnion(item) }, "postStatus");
+    }).catch(function(err){
+      setStatus("postStatus", "사진 업로드 실패: " + (err && err.message || ""), true);
+      if(btn) btn.disabled = false;
+    });
   }
 
   function onAddComment(clubId){
+    if(!requireName()) return;
     var textEl = document.getElementById("cmText");
     var text = (textEl.value || "").trim();
     if(!text){ setStatus("cmStatus", "내용을 입력해주세요.", true); return; }
     if(text.length > MAX_TEXT_LEN){ setStatus("cmStatus", MAX_TEXT_LEN+"자 이내로 적어주세요.", true); return; }
     var c = clubById(clubId);
-    c.comments.push({ authorName: currentAuthorName(), text: text });
-    if(c.comments.length > MAX_LIST_LEN) c.comments.splice(0, c.comments.length - MAX_LIST_LEN);
+    var item = { authorName: currentAuthorName(), text: text, createdAt: new Date().toISOString() };
+    c.comments.push(item);
     renderPanel();
-    saveClub(clubId, "cmStatus");
+    patchClub(clubId, { comments: firebase.firestore.FieldValue.arrayUnion(item) }, "cmStatus");
   }
 
   function onAddEvent(clubId){
@@ -639,10 +873,10 @@
     var title = (titleEl.value || "").trim();
     if(!date || !title){ setStatus("evStatus", "날짜와 제목을 입력해주세요.", true); return; }
     var c = clubById(clubId);
-    c.events.push({ id: uid(), date: date, time: timeEl.value || "", title: title, location: (locEl.value||"").trim() });
-    if(c.events.length > MAX_LIST_LEN) c.events.splice(0, c.events.length - MAX_LIST_LEN);
+    var item = { id: uid(), date: date, time: timeEl.value || "", title: title, location: (locEl.value||"").trim() };
+    c.events.push(item);
     renderCalendar(); renderPanel();
-    saveClub(clubId, "evStatus");
+    patchClub(clubId, { events: firebase.firestore.FieldValue.arrayUnion(item) }, "evStatus");
   }
 
   function onSaveInfo(clubId){
@@ -652,7 +886,7 @@
     var n = parseInt(document.getElementById("infoMembers").value, 10);
     c.memberCount = (isFinite(n) && n > 0) ? Math.min(n, 9999) : 0;
     renderOverview(); renderPanel();
-    saveClub(clubId, "infoStatus");
+    patchClub(clubId, { tagline: c.tagline, leaderName: c.leaderName, memberCount: c.memberCount }, "infoStatus");
   }
 
   /* ---- chat ---- */
@@ -712,6 +946,7 @@
   /* ---- start ---- */
   renderAll(); /* show sane defaults immediately, no blank flash while first data loads */
   startSync();
+  startMeetingsSync();
   startChatSync();
 
 })();
