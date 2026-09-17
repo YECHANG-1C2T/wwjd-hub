@@ -118,6 +118,7 @@ function startCloudSync() {
 
             if (typeof switchTheme === 'function') switchTheme(window.state.theme, false);
             if (typeof applyThoughtZoomUI === 'function') applyThoughtZoomUI();
+            if (typeof pruneExpiredWeeklyItems === 'function') pruneExpiredWeeklyItems();
 
             renderWeeklyGrid();
             renderTodos();
@@ -1063,9 +1064,36 @@ function renderWeeklyGrid() {
 function clearWeeklyDay(dayKey, dayName) {
     const items = window.state.weekly[dayKey] || [];
     if (items.length === 0) return;
-    if (!confirm(`${dayName}요일의 반복 일정 ${items.length}개를 모두 지울까요? 되돌릴 수 없습니다.`)) return;
-    window.state.weekly[dayKey] = [];
+    /* 🔁를 눌러 사용자가 '매주 반복'이라고 직접 확인한 항목(recurring===true)은
+       실수로 함께 지우지 않도록 건드리지 않는다. 그 외(예전 버그로 쌓인
+       정체불명 항목, 이번 주만인 일회성 항목)만 정리 대상으로 삼는다. */
+    const toKeep = items.filter(i => i.recurring === true);
+    const toRemoveCount = items.length - toKeep.length;
+    if (toRemoveCount === 0) {
+        alert(`${dayName}요일에는 지울 게 없어요 — 모두 "매주 반복"으로 직접 지정해두신 일정이에요.`);
+        return;
+    }
+    if (!confirm(`${dayName}요일의 일정 ${toRemoveCount}개를 지울까요? "매주 반복"으로 지정된 ${toKeep.length}개는 남겨둡니다. 되돌릴 수 없습니다.`)) return;
+    window.state.weekly[dayKey] = toKeep;
     renderWeeklyGrid(); renderTodos(); renderHomeTodos(); window.syncToCloud();
+}
+
+/* window.state.weekly는 요일별로 계속 쌓이기만 하고 자동으로 줄어들지
+   않는다 — "이번 주만"으로 등록한 일정은 화면에서만 사라질 뿐, 실제
+   데이터는 그대로 남아 매 세션 클라우드 문서를 조금씩 불려간다. 지난
+   주에 지나간 일회성 항목은 어차피 다시 볼 일이 없으므로, 하루 지나면
+   조용히 걷어낸다. */
+function pruneExpiredWeeklyItems() {
+    const todayStr = getLocalDateStr();
+    let changed = false;
+    Object.keys(window.state.weekly).forEach(dayKey => {
+        const before = window.state.weekly[dayKey].length;
+        window.state.weekly[dayKey] = window.state.weekly[dayKey].filter(item =>
+            item.recurring !== false || item.date >= todayStr
+        );
+        if (window.state.weekly[dayKey].length !== before) changed = true;
+    });
+    if (changed) window.syncToCloud();
 }
 
 function addQuickScheduleFromHome() {

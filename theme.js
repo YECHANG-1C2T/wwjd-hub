@@ -211,6 +211,16 @@ function switchView(viewId, evt) {
         if (headerSub) headerSub.innerText = "예수를 닮아가는 남편, 아빠, 목사 '임예창'";
     }
 
+    /* 히어로 파티클은 홈 화면(furnace-hero)에만 존재하는데, 다른 탭으로
+       이동해도 requestAnimationFrame 루프가 멈추지 않고 보이지도 않는
+       캔버스를 계속 다시 그리고 있었다 — 탭을 딴 데 두고 있어도 배터리를
+       계속 갉아먹는 낭비였다. 홈을 벗어나면 멈추고, 돌아오면 다시 켠다. */
+    if (viewId === 'home' && document.body.classList.contains('theme-noir')) {
+        if (typeof startHeroParticles === 'function') startHeroParticles();
+    } else if (typeof stopHeroParticles === 'function') {
+        stopHeroParticles();
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
