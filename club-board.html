@@ -116,6 +116,7 @@
   .m-attendees span{background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 9px;margin-right:5px;display:inline-block;margin-bottom:3px;}
   .m-summary{font-size:14px;margin:0;white-space:pre-wrap;}
   .notice{background:var(--brand-soft);color:var(--brand);border-radius:10px;padding:10px 14px;font-size:12.5px;margin-bottom:34px;}
+  .notice.warn{background:#3A2426;color:var(--danger);}
   footer{text-align:center;font-size:12px;color:var(--ink-dim);margin-top:40px;}
   .post-form{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;padding:12px;border:1px dashed var(--line);border-radius:12px;background:var(--surface-2);}
   .post-form textarea{font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);min-height:56px;resize:vertical;width:100%;}
@@ -157,6 +158,7 @@
     </div>
   </header>
   <div class="notice">이름을 적어두시면 소식·댓글·채팅에 자동으로 붙어요. 동아리장님은 아래에서 소식·일정·댓글을 직접 남기고, 동아리 정보도 수정하실 수 있어요.</div>
+  <div class="notice warn" id="syncErrorNotice" hidden></div>
   <div class="overview" id="overview"></div>
   <section id="calendarSection">
     <div class="section-head"><h2>동아리 전체 일정</h2><span class="sub">4개 동아리 활동과 부서 회의를 한 달력에서 확인</span></div>
@@ -263,6 +265,17 @@
   }
   function clubById(id){ return state.clubs.filter(function(c){ return c.id===id; })[0]; }
 
+  function showSyncError(err){
+    var el = document.getElementById("syncErrorNotice");
+    if(!el) return;
+    var code = err && err.code;
+    var msg = code === "permission-denied"
+      ? "저장/읽기 권한이 막혀 있어요. 목사님께 Firestore 규칙 확인을 요청해주세요."
+      : "연결에 문제가 있어요. 새로고침해보시고, 계속되면 목사님께 알려주세요. (" + (code || (err && err.message) || "") + ")";
+    el.textContent = msg;
+    el.hidden = false;
+  }
+
   /* ---- name (no login — just remembered locally, used to label posts/comments/chat) ---- */
   function getMyName(){
     try{ return localStorage.getItem("clubBoardName") || ""; }catch(e){ return ""; }
@@ -306,6 +319,7 @@
       renderAll();
     }, function(err){
       console.error("sync error", err);
+      showSyncError(err);
     });
   }
 
@@ -633,9 +647,10 @@
 
   function onSaveInfo(clubId){
     var c = clubById(clubId);
-    c.tagline = document.getElementById("infoTagline").value.trim();
-    c.leaderName = document.getElementById("infoLeader").value.trim() || "미정";
-    c.memberCount = parseInt(document.getElementById("infoMembers").value, 10) || 0;
+    c.tagline = document.getElementById("infoTagline").value.trim().slice(0, 100);
+    c.leaderName = (document.getElementById("infoLeader").value.trim() || "미정").slice(0, 30);
+    var n = parseInt(document.getElementById("infoMembers").value, 10);
+    c.memberCount = (isFinite(n) && n > 0) ? Math.min(n, 9999) : 0;
     renderOverview(); renderPanel();
     saveClub(clubId, "infoStatus");
   }
@@ -646,11 +661,15 @@
     if(unsubscribeChat) return;
     unsubscribeChat = CHAT_COL.orderBy("createdAt", "desc").limit(CHAT_LIMIT).onSnapshot(function(snap){
       var msgs = [];
-      snap.forEach(function(doc){ msgs.push(doc.data()); });
+      /* serverTimestamps:'estimate' avoids a just-sent message sorting to the
+         wrong place (or briefly vanishing from the limit(100) window) while
+         its serverTimestamp() is still null pending server confirmation. */
+      snap.forEach(function(doc){ msgs.push(doc.data({ serverTimestamps: "estimate" })); });
       msgs.reverse();
       renderChat(msgs);
     }, function(err){
       console.error("chat sync error", err);
+      showSyncError(err);
     });
   }
 
