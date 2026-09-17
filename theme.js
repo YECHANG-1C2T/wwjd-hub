@@ -48,8 +48,123 @@ function switchTheme(themeName, shouldSync = true) {
         if (heroDesc) heroDesc.innerText = "“하나님 나라의 꿈이 실제가 되는 영적인 용광로, 끊임없이 두드리라”";
     }
 
+    stopHeroParticles();
+    if (themeName === 'noir') startHeroParticles();
+
     if (shouldSync && typeof window.syncToCloud === 'function') {
         window.syncToCloud();
+    }
+}
+
+/* 블랙 테마 전용 히어로 배경 — 용광로 GIF 대신, 사역흐름 그래프와 같은
+   "점+선 네트워크" 시각 언어를 재사용한 은은한 파티클 배경. 다른 테마에서는
+   그리지 않고(캔버스도 숨김), prefers-reduced-motion이면 한 프레임만 그리고
+   멈춘다. */
+let heroParticleRaf = null;
+let heroParticlePoints = [];
+let heroParticleResizeBound = false;
+
+function sizeHeroParticleCanvas() {
+    const canvas = document.getElementById('hero-particle-canvas');
+    const container = canvas ? canvas.closest('.furnace-hero') : null;
+    if (!canvas || !container) return null;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = container.clientWidth || 800;
+    const h = container.clientHeight || 280;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { canvas, ctx, w, h };
+}
+
+function seedHeroParticles(w, h) {
+    const count = Math.max(24, Math.min(55, Math.round((w * h) / 16000)));
+    heroParticlePoints = Array.from({ length: count }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.22,
+        vy: (Math.random() - 0.5) * 0.22
+    }));
+}
+
+function drawHeroParticles(ctx, w, h) {
+    ctx.clearRect(0, 0, w, h);
+    const primary = getComputedStyle(document.body).getPropertyValue('--primary').trim() || '#e4e4e7';
+    const threshold = 130;
+    for (let i = 0; i < heroParticlePoints.length; i++) {
+        for (let j = i + 1; j < heroParticlePoints.length; j++) {
+            const a = heroParticlePoints[i], b = heroParticlePoints[j];
+            const dx = a.x - b.x, dy = a.y - b.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < threshold) {
+                ctx.strokeStyle = primary;
+                ctx.globalAlpha = (1 - dist / threshold) * 0.35;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+            }
+        }
+    }
+    ctx.globalAlpha = 0.75;
+    ctx.fillStyle = primary;
+    heroParticlePoints.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+}
+
+function stepHeroParticles(ctx, w, h) {
+    heroParticlePoints.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        p.x = Math.max(0, Math.min(w, p.x));
+        p.y = Math.max(0, Math.min(h, p.y));
+    });
+    drawHeroParticles(ctx, w, h);
+    heroParticleRaf = requestAnimationFrame(() => stepHeroParticles(ctx, w, h));
+}
+
+function startHeroParticles() {
+    requestAnimationFrame(() => {
+        const sized = sizeHeroParticleCanvas();
+        if (!sized) return;
+        const { canvas, ctx, w, h } = sized;
+        seedHeroParticles(w, h);
+        canvas.classList.add('ready');
+
+        const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduceMotion) {
+            drawHeroParticles(ctx, w, h);
+        } else {
+            stepHeroParticles(ctx, w, h);
+        }
+
+        if (!heroParticleResizeBound) {
+            heroParticleResizeBound = true;
+            let resizeTimer = null;
+            window.addEventListener('resize', () => {
+                if (!document.body.classList.contains('theme-noir')) return;
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => { stopHeroParticles(); startHeroParticles(); }, 200);
+            });
+        }
+    });
+}
+
+function stopHeroParticles() {
+    if (heroParticleRaf) cancelAnimationFrame(heroParticleRaf);
+    heroParticleRaf = null;
+    const canvas = document.getElementById('hero-particle-canvas');
+    if (canvas) {
+        canvas.classList.remove('ready');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 }
 
