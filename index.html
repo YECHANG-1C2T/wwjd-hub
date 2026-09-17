@@ -154,6 +154,19 @@
                 </div>
             </div>
 
+            <!-- 🔴 오늘의 테드 -->
+            <div class="glass-card p-5 md:p-6 border-l-4 border-l-red-500 space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-mono-code font-extrabold text-red-500 uppercase tracking-wider">오늘의 TED</span>
+                        <span id="ted-speaker" class="text-[10px] font-mono-code px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/25 font-bold"></span>
+                    </div>
+                    <a id="ted-search-link" href="#" target="_blank" rel="noopener" class="text-[11px] font-bold text-[var(--text-sub)] hover:text-red-500 transition-all">찾아보기 ↗</a>
+                </div>
+                <h4 id="ted-title" class="text-sm md:text-base font-black text-[var(--text-main)] leading-snug"></h4>
+                <p id="ted-summary" class="text-xs text-[var(--text-sub)] leading-relaxed"></p>
+            </div>
+
             <!-- 홈 화면: 오늘의 걸음 -->
             <div class="glass-card p-5 md:p-6 space-y-3 border-l-4 border-l-[var(--primary)]">
                 <div class="flex justify-between items-center">

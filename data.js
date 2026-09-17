@@ -1175,3 +1175,37 @@ const defaultLinks = [
     { id: 'lk28', cat: '1청2팀', title: '26-1 1청2팀 동아리 신청(응답)', url: 'https://docs.google.com/spreadsheets/d/1plT11bkz6ZzYP95fOBOQPKLlDbTrKHFtzZm8HzbuIIk/edit?usp=sharing' },
     { id: 'lk29', cat: '1청2팀', title: '26-1 1청2팀 양육반 신청(응답)', url: 'https://docs.google.com/spreadsheets/d/1qiWEJz-hUURwFhngncHk-d-dvC8o8InbvoNgBQG30kg/edit?usp=sharing' }
 ];
+
+/* ==========================================================================
+   [DATA STORAGE] 오늘의 테드 — 잘 알려진 TED 강연 큐레이션 풀.
+   실시간으로 테드 사이트에서 가져오는 대신(서버 작업 필요), 정확성이 검증된
+   유명 강연 목록을 미리 골라두고 매일 하나씩 순서대로 돌며, Gemini가 그
+   강연 내용에 대한 요약·묵상 포인트를 생성한다(app.js의 오늘의 테드 로직).
+   ========================================================================== */
+const TED_TALKS = [
+    { speaker: "사이먼 시넥 (Simon Sinek)", title: "위대한 리더는 어떻게 행동을 이끄는가", titleEn: "How Great Leaders Inspire Action", topic: "리더십과 'Why(왜)'에서 시작하는 동기부여" },
+    { speaker: "브레네 브라운 (Brené Brown)", title: "취약성의 힘", titleEn: "The Power of Vulnerability", topic: "수치심 연구자가 발견한 진정한 연결의 조건" },
+    { speaker: "수전 케인 (Susan Cain)", title: "내향적인 사람들의 힘", titleEn: "The Power of Introverts", topic: "외향성을 이상화하는 사회 속 내향인의 가치" },
+    { speaker: "에이미 커디 (Amy Cuddy)", title: "신체 언어가 그 사람을 만든다", titleEn: "Your Body Language May Shape Who You Are", topic: "자세와 자신감, 심리 상태의 관계" },
+    { speaker: "켄 로빈슨 (Ken Robinson)", title: "학교가 창의성을 죽이는가", titleEn: "Do Schools Kill Creativity?", topic: "교육 시스템과 창의성, 실수를 두려워하지 않는 법" },
+    { speaker: "엘리자베스 길버트 (Elizabeth Gilbert)", title: "창조성에 관한 새로운 시각", titleEn: "Your Elusive Creative Genius", topic: "창작자의 불안과 영감을 대하는 태도" },
+    { speaker: "숀 아처 (Shawn Achor)", title: "더 나은 성과를 부르는 행복의 비밀", titleEn: "The Happy Secret to Better Work", topic: "행복이 성공의 결과가 아니라 원인이라는 관점" },
+    { speaker: "앤젤라 더크워스 (Angela Duckworth)", title: "그릿: 열정과 끈기의 힘", titleEn: "Grit: The Power of Passion and Perseverance", topic: "재능보다 중요한 장기적 끈기" },
+    { speaker: "질 볼트 테일러 (Jill Bolte Taylor)", title: "뇌졸중이 내게 가르쳐 준 통찰", titleEn: "My Stroke of Insight", topic: "뇌과학자가 직접 겪은 뇌졸중과 의식의 재발견" },
+    { speaker: "팀 어반 (Tim Urban)", title: "미루기 대가의 머릿속", titleEn: "Inside the Mind of a Master Procrastinator", topic: "미루는 습관의 심리와 마감의 공포" },
+    { speaker: "카메론 러셀 (Cameron Russell)", title: "외모가 전부는 아닙니다, 제가 모델이지만요", titleEn: "Looks Aren't Everything. Believe Me, I'm a Model.", topic: "이미지 산업의 이면과 불안정한 자기가치감" },
+    { speaker: "맷 커츠 (Matt Cutts)", title: "30일 동안 새로운 것에 도전하기", titleEn: "Try Something New for 30 Days", topic: "작은 습관 실험이 삶에 미치는 변화" },
+    { speaker: "앤드류 솔로몬 (Andrew Solomon)", title: "우울증, 우리가 함께 나누는 비밀", titleEn: "Depression, the Secret We Share", topic: "우울증을 겪은 이의 고백과 회복" },
+    { speaker: "댄 길버트 (Dan Gilbert)", title: "행복에 관한 놀라운 과학", titleEn: "The Surprising Science of Happiness", topic: "인간이 행복을 예측하는 능력의 착각" },
+    { speaker: "배리 슈워츠 (Barry Schwartz)", title: "선택의 역설", titleEn: "The Paradox of Choice", topic: "선택지가 많을수록 오히려 불행해지는 이유" },
+    { speaker: "줄리안 트레저 (Julian Treasure)", title: "사람들이 귀 기울이게 말하는 법", titleEn: "How to Speak So That People Want to Listen", topic: "말하기의 습관과 진정성 있는 소통" },
+    { speaker: "치마만다 응고지 아디치에 (Chimamanda Ngozi Adichie)", title: "단일 이야기의 위험성", titleEn: "The Danger of a Single Story", topic: "편견은 한 사람·문화를 하나의 이야기로만 볼 때 생긴다" },
+    { speaker: "한스 로슬링 (Hans Rosling)", title: "데이터로 보는 세계의 진짜 모습", titleEn: "The Best Stats You've Ever Seen", topic: "통계로 깨는 세계에 대한 고정관념" },
+    { speaker: "브라이언 스티븐슨 (Bryan Stevenson)", title: "우리는 불의에 대해 이야기해야 합니다", titleEn: "We Need to Talk About an Injustice", topic: "사법 정의와 사회적 약자를 향한 시선" },
+    { speaker: "셰릴 샌드버그 (Sheryl Sandberg)", title: "여성 리더가 부족한 이유", titleEn: "Why We Have Too Few Women Leaders", topic: "조직 내 여성 리더십과 자기 제한적 신념" },
+    { speaker: "맬컴 글래드웰 (Malcolm Gladwell)", title: "선택과 행복, 그리고 스파게티 소스", titleEn: "Choice, Happiness and Spaghetti Sauce", topic: "'완벽한 하나'가 아니라 '다양한 최선'이라는 통찰" },
+    { speaker: "로버트 월딩어 (Robert Waldinger)", title: "무엇이 좋은 삶을 만드는가", titleEn: "What Makes a Good Life? Lessons from the Longest Study on Happiness", topic: "80년 하버드 성인발달연구가 밝힌 행복의 조건" },
+    { speaker: "켈리 맥고니걸 (Kelly McGonigal)", title: "스트레스와 친구가 되는 법", titleEn: "How to Make Stress Your Friend", topic: "스트레스에 대한 인식이 그 영향을 바꾼다" },
+    { speaker: "댄 핑크 (Dan Pink)", title: "동기부여의 놀라운 진실", titleEn: "The Puzzle of Motivation", topic: "보상이 오히려 성과를 떨어뜨리는 역설" },
+    { speaker: "애덤 그랜트 (Adam Grant)", title: "당신은 주는 사람인가, 받는 사람인가", titleEn: "Are You a Giver or a Taker?", topic: "기버(giver)와 테이커(taker)가 만드는 조직 문화" }
+];

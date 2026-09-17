@@ -503,6 +503,81 @@ function getEraTheme(eraText) {
     return rule || ERA_THEME_DEFAULT;
 }
 
+/* ==========================================================================
+   [오늘의 테드] 릴리스 AI 유료 API 대신, 미리 골라둔 유명 TED 강연 목록
+   (data.js의 TED_TALKS)을 날짜로 매일 하나씩 순환시키고, 이미 연결되어 있는
+   Gemini 프록시로 그 강연에 대한 요약·묵상 포인트만 생성한다 — 새로운 서버나
+   추가 결제 없이, 오늘의 테드 하나를 매일 자동으로 대시보드에 올린다.
+   같은 날 다시 열어도 재호출하지 않도록 localStorage에 하루치만 캐시한다. */
+function getTodayTedTalk() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const dayOfYear = Math.floor((now - start) / 86400000);
+    const idx = dayOfYear % TED_TALKS.length;
+    return { idx, talk: TED_TALKS[idx] };
+}
+
+async function initTodayTed() {
+    const { idx, talk } = getTodayTedTalk();
+    const titleEl = document.getElementById('ted-title');
+    const speakerEl = document.getElementById('ted-speaker');
+    const linkEl = document.getElementById('ted-search-link');
+    const summaryEl = document.getElementById('ted-summary');
+    if (!titleEl) return;
+
+    titleEl.innerText = talk.title;
+    speakerEl.innerText = talk.speaker;
+    linkEl.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(talk.speaker + ' TED ' + talk.titleEn)}`;
+
+    const todayStr = getLocalDateStr();
+    const cacheKey = 'yc_ted_summary';
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch (e) { cached = null; }
+
+    if (cached && cached.date === todayStr && cached.idx === idx && cached.summary) {
+        summaryEl.innerText = cached.summary;
+        setAiStatus('ted', 'ok');
+        return;
+    }
+
+    if (!CHAT_PROXY_URL) {
+        summaryEl.innerText = talk.topic;
+        return;
+    }
+
+    summaryEl.innerText = 'AI가 오늘의 강연을 정리하는 중...';
+    try {
+        const prompt = `다음은 TED 강연 정보입니다. 이 강연의 핵심 내용을 목회자가 하루를 시작하며 읽기 좋게 3~4문장으로 요약하고, 마지막에 사역이나 삶에 적용할 수 있는 묵상 포인트 한 문장을 덧붙여 주세요. 강연 원문을 인용하지 말고, 알려진 내용을 바탕으로 자연스러운 요약문 하나로 작성해 주세요.
+
+연사: ${talk.speaker}
+제목: ${talk.title} (${talk.titleEn})
+주제 힌트: ${talk.topic}`;
+
+        const data = await fetchGeminiProxy({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: 'application/json',
+                responseSchema: { type: 'object', properties: { summary: { type: 'string' } }, required: ['summary'] }
+            }
+        });
+        const jsonText = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
+        if (!jsonText) {
+            const errMsg = friendlyAIErrorMessage(data?.error);
+            setAiStatus('ted', aiErrorSeverity(data?.error), errMsg);
+            summaryEl.innerText = talk.topic;
+            return;
+        }
+        const summary = stripMarkdownAsterisks(JSON.parse(jsonText).summary);
+        summaryEl.innerText = summary;
+        setAiStatus('ted', 'ok');
+        localStorage.setItem(cacheKey, JSON.stringify({ date: todayStr, idx, summary }));
+    } catch (e) {
+        console.error('오늘의 테드 요약 실패:', e);
+        setAiStatus('ted', 'error', '요약에 실패했어요.');
+        summaryEl.innerText = talk.topic;
+    }
+}
+
 function initTheologyNarrative() {
     const now = new Date();
     const start = new Date(now.getFullYear(), 0, 0);
@@ -601,7 +676,8 @@ window.aiStatus = {
     chat: { label: '챗봇', state: 'idle', lastOk: null, msg: '' },
     news: { label: '뉴스 브리프 요약', state: 'idle', lastOk: null, msg: '' },
     research: { label: '논문 번역', state: 'idle', lastOk: null, msg: '' },
-    archive: { label: '서재 자동 요약', state: 'idle', lastOk: null, msg: '' }
+    archive: { label: '서재 자동 요약', state: 'idle', lastOk: null, msg: '' },
+    ted: { label: '오늘의 테드 요약', state: 'idle', lastOk: null, msg: '' }
 };
 
 /* rate-limit(사용량 초과)처럼 시간이 지나면 저절로 풀리는 실패는 '지연(노랑)',
@@ -941,9 +1017,25 @@ function renderWeeklyGrid() {
                     </div>`;
             }
         });
-        dayBox.innerHTML = `<div class="text-center pb-1 border-b border-[var(--border-color)]"><span class="font-black text-[var(--primary)] block text-xs">${d.name} ${d.isToday ? '📍' : ''}</span><span class="text-[10px] font-mono-code text-[var(--text-sub)] font-bold">${d.date}</span></div><div class="flex-1 space-y-1.5">${schedHtml}</div>`;
+        const clearBtn = manualItems.length > 0
+            ? `<button onclick="clearWeeklyDay('${d.key}', '${d.name}')" title="이 요일 반복 일정 전체 비우기" class="absolute top-1 right-1 text-[9px] text-red-400 hover:text-red-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">🗑</button>`
+            : '';
+        dayBox.classList.add('relative', 'group');
+        dayBox.innerHTML = `${clearBtn}<div class="text-center pb-1 border-b border-[var(--border-color)]"><span class="font-black text-[var(--primary)] block text-xs">${d.name} ${d.isToday ? '📍' : ''}</span><span class="text-[10px] font-mono-code text-[var(--text-sub)] font-bold">${d.date}</span></div><div class="flex-1 space-y-1.5">${schedHtml}</div>`;
         container.appendChild(dayBox);
     });
+}
+
+/* 요일칸의 반복 일정을 한 번에 비운다 — 예전엔 "오늘의 걸음"에 등록한
+   일회성 항목이 자동으로 여기 섞여 들어가는 버그가 있어서(지금은 수정됨),
+   버그가 있던 동안 쌓인 묵은 항목들을 하나씩 ✕ 누르지 않고 한 번에
+   정리할 수 있게 한다. */
+function clearWeeklyDay(dayKey, dayName) {
+    const items = window.state.weekly[dayKey] || [];
+    if (items.length === 0) return;
+    if (!confirm(`${dayName}요일의 반복 일정 ${items.length}개를 모두 지울까요? 되돌릴 수 없습니다.`)) return;
+    window.state.weekly[dayKey] = [];
+    renderWeeklyGrid(); renderTodos(); renderHomeTodos(); window.syncToCloud();
 }
 
 function addQuickScheduleFromHome() {
@@ -2946,6 +3038,7 @@ function renderMinistryGraph() {
    [INITIALIZATION]
    ========================================================================== */
 initTheologyNarrative();
+initTodayTed();
 fetchLiveNaverNews();
 /* 예전엔 페이지를 열 때마다 자동으로 검색+AI 번역을 돌렸는데, 챗봇과 같은
    사용량 한도를 나눠 쓰기 때문에 이제 직접 검색 버튼을 눌렀을 때만 돈다. */
