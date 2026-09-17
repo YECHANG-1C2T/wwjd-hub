@@ -10,7 +10,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <style>
   :root{
@@ -133,60 +132,31 @@
   .comment-form{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
   .comment-form input{flex:1;min-width:140px;font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);}
 
-  /* auth gate */
-  .gate-overlay{position:fixed;inset:0;background:rgba(34,31,26,.55);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
-  .gate-card{background:var(--surface);border-radius:16px;padding:28px 26px;max-width:360px;width:100%;box-shadow:var(--shadow);}
-  .gate-card h2{font-size:22px;margin:0 0 4px;}
-  .gate-card .sub{font-size:12.5px;color:var(--ink-dim);margin-bottom:18px;}
-  .gate-tabs{display:flex;gap:6px;margin-bottom:16px;}
-  .gate-tabs button{flex:1;font-family:inherit;font-weight:700;font-size:13px;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-dim);cursor:pointer;}
-  .gate-tabs button.active{background:var(--brand);color:#fff;border-color:transparent;}
-  .gate-card input{width:100%;font-family:inherit;font-size:13.5px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);margin-bottom:9px;}
-  .gate-card .field-label{font-size:11.5px;color:var(--ink-dim);margin:0 0 3px 2px;}
-  .gate-msg{font-size:12.5px;color:var(--danger);min-height:16px;margin-bottom:8px;}
-  .gate-card .btn{width:100%;padding:10px;font-size:14px;}
+  .chat-panel{display:flex;flex-direction:column;height:380px;}
+  .chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 4px 4px 2px;margin-bottom:12px;}
+  .chat-msg{display:flex;flex-direction:column;max-width:78%;align-self:flex-start;}
+  .chat-msg.me{align-self:flex-end;align-items:flex-end;}
+  .chat-msg .bubble{background:var(--surface-2);border-radius:14px;padding:8px 13px;font-size:13.5px;white-space:pre-wrap;word-break:break-word;}
+  .chat-msg.me .bubble{background:var(--brand);color:var(--on-accent);}
+  .chat-msg .meta{font-size:11px;color:var(--ink-dim);margin:3px 5px;}
+  .chat-input-row{display:flex;gap:8px;flex:none;}
+  .chat-input-row input{flex:1;font-family:inherit;font-size:13.5px;padding:9px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);}
+
   [hidden]{display:none!important;}
   @media (max-width:520px){.m-item{grid-template-columns:1fr;gap:4px;}.panel{padding:16px;}.cal-cell{min-height:56px;}.cal-cell .item-chip{font-size:0;padding:0;width:6px;height:6px;border-radius:50%;}}
 </style>
 </head>
 <body>
 
-<div class="gate-overlay" id="gate">
-  <div class="gate-card">
-    <h2>동아리 소식판</h2>
-    <div class="sub">1청2팀 동아리장 전용 · 로그인 후 이용해주세요</div>
-    <div class="gate-tabs">
-      <button type="button" id="tabLogin" class="active">로그인</button>
-      <button type="button" id="tabSignup">처음이에요</button>
-    </div>
-    <div id="loginPane">
-      <div class="field-label">이름</div>
-      <input type="text" id="loginName" autocomplete="username" placeholder="예: 김성실">
-      <div class="field-label">비밀번호</div>
-      <input type="password" id="loginPw" autocomplete="current-password">
-      <div class="gate-msg" id="loginMsg"></div>
-      <button type="button" class="btn" id="loginBtn">로그인</button>
-    </div>
-    <div id="signupPane" hidden>
-      <div class="field-label">이름</div>
-      <input type="text" id="suName" placeholder="예: 김성실" autocomplete="username">
-      <div class="field-label">비밀번호 (6자 이상)</div>
-      <input type="password" id="suPw" autocomplete="new-password">
-      <div class="gate-msg" id="signupMsg"></div>
-      <button type="button" class="btn" id="signupBtn">가입하고 시작하기</button>
-    </div>
-  </div>
-</div>
-
-<div class="wrap" id="app" hidden>
+<div class="wrap" id="app">
   <header class="top">
     <div><div class="eyebrow">1청2팀 · 소모임 현황판</div><h1>동아리 소식판</h1></div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
       <div class="today" id="todayLabel"></div>
-      <div class="who"><span id="whoLabel"></span><button type="button" id="logoutBtn">로그아웃</button></div>
+      <div class="who">이름 <input type="text" id="myNameInput" placeholder="예: 김성실" style="width:100px;font-family:inherit;font-size:12.5px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);"></div>
     </div>
   </header>
-  <div class="notice">동아리장님은 아래에서 소식·일정·댓글을 직접 남기고, 동아리 정보도 수정하실 수 있어요.</div>
+  <div class="notice">이름을 적어두시면 소식·댓글·채팅에 자동으로 붙어요. 동아리장님은 아래에서 소식·일정·댓글을 직접 남기고, 동아리 정보도 수정하실 수 있어요.</div>
   <div class="overview" id="overview"></div>
   <section id="calendarSection">
     <div class="section-head"><h2>동아리 전체 일정</h2><span class="sub">4개 동아리 활동과 부서 회의를 한 달력에서 확인</span></div>
@@ -200,6 +170,16 @@
   <section>
     <div class="section-head"><h2>부서 공통 회의</h2><span class="sub">4개 동아리가 함께 모인 회의 기록</span></div>
     <div class="panel"><div class="timeline" id="meetingTimeline"></div></div>
+  </section>
+  <section id="chatSection">
+    <div class="section-head"><h2>다같이 이야기해요</h2><span class="sub">동아리장들과 목사님이 실시간으로 대화하는 공간</span></div>
+    <div class="panel chat-panel">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="메시지를 입력하세요">
+        <button type="button" class="btn" id="chatSendBtn">보내기</button>
+      </div>
+    </div>
   </section>
   <footer>1청2팀 동아리(축구 · 사진 · 클라이밍 · 보드게임)의 활동을 함께 기록합니다.</footer>
 </div>
@@ -217,20 +197,13 @@
     appId: "1:518785715153:web:2fd76cfe4a1aabd6bd2ef0"
   };
   firebase.initializeApp(firebaseConfig);
-  var auth = firebase.auth();
   var db = firebase.firestore();
   var CLUB_COL = db.collection("club_board");
-  var MEETINGS_REF = CLUB_COL.doc("_meetings");
+  var CHAT_COL = CLUB_COL.doc("_chat").collection("messages");
 
   var MAX_TEXT_LEN = 500;
   var MAX_LIST_LEN = 200;
-
-  function nameToPseudoEmail(name){
-    var s = String(name || "").trim().replace(/\s+/g, " ").toLowerCase();
-    var out = "";
-    for(var i=0;i<s.length;i++){ out += s.charCodeAt(i).toString(36); }
-    return "u" + out + "@clubboard.wwjd-hub.local";
-  }
+  var CHAT_LIMIT = 100;
 
   var ICONS = {
     soccer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><polygon points="12,7.5 15.5,10 14.2,14.2 9.8,14.2 8.5,10" fill="currentColor" stroke="none"/><line x1="12" y1="3" x2="12" y2="7.5"/><line x1="15.5" y1="10" x2="19.7" y2="8.6"/><line x1="14.2" y1="14.2" x2="16.5" y2="18"/><line x1="9.8" y1="14.2" x2="7.5" y2="18"/><line x1="8.5" y1="10" x2="4.3" y2="8.6"/></svg>',
@@ -290,71 +263,17 @@
   }
   function clubById(id){ return state.clubs.filter(function(c){ return c.id===id; })[0]; }
 
-  /* ---- auth gate ---- */
-  var gateEl = document.getElementById("gate");
-  var appEl = document.getElementById("app");
-  document.getElementById("tabLogin").addEventListener("click", function(){
-    document.getElementById("tabLogin").classList.add("active");
-    document.getElementById("tabSignup").classList.remove("active");
-    document.getElementById("loginPane").hidden = false;
-    document.getElementById("signupPane").hidden = true;
-  });
-  document.getElementById("tabSignup").addEventListener("click", function(){
-    document.getElementById("tabSignup").classList.add("active");
-    document.getElementById("tabLogin").classList.remove("active");
-    document.getElementById("signupPane").hidden = false;
-    document.getElementById("loginPane").hidden = true;
-  });
-
-  function authErrMsg(err){
-    var code = err && err.code;
-    if(code === "auth/user-not-found" || code === "auth/wrong-password" || code === "auth/invalid-credential") return "이름 또는 비밀번호가 맞지 않아요.";
-    if(code === "auth/email-already-in-use") return "이미 가입된 이름이에요. 다른 이름을 쓰시거나 로그인해주세요.";
-    if(code === "auth/weak-password") return "비밀번호는 6자 이상이어야 해요.";
-    return (err && err.message) || "오류가 발생했어요.";
+  /* ---- name (no login — just remembered locally, used to label posts/comments/chat) ---- */
+  function getMyName(){
+    try{ return localStorage.getItem("clubBoardName") || ""; }catch(e){ return ""; }
   }
-
-  document.getElementById("loginBtn").addEventListener("click", function(){
-    var name = document.getElementById("loginName").value.trim();
-    var pw = document.getElementById("loginPw").value;
-    var msg = document.getElementById("loginMsg");
-    msg.textContent = "";
-    if(!name || !pw){ msg.textContent = "이름과 비밀번호를 입력해주세요."; return; }
-    auth.signInWithEmailAndPassword(nameToPseudoEmail(name), pw).catch(function(err){
-      msg.textContent = authErrMsg(err);
-    });
-  });
-
-  document.getElementById("signupBtn").addEventListener("click", function(){
-    var name = document.getElementById("suName").value.trim();
-    var pw = document.getElementById("suPw").value;
-    var msg = document.getElementById("signupMsg");
-    msg.textContent = "";
-    if(!name || !pw){ msg.textContent = "이름과 비밀번호를 입력해주세요."; return; }
-    auth.createUserWithEmailAndPassword(nameToPseudoEmail(name), pw).then(function(cred){
-      return cred.user.updateProfile({ displayName: name });
-    }).catch(function(err){
-      msg.textContent = authErrMsg(err);
-    });
-  });
-
-  document.getElementById("logoutBtn").addEventListener("click", function(){
-    auth.signOut();
-  });
-
-  auth.onAuthStateChanged(function(user){
-    if(user){
-      gateEl.hidden = true;
-      appEl.hidden = false;
-      document.getElementById("whoLabel").textContent = (user.displayName || user.email) + " 님";
-      renderAll(); /* show sane defaults immediately, no blank flash while first snapshot loads */
-      startSync();
-    } else {
-      gateEl.hidden = false;
-      appEl.hidden = true;
-      if(unsubscribeCol){ unsubscribeCol(); unsubscribeCol = null; }
-    }
-  });
+  function setMyName(name){
+    try{ localStorage.setItem("clubBoardName", name); }catch(e){}
+  }
+  var myNameInput = document.getElementById("myNameInput");
+  myNameInput.value = getMyName();
+  myNameInput.addEventListener("change", function(){ setMyName(myNameInput.value.trim()); });
+  myNameInput.addEventListener("blur", function(){ setMyName(myNameInput.value.trim()); });
 
   /* ---- realtime sync: one doc per club (club_board/{clubId}) + club_board/_meetings ----
      Each club leader writes only their own club's doc, so concurrent edits to
@@ -670,8 +589,7 @@
 
   /* ---- write actions ---- */
   function currentAuthorName(){
-    var u = auth.currentUser;
-    return (u && (u.displayName || u.email)) || "익명";
+    return getMyName() || "익명";
   }
 
   function onAddUpdate(clubId){
@@ -721,6 +639,61 @@
     renderOverview(); renderPanel();
     saveClub(clubId, "infoStatus");
   }
+
+  /* ---- chat ---- */
+  var unsubscribeChat = null;
+  function startChatSync(){
+    if(unsubscribeChat) return;
+    unsubscribeChat = CHAT_COL.orderBy("createdAt", "desc").limit(CHAT_LIMIT).onSnapshot(function(snap){
+      var msgs = [];
+      snap.forEach(function(doc){ msgs.push(doc.data()); });
+      msgs.reverse();
+      renderChat(msgs);
+    }, function(err){
+      console.error("chat sync error", err);
+    });
+  }
+
+  function renderChat(msgs){
+    var el = document.getElementById("chatMessages");
+    if(!el) return;
+    var myName = currentAuthorName();
+    var wasNearBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 60;
+    el.innerHTML = msgs.length ? msgs.map(function(m){
+      var mine = m.authorName === myName;
+      var when = (m.createdAt && m.createdAt.toDate) ? fmtDateTime(m.createdAt.toDate().toISOString()) : "";
+      return (
+        '<div class="chat-msg'+(mine?' me':'')+'">'+
+          '<div class="bubble">'+esc(m.text||"")+'</div>'+
+          '<div class="meta">'+esc(m.authorName||"익명")+(when?' · '+when:'')+'</div>'+
+        '</div>'
+      );
+    }).join("") : '<div class="empty">아직 대화가 없어요. 먼저 말을 걸어보세요!</div>';
+    if(wasNearBottom) el.scrollTop = el.scrollHeight;
+  }
+
+  function onSendChat(){
+    var input = document.getElementById("chatInput");
+    var text = (input.value || "").trim();
+    if(!text) return;
+    if(text.length > MAX_TEXT_LEN){ return; }
+    input.value = "";
+    CHAT_COL.add({
+      authorName: currentAuthorName(),
+      text: text,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function(err){ console.error("chat send error", err); });
+  }
+
+  document.getElementById("chatSendBtn").addEventListener("click", onSendChat);
+  document.getElementById("chatInput").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ e.preventDefault(); onSendChat(); }
+  });
+
+  /* ---- start ---- */
+  renderAll(); /* show sane defaults immediately, no blank flash while first data loads */
+  startSync();
+  startChatSync();
 
 })();
 </script>
