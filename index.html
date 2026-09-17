@@ -216,6 +216,10 @@
                         <option value="sun">일요일</option>
                     </select>
                     <input type="text" id="quick-sched-input" placeholder="14:00 교역자 회의" class="flex-1 p-2 text-xs bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg font-semibold outline-none" onkeypress="if(event.key==='Enter') addQuickScheduleFromHome()">
+                    <label class="flex items-center gap-1.5 px-2 text-[11px] font-bold text-[var(--text-sub)] whitespace-nowrap cursor-pointer" title="켜두면 이 요일마다 매주 계속 나타납니다. 끄면(기본값) 이번 주에만 표시돼요.">
+                        <input type="checkbox" id="quick-sched-recurring" class="accent-[var(--primary)]">
+                        🔁 매주 반복
+                    </label>
                     <button onclick="addQuickScheduleFromHome()" class="px-4 py-2 primary-badge text-xs font-black rounded-lg">등록</button>
                 </div>
 

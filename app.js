@@ -959,9 +959,32 @@ function getCurrentWeekDates() {
             key,
             name: names[i],
             date: `${d.getMonth() + 1}.${d.getDate()}`,
+            fullDate: getLocalDateStr(d),
             isToday: d.toDateString() === todayStr
         };
     });
+}
+
+/* 주간일정표 항목이 "매주 반복"이 아니라 "이번 주만"으로 등록된 경우,
+   그 항목이 실제로 생성된 날짜의 주에서만 보이고 다음 주부터는 자동으로
+   사라지게 한다. recurring 필드가 아예 없는 예전 항목은 항상 반복으로
+   취급해 기존 동작을 그대로 유지한다(데이터 손실 방지). */
+function weeklyItemAppliesToDate(item, fullDate) {
+    if (item.recurring === false) return item.date === fullDate;
+    return true;
+}
+
+function toggleWeeklyRecurring(dayKey, id, fullDate) {
+    const item = (window.state.weekly[dayKey] || []).find(i => i.id === id);
+    if (!item) return;
+    if (item.recurring === false) {
+        item.recurring = true;
+        delete item.date;
+    } else {
+        item.recurring = false;
+        item.date = fullDate;
+    }
+    renderWeeklyGrid(); window.syncToCloud();
 }
 
 function renderWeeklyGrid() {
@@ -987,7 +1010,9 @@ function renderWeeklyGrid() {
         const dayBox = document.createElement('div');
         dayBox.className = `bg-[var(--primary-light)] p-2.5 rounded-2xl space-y-2 flex flex-col h-full ${d.isToday ? 'border-2 border-[var(--primary)] shadow-sm' : 'border border-[var(--border-color)]'}`;
         let schedHtml = '';
-        const manualItems = (window.state.weekly[d.key] || []).map(item => ({ ...item, source: 'manual' }));
+        const manualItems = (window.state.weekly[d.key] || [])
+            .filter(item => weeklyItemAppliesToDate(item, d.fullDate))
+            .map(item => ({ ...item, source: 'manual' }));
         const calendarItems = (googleCalendarWeekEvents[d.key] || []).map(item => ({ ...item, source: 'google' }));
         manualItems.concat(calendarItems).sort((a,b)=>a.time.localeCompare(b.time)).forEach(item => {
             if (item.source === 'google') {
@@ -1001,11 +1026,16 @@ function renderWeeklyGrid() {
                     </div>`;
             } else {
                 const catBorder = TODO_CAT_BORDER[item.cat] || 'border-l-[var(--border-color)]';
+                const isRecurring = item.recurring !== false;
+                const recurBtn = `<button onclick="toggleWeeklyRecurring('${d.key}', '${item.id}', '${d.fullDate}')" title="${isRecurring ? '매주 반복 중 — 눌러서 이번 주만으로 바꾸기' : '이번 주만 — 눌러서 매주 반복으로 바꾸기'}" class="text-[9px] font-bold ${isRecurring ? 'text-[var(--primary)]' : 'text-[var(--text-sub)] opacity-50 hover:opacity-100'}">🔁</button>`;
                 schedHtml += `
-                    <div class="bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] border-l-4 ${catBorder} leading-snug group relative space-y-0.5" title="${item.cat || ''}">
+                    <div class="bg-[var(--card-bg)] p-1.5 rounded-xl shadow-xs border border-[var(--border-color)] border-l-4 ${catBorder} leading-snug group relative space-y-0.5" title="${item.cat || ''}${isRecurring ? ' · 매주 반복' : ' · 이번 주만'}">
                         <div class="flex justify-between items-start gap-1">
                             <input type="time" value="${item.time}" onchange="updateWeeklyTime('${d.key}', '${item.id}', this.value)" class="text-[var(--primary)] font-mono-code font-bold text-[10px] bg-transparent outline-none w-[46px] cursor-pointer">
-                            <button onclick="deleteWeekly('${d.key}', '${item.id}')" class="text-[9px] text-red-400 hover-reveal-action font-bold">✕</button>
+                            <div class="flex items-center gap-1 shrink-0">
+                                ${recurBtn}
+                                <button onclick="deleteWeekly('${d.key}', '${item.id}')" class="text-[9px] text-red-400 hover-reveal-action font-bold">✕</button>
+                            </div>
                         </div>
                         <span contenteditable="true" onblur="updateWeeklyText('${d.key}', '${item.id}', this.innerText)" class="font-bold text-[11px] text-[var(--text-main)] block outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${escapeAttr(item.text)}</span>
                         <select onchange="updateWeeklyCat('${d.key}', '${item.id}', this.value)" class="text-[9px] font-bold rounded-md px-1 py-0.5 outline-none border border-[var(--border-color)] bg-[var(--primary-light)] text-[var(--text-main)] w-full">
@@ -1051,8 +1081,13 @@ function addQuickScheduleFromHome() {
     else if (text.includes('회의')) inferredCat = '회의';
     else if (text.includes('가정')) inferredCat = '가정';
 
+    const recurring = document.getElementById('quick-sched-recurring')?.checked || false;
+    const dayInfo = getCurrentWeekDates().find(d => d.key === day);
+    const newItem = { id: 'w_' + Date.now(), time, text, cat: inferredCat, recurring };
+    if (!recurring) newItem.date = dayInfo ? dayInfo.fullDate : getLocalDateStr();
+
     window.state.weekly[day] = window.state.weekly[day] || [];
-    window.state.weekly[day].push({ id: 'w_' + Date.now(), time, text, cat: inferredCat });
+    window.state.weekly[day].push(newItem);
 
     const todayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
     if (day === todayKey) {
@@ -1060,6 +1095,8 @@ function addQuickScheduleFromHome() {
     }
     renderWeeklyGrid(); renderTodos(); renderHomeTodos(); window.syncToCloud();
     document.getElementById('quick-sched-input').value = '';
+    const recurringCheckbox = document.getElementById('quick-sched-recurring');
+    if (recurringCheckbox) recurringCheckbox.checked = false;
 }
 
 function deleteWeekly(day, id) {
@@ -1176,10 +1213,12 @@ function renderTodoViewDateLabel() {
    이미 그 날짜에 실제 걸음(같은 텍스트+시간)이 있으면 중복 표시하지 않는다. */
 function getWeeklyOverlayForDate(dateStr) {
     const dayKey = dateStrToWeekdayKey(dateStr);
-    return (window.state.weekly[dayKey] || []).map(item => ({
-        id: item.id, day: dayKey, time: item.time, text: item.text, cat: item.cat || '사역',
-        status: '반복', date: dateStr, kind: 'weekly'
-    }));
+    return (window.state.weekly[dayKey] || [])
+        .filter(item => weeklyItemAppliesToDate(item, dateStr))
+        .map(item => ({
+            id: item.id, day: dayKey, time: item.time, text: item.text, cat: item.cat || '사역',
+            status: '반복', date: dateStr, kind: 'weekly'
+        }));
 }
 
 function getTodosForViewDate() {
@@ -2678,7 +2717,7 @@ function executeChatFunctionCall(call) {
         else if (args.text.includes('회의')) inferredCat = '회의';
         else if (args.text.includes('가정')) inferredCat = '가정';
         window.state.weekly[args.day] = window.state.weekly[args.day] || [];
-        window.state.weekly[args.day].push({ id: 'w_' + Date.now(), time: args.time, text: args.text, cat: inferredCat });
+        window.state.weekly[args.day].push({ id: 'w_' + Date.now(), time: args.time, text: args.text, cat: inferredCat, recurring: true });
         if (args.day === todayKey) {
             window.state.todos.push({ id: 't_' + Date.now(), time: args.time, cat: inferredCat, text: args.text, status: '시작안함', date: getLocalDateStr() });
         }
