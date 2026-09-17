@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>동아리 소식판 | 1청2팀</title>
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2317181A'/%3E%3Ccircle cx='22' cy='22' r='10' fill='%2374C17E'/%3E%3Ccircle cx='42' cy='22' r='10' fill='%23DDAD5F'/%3E%3Ccircle cx='22' cy='42' r='10' fill='%23DC8F6A'/%3E%3Ccircle cx='42' cy='42' r='10' fill='%23A296D6'/%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 
@@ -219,10 +219,14 @@
   firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth();
   var db = firebase.firestore();
-  var DOC_REF = db.collection("club_board").doc("main");
+  var CLUB_COL = db.collection("club_board");
+  var MEETINGS_REF = CLUB_COL.doc("_meetings");
+
+  var MAX_TEXT_LEN = 500;
+  var MAX_LIST_LEN = 200;
 
   function nameToPseudoEmail(name){
-    var s = String(name || "").trim().replace(/\s+/g, " ");
+    var s = String(name || "").trim().replace(/\s+/g, " ").toLowerCase();
     var out = "";
     for(var i=0;i<s.length;i++){ out += s.charCodeAt(i).toString(36); }
     return "u" + out + "@clubboard.wwjd-hub.local";
@@ -235,25 +239,33 @@
     board: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.3" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.3" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>'
   };
 
-  var DEFAULT_STATE = {
-    clubs: [
-      { id:"soccer", name:"축구",     tagline:"그라운드에서 함께 뛰는 시간", icon:"soccer", css:"--c-soccer", soft:"--c-soccer-soft", leaderName:"미정", memberCount:0, updates:[], comments:[] },
-      { id:"photo",  name:"사진",     tagline:"순간을 담고 나누는 눈",       icon:"photo",  css:"--c-photo",  soft:"--c-photo-soft",  leaderName:"미정", memberCount:0, updates:[], comments:[] },
-      { id:"climb",  name:"클라이밍", tagline:"한 홀드씩, 함께 오르기",     icon:"climb",  css:"--c-climb",  soft:"--c-climb-soft",  leaderName:"미정", memberCount:0, updates:[], comments:[] },
-      { id:"board",  name:"보드게임", tagline:"테이블 위의 전략과 우정",     icon:"board",  css:"--c-board",  soft:"--c-board-soft",  leaderName:"미정", memberCount:0, updates:[], comments:[] }
-    ],
-    meetings: [],
-    events: []
+  var CLUB_IDS = ["soccer","photo","climb","board"];
+  var CLUB_META = {
+    soccer:{ name:"축구",     tagline:"그라운드에서 함께 뛰는 시간", icon:"soccer", css:"--c-soccer", soft:"--c-soccer-soft" },
+    photo: { name:"사진",     tagline:"순간을 담고 나누는 눈",       icon:"photo",  css:"--c-photo",  soft:"--c-photo-soft"  },
+    climb: { name:"클라이밍", tagline:"한 홀드씩, 함께 오르기",     icon:"climb",  css:"--c-climb",  soft:"--c-climb-soft"  },
+    board: { name:"보드게임", tagline:"테이블 위의 전략과 우정",     icon:"board",  css:"--c-board",  soft:"--c-board-soft"  }
   };
+  function defaultClubDoc(id){
+    var m = CLUB_META[id];
+    return { name:m.name, tagline:m.tagline, icon:m.icon, css:m.css, soft:m.soft, leaderName:"미정", memberCount:0, updates:[], comments:[], events:[] };
+  }
+  function makeClub(id, data){
+    var c = { id:id };
+    var d = defaultClubDoc(id);
+    for(var k in d){ c[k] = (data && data[k] !== undefined) ? data[k] : d[k]; }
+    return c;
+  }
 
-  var state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  var state = { clubs: CLUB_IDS.map(function(id){ return makeClub(id); }), meetings: [] };
+  var pendingWrites = {};
   var WEEKDAYS = ["일","월","화","수","목","금","토"];
   var activeTab = state.clubs[0].id;
   var todayForCal = new Date();
   var calYear = todayForCal.getFullYear();
   var calMonth = todayForCal.getMonth();
   var selectedDate = toISODateLocal(todayForCal);
-  var unsubscribeDoc = null;
+  var unsubscribeCol = null;
 
   function pad2(n){ return String(n).padStart(2,"0"); }
   function toISODateLocal(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
@@ -335,29 +347,42 @@
       gateEl.hidden = true;
       appEl.hidden = false;
       document.getElementById("whoLabel").textContent = (user.displayName || user.email) + " 님";
+      renderAll(); /* show sane defaults immediately, no blank flash while first snapshot loads */
       startSync();
     } else {
       gateEl.hidden = false;
       appEl.hidden = true;
-      if(unsubscribeDoc){ unsubscribeDoc(); unsubscribeDoc = null; }
+      if(unsubscribeCol){ unsubscribeCol(); unsubscribeCol = null; }
     }
   });
 
-  /* ---- realtime sync ---- */
+  /* ---- realtime sync: one doc per club (club_board/{clubId}) + club_board/_meetings ----
+     Each club leader writes only their own club's doc, so concurrent edits to
+     DIFFERENT clubs never clobber each other (the old design used one shared
+     doc for everything, which meant any save overwrote every club at once). */
   function startSync(){
-    if(unsubscribeDoc) return;
-    unsubscribeDoc = DOC_REF.onSnapshot(function(snap){
-      if(snap.exists){
-        var data = snap.data();
-        state = {
-          clubs: (data.clubs && data.clubs.length) ? data.clubs : DEFAULT_STATE.clubs,
-          meetings: data.meetings || [],
-          events: data.events || []
-        };
-      } else {
-        state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-        DOC_REF.set(state).catch(function(){});
-      }
+    if(unsubscribeCol) return;
+    unsubscribeCol = CLUB_COL.onSnapshot(function(snap){
+      var byId = {};
+      var meetingsData = null;
+      snap.forEach(function(doc){
+        if(doc.id === "_meetings"){ meetingsData = doc.data(); return; }
+        byId[doc.id] = doc.data();
+      });
+      state.clubs = CLUB_IDS.map(function(id){
+        if(pendingWrites[id]){
+          var existing = clubById(id);
+          if(existing) return existing; /* keep optimistic local copy until our own save resolves */
+        }
+        return makeClub(id, byId[id]);
+      });
+      state.meetings = (meetingsData && meetingsData.meetings) || [];
+      CLUB_IDS.forEach(function(id){
+        if(!byId[id] && !pendingWrites[id]){
+          pendingWrites[id] = true;
+          CLUB_COL.doc(id).set(defaultClubDoc(id)).catch(function(){}).then(function(){ pendingWrites[id] = false; });
+        }
+      });
       if(!state.clubs.some(function(c){ return c.id === activeTab; })) activeTab = state.clubs[0].id;
       renderAll();
     }, function(err){
@@ -365,14 +390,25 @@
     });
   }
 
-  function saveState(statusElId){
+  function saveClub(clubId, statusElId){
+    var c = clubById(clubId);
+    if(!c) return Promise.resolve({ ok:false });
     if(statusElId) setStatus(statusElId, "저장 중...", false);
-    return DOC_REF.set(state, { merge: false }).then(function(){
+    pendingWrites[clubId] = true;
+    var payload = {
+      name:c.name, tagline:c.tagline, icon:c.icon, css:c.css, soft:c.soft,
+      leaderName:c.leaderName, memberCount:c.memberCount,
+      updates:c.updates, comments:c.comments, events:c.events
+    };
+    return CLUB_COL.doc(clubId).set(payload).then(function(){
       if(statusElId) setStatus(statusElId, "저장됐어요.", false);
       return { ok:true };
     }).catch(function(err){
       if(statusElId) setStatus(statusElId, "저장 실패: " + (err && err.message || ""), true);
       return { ok:false };
+    }).then(function(res){
+      pendingWrites[clubId] = false;
+      return res;
     });
   }
 
@@ -399,9 +435,17 @@
       d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getDate()).padStart(2,"0")+" ("+WEEKDAYS[d.getDay()]+")";
   }
 
+  function allEvents(){
+    var out = [];
+    state.clubs.forEach(function(c){
+      (c.events || []).forEach(function(e){ out.push({ date:e.date, time:e.time, title:e.title, location:e.location, clubId:c.id }); });
+    });
+    return out;
+  }
+
   function dayItemsFor(dateStr){
     var items = [];
-    state.events.forEach(function(e){
+    allEvents().forEach(function(e){
       if(e.date !== dateStr) return;
       var c = clubById(e.clubId);
       items.push({ colorVar: c ? c.css : "--brand", label: c ? c.name : "", title: e.title, time: e.time, location: e.location });
@@ -521,8 +565,7 @@
     panel.style.setProperty("--stripe", "var("+c.css+")");
     panel.style.setProperty("--soft", "var("+c.soft+")");
 
-    var monthEvents = state.events.filter(function(e){
-      if(e.clubId !== c.id) return false;
+    var monthEvents = (c.events || []).filter(function(e){
       var d = new Date(e.date + "T00:00:00");
       return d.getFullYear() === calYear && d.getMonth() === calMonth;
     }).sort(function(a,b){ return (a.date+(a.time||"")) < (b.date+(b.time||"")) ? -1 : 1; });
@@ -635,20 +678,24 @@
     var textEl = document.getElementById("postText");
     var text = (textEl.value || "").trim();
     if(!text){ setStatus("postStatus", "내용을 입력해주세요.", true); return; }
+    if(text.length > MAX_TEXT_LEN){ setStatus("postStatus", MAX_TEXT_LEN+"자 이내로 적어주세요.", true); return; }
     var c = clubById(clubId);
     c.updates.unshift({ authorName: currentAuthorName(), text: text, createdAt: new Date().toISOString() });
+    if(c.updates.length > MAX_LIST_LEN) c.updates.length = MAX_LIST_LEN;
     renderOverview(); renderPanel();
-    saveState("postStatus");
+    saveClub(clubId, "postStatus");
   }
 
   function onAddComment(clubId){
     var textEl = document.getElementById("cmText");
     var text = (textEl.value || "").trim();
     if(!text){ setStatus("cmStatus", "내용을 입력해주세요.", true); return; }
+    if(text.length > MAX_TEXT_LEN){ setStatus("cmStatus", MAX_TEXT_LEN+"자 이내로 적어주세요.", true); return; }
     var c = clubById(clubId);
     c.comments.push({ authorName: currentAuthorName(), text: text });
+    if(c.comments.length > MAX_LIST_LEN) c.comments.splice(0, c.comments.length - MAX_LIST_LEN);
     renderPanel();
-    saveState("cmStatus");
+    saveClub(clubId, "cmStatus");
   }
 
   function onAddEvent(clubId){
@@ -659,9 +706,11 @@
     var date = dateEl.value;
     var title = (titleEl.value || "").trim();
     if(!date || !title){ setStatus("evStatus", "날짜와 제목을 입력해주세요.", true); return; }
-    state.events.push({ id: uid(), clubId: clubId, date: date, time: timeEl.value || "", title: title, location: (locEl.value||"").trim() });
+    var c = clubById(clubId);
+    c.events.push({ id: uid(), date: date, time: timeEl.value || "", title: title, location: (locEl.value||"").trim() });
+    if(c.events.length > MAX_LIST_LEN) c.events.splice(0, c.events.length - MAX_LIST_LEN);
     renderCalendar(); renderPanel();
-    saveState("evStatus");
+    saveClub(clubId, "evStatus");
   }
 
   function onSaveInfo(clubId){
@@ -670,7 +719,7 @@
     c.leaderName = document.getElementById("infoLeader").value.trim() || "미정";
     c.memberCount = parseInt(document.getElementById("infoMembers").value, 10) || 0;
     renderOverview(); renderPanel();
-    saveState("infoStatus");
+    saveClub(clubId, "infoStatus");
   }
 
 })();
