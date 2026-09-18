@@ -2000,39 +2000,62 @@ function renderSetlists() {
     }).join('');
 }
 
+/* 목회철학 문서는 생각의 서재 글뿐 아니라 회의록에서도 지정할 수 있다 —
+   id 접두사(th_/m_)로 어느 쪽 문서인지 구분하므로 별도 필드 없이도
+   섞어서 다룰 수 있다. */
+function getAllPhilosophyDocs() {
+    const fromThoughts = window.state.thoughts.filter(t => t.isPhilosophy);
+    const fromMemos = window.state.memos.filter(m => m.isPhilosophy);
+    return [...fromThoughts, ...fromMemos];
+}
+
+/* philosophyId만으로는 그 대상이 생각의 서재 글인지 회의록인지 알 수 없으니,
+   id 생성 규칙(thought는 'th_', memo는 'm_' 접두사)으로 그래프 노드 id
+   ('thought_'+id 또는 'memo_'+id)를 되찾는다. */
+function resolvePhilosophyNodeId(philosophyId) {
+    if (!philosophyId) return null;
+    return philosophyId.startsWith('m_') ? 'memo_' + philosophyId : 'thought_' + philosophyId;
+}
+
 function renderMemos() {
     const list = document.getElementById('memo-archive-list');
     if (!list) return;
     list.innerHTML = '';
     const query = (document.getElementById('memo-search-input')?.value || '').toLowerCase();
 
-    const matched = window.state.memos.filter(m =>
-        (currentMemoCat === '전체' || m.cat === currentMemoCat) &&
-        (!query || m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query))
-    );
+    const matched = window.state.memos
+        .filter(m =>
+            (currentMemoCat === '전체' || m.cat === currentMemoCat) &&
+            (!query || m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query))
+        )
+        .sort((a, b) => (b.isPhilosophy ? 1 : 0) - (a.isPhilosophy ? 1 : 0));
     if (matched.length === 0) {
         list.innerHTML = `<p class="text-xs text-[var(--text-sub)] px-4 py-6 text-center">${query ? '검색 결과가 없습니다.' : '다음 회의나 메모를 여기에 남겨보세요.'}</p>`;
         return;
     }
 
-    const philosophyDocs = window.state.thoughts.filter(t => t.isPhilosophy);
+    const philosophyDocs = getAllPhilosophyDocs();
 
     matched.forEach(m => {
         const linkOptions = philosophyDocs
+            .filter(p => p.id !== m.id)
             .map(p => `<option value="${p.id}" ${m.philosophyId === p.id ? 'selected' : ''}>${escapeAttr(p.title)}</option>`)
             .join('');
-        const linkSelect = philosophyDocs.length > 0 ? `
+        const linkSelect = (!m.isPhilosophy && philosophyDocs.length > 0) ? `
             <select onchange="linkMemoToPhilosophy('${m.id}', this.value)" class="text-[10px] font-bold bg-[var(--primary-light)] text-[var(--text-sub)] rounded-full px-2 py-0.5 outline-none border-none shrink-0">
                 <option value="">⭐ 철학과 연결</option>
                 ${linkOptions}
             </select>` : '';
 
         const div = document.createElement('div');
-        div.className = "px-4 py-3 bg-[var(--card-bg)] space-y-1 group hover:bg-[var(--primary-light)] transition-colors";
+        div.className = m.isPhilosophy
+            ? "px-4 py-3 bg-[var(--card-bg)] space-y-1 group hover:bg-[var(--primary-light)] transition-colors border-l-4"
+            : "px-4 py-3 bg-[var(--card-bg)] space-y-1 group hover:bg-[var(--primary-light)] transition-colors";
+        if (m.isPhilosophy) div.style.borderColor = '#eab308';
         div.innerHTML = `
             <div class="flex justify-between items-center gap-2">
                 <div class="flex items-center gap-2 min-w-0 flex-1">
-                    <span class="text-[10px] primary-badge font-black px-2.5 py-0.5 rounded-full shrink-0">${m.cat}</span>
+                    <span class="text-[10px] primary-badge font-black px-2.5 py-0.5 rounded-full shrink-0">${m.isPhilosophy ? '⭐ 목회철학' : escapeAttr(m.cat)}</span>
                     <h4 contenteditable="true" onblur="updateMemoTitle('${m.id}', this.innerText)" class="font-bold text-xs text-[var(--text-main)] truncate outline-none border-b border-transparent focus:border-[var(--primary)] cursor-text">${escapeAttr(m.title)}</h4>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
@@ -2041,7 +2064,10 @@ function renderMemos() {
                 </div>
             </div>
             <p contenteditable="true" onblur="updateMemoContent('${m.id}', this.innerText)" class="text-xs text-[var(--text-sub)] leading-relaxed whitespace-pre-wrap outline-none focus:text-[var(--text-main)] cursor-text">${escapeAttr(m.content)}</p>
-            ${linkSelect ? `<div class="pt-1">${linkSelect}</div>` : ''}`;
+            <div class="pt-1 flex items-center gap-1.5">
+                ${linkSelect}
+                <button onclick="togglePhilosophyAnchorMemo('${m.id}')" class="text-[10px] font-bold rounded-full px-2 py-0.5 ${m.isPhilosophy ? 'text-amber-500' : 'text-[var(--text-sub)] hover:text-amber-500'}">${m.isPhilosophy ? '⭐ 해제' : '⭐로 지정'}</button>
+            </div>`;
         list.appendChild(div);
     });
 }
@@ -2050,6 +2076,14 @@ function linkMemoToPhilosophy(id, philosophyId) {
     const m = window.state.memos.find(item => item.id === id);
     if (!m) return;
     m.philosophyId = philosophyId || null;
+    renderMemos(); window.syncToCloud();
+}
+
+function togglePhilosophyAnchorMemo(id) {
+    const m = window.state.memos.find(item => item.id === id);
+    if (!m) return;
+    m.isPhilosophy = !m.isPhilosophy;
+    if (m.isPhilosophy) m.philosophyId = null;
     renderMemos(); window.syncToCloud();
 }
 
@@ -2292,7 +2326,7 @@ function renderThoughts() {
     if (!grid) return;
     grid.innerHTML = '';
 
-    const philosophyDocs = window.state.thoughts.filter(t => t.isPhilosophy);
+    const philosophyDocs = getAllPhilosophyDocs();
     const sorted = [...window.state.thoughts].sort((a, b) => (b.isPhilosophy ? 1 : 0) - (a.isPhilosophy ? 1 : 0));
 
     sorted.forEach(th => {
@@ -2874,7 +2908,7 @@ function buildMinistryGraphData() {
     const nodes = [];
     const edges = [];
 
-    (window.state.memos || []).slice(0, 60).forEach(m => nodes.push({ id: 'memo_' + m.id, type: 'memo', label: m.title, dateKey: graphDateKey(m.date) }));
+    (window.state.memos || []).slice(0, 60).forEach(m => nodes.push({ id: 'memo_' + m.id, type: m.isPhilosophy ? 'philosophy' : 'memo', label: m.title, dateKey: graphDateKey(m.date) }));
     (window.state.thoughts || []).slice(0, 60).forEach(t => nodes.push({ id: 'thought_' + t.id, type: t.isPhilosophy ? 'philosophy' : 'thought', label: t.title, dateKey: graphDateKey(t.createdAt) }));
     (window.state.projects || []).slice(0, 60).forEach(p => nodes.push({ id: 'project_' + p.id, type: 'project', label: p.title, dateKey: graphDateKey(p.start) }));
     (window.state.setlists || []).slice(0, 60).forEach(s => nodes.push({ id: 'setlist_' + s.id, type: 'setlist', label: s.title, dateKey: graphDateKey(s.date) }));
@@ -2891,12 +2925,16 @@ function buildMinistryGraphData() {
     /* 목회철학 허브: 다른 기록에서 명시적으로 '철학과 연결'한 항목만 굵은 선으로
        이어준다 — 같은 날 기록됐다고 자동으로 엮이는 weak edge와는 다르게,
        철학과의 연결은 사용자가 직접 고른 것만 반영한다. kind를 'philosophy'로
-       따로 표시해서, "목회철학만 보기" 필터가 이 연결만 골라낼 수 있게 한다. */
+       따로 표시해서, "목회철학만 보기" 필터가 이 연결만 골라낼 수 있게 한다.
+       철학 허브 문서는 생각의 서재(th_)뿐 아니라 회의록(m_)에서도 지정할 수
+       있어서, id 접두사로 어느 쪽 노드인지 구분해 이어준다. */
     (window.state.thoughts || []).forEach(t => {
-        if (t.philosophyId) edges.push({ a: 'thought_' + t.philosophyId, b: 'thought_' + t.id, kind: 'philosophy' });
+        const targetId = resolvePhilosophyNodeId(t.philosophyId);
+        if (targetId) edges.push({ a: targetId, b: 'thought_' + t.id, kind: 'philosophy' });
     });
     (window.state.memos || []).forEach(m => {
-        if (m.philosophyId) edges.push({ a: 'thought_' + m.philosophyId, b: 'memo_' + m.id, kind: 'philosophy' });
+        const targetId = resolvePhilosophyNodeId(m.philosophyId);
+        if (targetId) edges.push({ a: targetId, b: 'memo_' + m.id, kind: 'philosophy' });
     });
 
     const byDate = {};
@@ -3079,7 +3117,7 @@ function renderMinistryGraph() {
 
     if (nodes.length === 0) {
         const msg = graphPhilosophyOnly
-            ? '아직 목회철학으로 지정하거나 연결한 기록이 없어요. 생각의 서재에서 문서를 "⭐로 지정"하고, 다른 기록들을 그 철학과 연결해보세요.'
+            ? '아직 목회철학으로 지정하거나 연결한 기록이 없어요. 생각의 서재나 회의록에서 글을 "⭐로 지정"하고, 다른 기록들을 그 철학과 연결해보세요.'
             : '아직 기록이 쌓이지 않았어요. 회의록·생각의서재·사역현황·찬양콘티를 채워가면 여기 그래프가 자라납니다.';
         svg.innerHTML = `<text x="50%" y="50%" text-anchor="middle" fill="var(--text-sub)" font-size="13">${msg}</text>`;
         return;
