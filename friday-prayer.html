@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>청년금요기도회 대시보드</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2317181A'/%3E%3Cpath d='M32 12 L38 26 L52 28 L41 38 L44 52 L32 45 L20 52 L23 38 L12 28 L26 26 Z' fill='%23E8B04B'/%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+  :root{
+    --paper:#17181A; --surface:#201E1A; --surface-2:#282521; --ink:#EEEAE1; --ink-dim:#B2AA9A; --line:#39352C;
+    --brand:#E8B04B; --brand-soft:#3A2E17; --on-accent:#1A1508;
+    --danger:#E28A90;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Noto Sans KR',-apple-system,sans-serif;padding-inline:20px;padding-block:28px 60px;line-height:1.55;}
+  h1,h2,h3{font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:0.01em;text-wrap:balance;}
+  .wrap{max-width:980px;margin:0 auto;}
+  .num{font-variant-numeric:tabular-nums;}
+  .eyebrow{font-size:12.5px;color:var(--brand);font-weight:700;letter-spacing:0.14em;text-transform:uppercase;}
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:22px;}
+  header.top h1{font-size:clamp(26px,5vw,36px);margin:4px 0 0;}
+  .today{color:var(--ink-dim);font-size:13px;}
+  .who{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-dim);}
+  .who input{width:110px;font-family:inherit;font-size:13px;font-weight:700;padding:5px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);}
+  .notice{background:var(--brand-soft);color:var(--brand);border-radius:10px;padding:10px 14px;font-size:12.5px;margin-bottom:20px;}
+  .notice.warn{background:#3A2426;color:var(--danger);}
+  [hidden]{display:none!important;}
+
+  section{margin-bottom:34px;}
+  .section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .section-head h2{font-size:22px;margin:0;}
+  .section-head .sub{font-size:12.5px;color:var(--ink-dim);}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);}
+  .empty{color:var(--ink-dim);font-size:13.5px;padding:18px;text-align:center;background:var(--surface-2);border-radius:10px;}
+  .save-status{font-size:12px;color:var(--ink-dim);min-height:16px;}
+  .save-status.err{color:var(--danger);}
+  .btn{font-family:inherit;font-weight:700;font-size:13px;padding:8px 16px;border-radius:999px;border:none;cursor:pointer;background:var(--brand);color:var(--on-accent);}
+  .btn:disabled{opacity:.55;cursor:default;}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink-dim);}
+  .btn.sm{padding:5px 11px;font-size:12px;}
+  input,textarea,select{font-family:inherit;font-size:13.5px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);}
+  textarea{resize:vertical;}
+
+  /* overview / attendance chart */
+  .overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:16px;}
+  .stat-tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);}
+  .stat-tile .label{font-size:11.5px;color:var(--ink-dim);margin-bottom:4px;}
+  .stat-tile .value{font-family:'Black Han Sans';font-size:26px;color:var(--ink);}
+  .stat-tile .value small{font-family:'Noto Sans KR';font-size:13px;color:var(--ink-dim);font-weight:700;}
+  .chart-wrap{position:relative;}
+  .chart-wrap svg{display:block;width:100%;height:auto;overflow:visible;}
+  .bar{fill:var(--brand);}
+  .bar-track{fill:var(--surface-2);}
+  .chart-tick{font-size:10.5px;fill:var(--ink-dim);}
+  .chart-tooltip{position:absolute;pointer-events:none;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--ink);box-shadow:var(--shadow);transform:translate(-50%,-110%);white-space:nowrap;display:none;}
+
+  /* week nav */
+  .week-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .week-nav button{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px;}
+  .week-nav .week-title{font-family:'Black Han Sans';font-size:19px;flex:none;}
+  .week-nav input[type=date]{margin-left:auto;}
+  .special-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px;font-size:13px;color:var(--ink-dim);}
+  .special-row input[type=text]{flex:1;min-width:160px;}
+
+  /* team tabs */
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+  .tab-btn{font-family:inherit;font-weight:700;font-size:13px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-dim);cursor:pointer;}
+  .tab-btn.active{background:var(--brand);color:var(--on-accent);border-color:transparent;}
+  .team-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .team-head h3{font-size:20px;margin:0;}
+  .team-head .leader{font-size:12.5px;color:var(--ink-dim);}
+  .manual-box{background:var(--surface-2);border-radius:10px;padding:12px 14px;margin-bottom:16px;}
+  .manual-box .m-label{font-size:11.5px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+  .manual-box ul{margin:0;padding-left:18px;font-size:13px;color:var(--ink);}
+  .manual-box ul li{margin-bottom:3px;}
+  .manual-box .empty-inline{font-size:12.5px;color:var(--ink-dim);}
+  .field-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
+  .field-row label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--ink-dim);flex:1;min-width:140px;}
+  .field-row input, .field-row textarea{width:100%;}
+  .save-row{display:flex;align-items:center;gap:10px;justify-content:flex-end;margin-top:6px;}
+
+  /* dinner */
+  .dinner-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px;}
+  .dinner-grid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-dim);}
+  .dinner-total{font-size:13px;color:var(--ink-dim);margin-bottom:10px;}
+  .dinner-total b{color:var(--brand);font-size:16px;}
+
+  /* cue sheet table */
+  .cue-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:12px;}
+  .cue-table th{text-align:left;font-size:11px;color:var(--ink-dim);font-weight:700;padding:6px 6px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  .cue-table td{padding:4px 4px;border-bottom:1px solid var(--line);vertical-align:top;}
+  .cue-table input{width:100%;min-width:60px;padding:5px 6px;font-size:12.5px;}
+  .cue-table .cue-del{font-family:inherit;font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer;padding:4px;}
+  .cue-actions{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+
+  /* songs */
+  .song-row{display:grid;grid-template-columns:1fr 70px 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;}
+  .song-row .song-del{font-family:inherit;font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer;}
+
+  @media (max-width:640px){
+    .song-row{grid-template-columns:1fr;}
+    .cue-table{display:block;overflow-x:auto;white-space:nowrap;}
+  }
+  footer{text-align:center;font-size:12px;color:var(--ink-dim);margin-top:40px;}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+  <header class="top">
+    <div><div class="eyebrow">청년부 · 금요기도회</div><h1>청년금요기도회 대시보드</h1></div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+      <div class="today" id="todayLabel"></div>
+      <div class="who">이름 <input type="text" id="myNameInput" placeholder="예: 김성실"></div>
+    </div>
+  </header>
+  <div class="notice">이름을 적어두시면 입력한 내용에 자동으로 붙어요. 팀별로 이번 주 배정·큐시트·참고구절·식사인원·출석을 각자 입력해주세요.</div>
+  <div class="notice warn" id="syncErrorNotice" hidden></div>
+
+  <section id="overviewSection">
+    <div class="section-head"><h2>출석 흐름</h2><span class="sub">최근 주차 출석 인원 추이</span></div>
+    <div class="panel">
+      <div class="overview-grid">
+        <div class="stat-tile"><div class="label">이번 주 출석</div><div class="value" id="statThisWeek">-</div></div>
+        <div class="stat-tile"><div class="label">최근 4주 평균</div><div class="value" id="statAvg4">-</div></div>
+        <div class="stat-tile"><div class="label">직전 대비</div><div class="value" id="statDelta">-</div></div>
+      </div>
+      <div class="chart-wrap" id="chartWrap">
+        <div class="empty" id="chartEmpty">아직 출석 데이터가 없어요. 아래 "출석" 탭에서 입력해주세요.</div>
+        <svg id="attendanceChart" viewBox="0 0 640 200" hidden></svg>
+        <div class="chart-tooltip" id="chartTooltip"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="weekSection">
+    <div class="section-head"><h2>이번 주 큐시트 · 현황</h2><span class="sub">주차를 옮겨가며 입력/열람할 수 있어요</span></div>
+    <div class="panel">
+      <div class="week-nav">
+        <button type="button" id="weekPrevBtn" aria-label="이전 주">‹</button>
+        <span class="week-title" id="weekTitle">-</span>
+        <button type="button" id="weekNextBtn" aria-label="다음 주">›</button>
+        <input type="date" id="weekJumpInput">
+      </div>
+      <div class="special-row">
+        <label><input type="checkbox" id="specialCheckbox"> 이번 주는 특별주간(정기 모임 없음)</label>
+        <input type="text" id="specialNoteInput" placeholder="사유 (예: 설연휴, 수련회)">
+        <button type="button" class="btn ghost sm" id="specialSaveBtn">저장</button>
+        <span class="save-status" id="specialStatus"></span>
+      </div>
+
+      <div class="tabs" id="teamTabs"></div>
+      <div id="teamPanel"></div>
+    </div>
+  </section>
+
+  <footer>청년금요기도회 팀(교역자·찬양팀·미디어팀·안내팀·중보기도팀·청금사역팀)이 함께 기록합니다.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyAI5ZHYd_Mi7JogsgZAYsBERsbPMD5m544",
+    authDomain: "wwjd-hub.firebaseapp.com",
+    projectId: "wwjd-hub",
+    storageBucket: "wwjd-hub.firebasestorage.app",
+    messagingSenderId: "518785715153",
+    appId: "1:518785715153:web:2fd76cfe4a1aabd6bd2ef0"
+  };
+  firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
+  var WEEKS_COL = db.collection("friday_prayer");
+
+  var MAX_TEXT_LEN = 3000;
+  var TEAM_IDS = ["교역자","찬양팀","미디어팀","안내팀","중보기도팀","청금사역팀"];
+  var TEAM_INFO = {
+    "교역자": { leader: "", manual: ["8:20 위치 후 마이크 체크(음향부스)", "설교자 등단 전 기도 백업", "성경봉독시 소리내어 교독", "설교중간에는 교독하지 않음"] },
+    "찬양팀": { leader: "안두현, 박영인", manual: ["주황 조명 설치", "음향체크", "물 준비"] },
+    "미디어팀": { leader: "최원지", manual: ["카메라 설치", "SDI 체크", "카메라 이동(3대, 주일학교와 공유 장비)"] },
+    "안내팀": { leader: "배기원", manual: ["설교자 물체크", "현수막 설치", "당일악보전달(2부)", "식사주문(수요일 17:00까지)"] },
+    "중보기도팀": { leader: "남희선", manual: [] },
+    "청금사역팀": { leader: "", manual: ["예배셋팅 (18:00)", "집회실 마무리 정리 (22:10)"] }
+  };
+  var DINNER_DEADLINE = "식사주문은 수요일 17:00까지 부탁해요~";
+  var VERSE_DEADLINE = "참고구절 컷오프는 금요일 오후 5시입니다.";
+  var CUE_PRESET = [
+    { time:"18:00", duration:"60min", owner:"청금사역팀", content:"예배셋팅", note:"", sound:"", light:"", media:"" },
+    { time:"19:00", duration:"45min", owner:"찬양인도자", content:"찬양연습", note:"", sound:"", light:"", media:"" },
+    { time:"19:45", duration:"5min", owner:"", content:"결단찬양", note:"설교자 결단찬양", sound:"", light:"강대상 핀라이트", media:"유튜브 송출 시작" },
+    { time:"20:00", duration:"20min", owner:"찬양팀", content:"찬양", note:"", sound:"", light:"", media:"" },
+    { time:"20:20", duration:"35min", owner:"설교자", content:"메세지", note:"본문 / 제목", sound:"", light:"", media:"" },
+    { time:"20:55", duration:"25min", owner:"기도백업", content:"결단 및 기도", note:"", sound:"MIC", light:"", media:"" },
+    { time:"21:20", duration:"50min", owner:"다같이", content:"개인기도", note:"", sound:"", light:"건반 페이드아웃", media:"" },
+    { time:"22:10", duration:"30min", owner:"청금사역팀", content:"마무리", note:"집회실 마무리 정리", sound:"", light:"", media:"" }
+  ];
+
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function toISODateLocal(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c];
+    });
+  }
+  function fmtDateKo(str){
+    if(!str) return "";
+    var d = new Date(str + "T00:00:00");
+    if(isNaN(d)) return str;
+    var wd = ["일","월","화","수","목","금","토"][d.getDay()];
+    return (d.getMonth()+1)+"월 "+d.getDate()+"일 ("+wd+")";
+  }
+  function getUpcomingFriday(base){
+    var d = base ? new Date(base + "T00:00:00") : new Date();
+    var day = d.getDay();
+    var diff = (5 - day + 7) % 7;
+    d.setDate(d.getDate() + diff);
+    return toISODateLocal(d);
+  }
+  function addDays(dateStr, n){
+    var d = new Date(dateStr + "T00:00:00");
+    d.setDate(d.getDate() + n);
+    return toISODateLocal(d);
+  }
+
+  function defaultWeek(date){
+    var teamMembers = {};
+    TEAM_IDS.forEach(function(t){ if(t !== "교역자") teamMembers[t] = ""; });
+    var dinnerCounts = {};
+    TEAM_IDS.forEach(function(t){ dinnerCounts[t] = 0; });
+    return {
+      date: date, special: false, specialNote: "",
+      preacher: "", prayerBackup: "", pastorInCharge: "",
+      worshipLeader: "", teamMembers: teamMembers,
+      songs: [], dinnerCounts: dinnerCounts,
+      cueSheet: [], referenceVerses: "", attendance: null
+    };
+  }
+
+  /* ---- name (no login, remembered locally) ---- */
+  function getMyName(){ try{ return localStorage.getItem("fpName") || ""; }catch(e){ return ""; } }
+  function setMyName(n){ try{ localStorage.setItem("fpName", n); }catch(e){} }
+  var myNameInput = document.getElementById("myNameInput");
+  myNameInput.value = getMyName();
+  myNameInput.addEventListener("change", function(){ setMyName(myNameInput.value.trim()); });
+  myNameInput.addEventListener("blur", function(){ setMyName(myNameInput.value.trim()); });
+  function currentAuthorName(){ return getMyName() || "익명"; }
+
+  function showSyncError(err){
+    var el = document.getElementById("syncErrorNotice");
+    if(!el) return;
+    var code = err && err.code;
+    var msg = code === "permission-denied"
+      ? "저장/읽기 권한이 막혀 있어요. 목사님께 Firestore 규칙 확인을 요청해주세요."
+      : "연결에 문제가 있어요. 새로고침해보시고, 계속되면 알려주세요. (" + (code || (err && err.message) || "") + ")";
+    el.textContent = msg;
+    el.hidden = false;
+  }
+  function setStatus(elId, text, isErr){
+    var el = document.getElementById(elId);
+    if(!el) return;
+    el.textContent = text || "";
+    el.className = "save-status" + (isErr ? " err" : "");
+  }
+
+  /* ---- state ---- */
+  var currentDate = getUpcomingFriday();
+  var currentWeek = defaultWeek(currentDate);
+  var activeTeam = TEAM_IDS[0];
+  var recentWeeks = []; /* for chart, desc by date */
+  var pendingWrites = {};
+  var unsubscribeWeek = null;
+  var unsubscribeRecent = null;
+
+  /* ---- week doc sync ---- */
+  function startWeekSync(){
+    if(unsubscribeWeek) unsubscribeWeek();
+    var thisDate = currentDate;
+    unsubscribeWeek = WEEKS_COL.doc(thisDate).onSnapshot(function(snap){
+      if(thisDate !== currentDate) return; /* stale listener from a since-changed week */
+      if(snap.exists){
+        if(!pendingWrites[thisDate]) currentWeek = Object.assign(defaultWeek(thisDate), snap.data());
+      } else if(!pendingWrites[thisDate]){
+        currentWeek = defaultWeek(thisDate);
+        WEEKS_COL.doc(thisDate).set(currentWeek).catch(function(){});
+      }
+      renderWeek();
+    }, function(err){
+      console.error("week sync error", err);
+      showSyncError(err);
+    });
+  }
+
+  function startRecentSync(){
+    if(unsubscribeRecent) return;
+    unsubscribeRecent = WEEKS_COL.orderBy("date", "desc").limit(16).onSnapshot(function(snap){
+      var list = [];
+      snap.forEach(function(doc){ list.push(doc.data()); });
+      recentWeeks = list;
+      renderOverview();
+    }, function(err){
+      console.error("recent weeks sync error", err);
+      showSyncError(err);
+    });
+  }
+
+  function patchWeek(fields, statusElId){
+    var thisDate = currentDate;
+    if(statusElId) setStatus(statusElId, "저장 중...", false);
+    pendingWrites[thisDate] = true;
+    fields.updatedAt = new Date().toISOString();
+    return WEEKS_COL.doc(thisDate).set(fields, { merge:true }).then(function(){
+      if(statusElId) setStatus(statusElId, "저장됐어요.", false);
+      return { ok:true };
+    }).catch(function(err){
+      if(statusElId) setStatus(statusElId, "저장 실패: " + (err && err.message || ""), true);
+      return { ok:false };
+    }).then(function(res){
+      pendingWrites[thisDate] = false;
+      return res;
+    });
+  }
+
+  /* ---- overview / chart ---- */
+  function renderOverview(){
+    var withAttendance = recentWeeks.filter(function(w){ return typeof w.attendance === "number"; })
+      .slice().sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+    var chartEl = document.getElementById("attendanceChart");
+    var emptyEl = document.getElementById("chartEmpty");
+    var thisWeekEntry = recentWeeks.filter(function(w){ return w.date === currentDate; })[0];
+    document.getElementById("statThisWeek").textContent = (thisWeekEntry && typeof thisWeekEntry.attendance === "number") ? thisWeekEntry.attendance + "명" : "-";
+
+    if(!withAttendance.length){
+      chartEl.hidden = true; emptyEl.hidden = false;
+      document.getElementById("statAvg4").textContent = "-";
+      document.getElementById("statDelta").textContent = "-";
+      return;
+    }
+    emptyEl.hidden = true; chartEl.hidden = false;
+
+    var last4 = withAttendance.slice(-4);
+    var avg4 = Math.round(last4.reduce(function(s,w){ return s + w.attendance; }, 0) / last4.length);
+    document.getElementById("statAvg4").textContent = avg4 + "명";
+    if(withAttendance.length >= 2){
+      var delta = withAttendance[withAttendance.length-1].attendance - withAttendance[withAttendance.length-2].attendance;
+      document.getElementById("statDelta").textContent = (delta > 0 ? "+" : "") + delta + "명";
+    } else {
+      document.getElementById("statDelta").textContent = "-";
+    }
+
+    var W = 640, H = 200, padL = 30, padB = 24, padT = 10, padR = 6;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var maxVal = Math.max.apply(null, withAttendance.map(function(w){ return w.attendance; })) || 1;
+    var n = withAttendance.length;
+    var gap = 8;
+    var barW = Math.max(6, (plotW - gap * (n - 1)) / n);
+
+    var bars = "";
+    var ticks = "";
+    withAttendance.forEach(function(w, i){
+      var x = padL + i * (barW + gap);
+      var h = Math.max(2, (w.attendance / maxVal) * plotH);
+      var y = padT + (plotH - h);
+      bars += '<rect class="bar" data-idx="'+i+'" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="'+Math.min(4, barW/2).toFixed(1)+'"></rect>';
+      if(i === 0 || i === n-1 || n <= 8 || i % Math.ceil(n/8) === 0){
+        var d = new Date(w.date + "T00:00:00");
+        ticks += '<text class="chart-tick" x="'+(x + barW/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle">'+(d.getMonth()+1)+'/'+d.getDate()+'</text>';
+      }
+    });
+    chartEl.setAttribute("viewBox", "0 0 " + W + " " + H);
+    chartEl.innerHTML =
+      '<line x1="'+padL+'" y1="'+(H-padB)+'" x2="'+(W-padR)+'" y2="'+(H-padB)+'" stroke="var(--line)" stroke-width="1"></line>' +
+      bars + ticks;
+
+    var tooltip = document.getElementById("chartTooltip");
+    Array.prototype.forEach.call(chartEl.querySelectorAll(".bar"), function(rect){
+      var w = withAttendance[parseInt(rect.getAttribute("data-idx"), 10)];
+      rect.addEventListener("mouseenter", function(e){
+        tooltip.textContent = fmtDateKo(w.date) + " · " + w.attendance + "명";
+        tooltip.style.display = "block";
+      });
+      rect.addEventListener("mousemove", function(e){
+        var wrapRect = document.getElementById("chartWrap").getBoundingClientRect();
+        tooltip.style.left = (e.clientX - wrapRect.left) + "px";
+        tooltip.style.top = (e.clientY - wrapRect.top) + "px";
+      });
+      rect.addEventListener("mouseleave", function(){ tooltip.style.display = "none"; });
+    });
+  }
+
+  /* ---- week nav ---- */
+  function goToWeek(dateStr){
+    currentDate = dateStr;
+    document.getElementById("weekJumpInput").value = dateStr;
+    startWeekSync();
+    renderWeek();
+  }
+  document.getElementById("weekPrevBtn").addEventListener("click", function(){ goToWeek(addDays(currentDate, -7)); });
+  document.getElementById("weekNextBtn").addEventListener("click", function(){ goToWeek(addDays(currentDate, 7)); });
+  document.getElementById("weekJumpInput").addEventListener("change", function(){
+    if(this.value) goToWeek(this.value);
+  });
+
+  /* ---- special week ---- */
+  document.getElementById("specialSaveBtn").addEventListener("click", function(){
+    var special = document.getElementById("specialCheckbox").checked;
+    var note = document.getElementById("specialNoteInput").value.trim().slice(0, 100);
+    currentWeek.special = special;
+    currentWeek.specialNote = note;
+    patchWeek({ special: special, specialNote: note }, "specialStatus");
+  });
+
+  /* ---- team tabs ---- */
+  function renderTeamTabs(){
+    var el = document.getElementById("teamTabs");
+    el.innerHTML = TEAM_IDS.map(function(t){
+      return '<button type="button" class="tab-btn'+(t===activeTeam?' active':'')+'" data-team="'+esc(t)+'">'+esc(t)+'</button>';
+    }).join("");
+    Array.prototype.forEach.call(el.querySelectorAll(".tab-btn"), function(btn){
+      btn.addEventListener("click", function(){
+        activeTeam = btn.getAttribute("data-team");
+        renderTeamTabs();
+        renderTeamPanel();
+      });
+    });
+  }
+
+  function manualHtml(team){
+    var info = TEAM_INFO[team];
+    var items = info.manual.length
+      ? '<ul>'+info.manual.map(function(m){ return '<li>'+esc(m)+'</li>'; }).join("")+'</ul>'
+      : '<div class="empty-inline">등록된 매뉴얼이 없어요.</div>';
+    return '<div class="manual-box"><div class="m-label">팀 매뉴얼 · 체크리스트</div>'+items+'</div>';
+  }
+
+  function renderTeamPanel(){
+    var el = document.getElementById("teamPanel");
+    var info = TEAM_INFO[activeTeam];
+    var headHtml =
+      '<div class="team-head"><h3>'+esc(activeTeam)+'</h3>'+
+      (info.leader ? '<span class="leader">팀장 <b>'+esc(info.leader)+'</b></span>' : '')+
+      '</div>';
+
+    var bodyHtml = "";
+    if(activeTeam === "교역자"){
+      bodyHtml = pastorSectionHtml();
+    } else if(activeTeam === "찬양팀"){
+      bodyHtml = teamMembersFieldHtml("찬양팀", "인도자, 싱어, 세션 등") + songsSectionHtml();
+    } else {
+      bodyHtml = teamMembersFieldHtml(activeTeam, "이번 주 참여 인원 (쉼표로 구분)");
+    }
+
+    bodyHtml += dinnerSectionHtml() + cueSheetSectionHtml() + verseSectionHtml(activeTeam) + attendanceSectionHtml(activeTeam);
+
+    el.innerHTML = headHtml + manualHtml(activeTeam) + bodyHtml;
+    wireTeamPanelEvents(el);
+  }
+
+  function pastorSectionHtml(){
+    return (
+      '<div class="field-row">'+
+        '<label>담당 목사<input type="text" id="f-pastorInCharge" value="'+esc(currentWeek.pastorInCharge)+'"></label>'+
+        '<label>설교자<input type="text" id="f-preacher" value="'+esc(currentWeek.preacher)+'"></label>'+
+        '<label>기도백업<input type="text" id="f-prayerBackup" value="'+esc(currentWeek.prayerBackup)+'"></label>'+
+      '</div>'+
+      '<div class="save-row"><span class="save-status" id="pastorStatus"></span><button type="button" class="btn sm" id="pastorSaveBtn">저장</button></div>'
+    );
+  }
+
+  function teamMembersFieldHtml(team, placeholder){
+    var val = team === "찬양팀" ? currentWeek.worshipLeader : (currentWeek.teamMembers[team] || "");
+    var label = team === "찬양팀" ? "찬양 인도자" : "이번 주 배정 인원";
+    return (
+      '<div class="field-row">'+
+        '<label>'+esc(label)+'<input type="text" id="f-teamMembers" placeholder="'+esc(placeholder)+'" value="'+esc(val)+'"></label>'+
+      '</div>'+
+      '<div class="save-row"><span class="save-status" id="teamMembersStatus"></span><button type="button" class="btn sm" id="teamMembersSaveBtn" data-team="'+esc(team)+'">저장</button></div>'
+    );
+  }
+
+  function songsSectionHtml(){
+    var rows = (currentWeek.songs || []).map(function(s, i){
+      return (
+        '<div class="song-row" data-idx="'+i+'">'+
+          '<input type="text" class="song-title" placeholder="곡명" value="'+esc(s.title)+'">'+
+          '<input type="text" class="song-key" placeholder="키" value="'+esc(s.key)+'">'+
+          '<input type="text" class="song-chords" placeholder="코드진행 (예: I-V-C-C-B-C)" value="'+esc(s.chords)+'">'+
+          '<input type="text" class="song-youtube" placeholder="유튜브 링크" value="'+esc(s.youtube)+'">'+
+          '<button type="button" class="song-del" data-idx="'+i+'">삭제</button>'+
+        '</div>'
+      );
+    }).join("");
+    return (
+      '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">찬양 리스트</div>'+
+      '<div id="songRows">'+rows+'</div>'+
+      '<div class="cue-actions"><button type="button" class="btn ghost sm" id="songAddBtn">+ 곡 추가</button></div>'+
+      '<div class="save-row"><span class="save-status" id="songsStatus"></span><button type="button" class="btn sm" id="songsSaveBtn">찬양 리스트 저장</button></div>'
+    );
+  }
+
+  function dinnerSectionHtml(){
+    var total = TEAM_IDS.reduce(function(s,t){ return s + (parseInt(currentWeek.dinnerCounts[t],10) || 0); }, 0);
+    return (
+      '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">저녁식사 인원</div>'+
+      '<div class="dinner-grid">'+
+        TEAM_IDS.map(function(t){
+          return '<label>'+esc(t)+'<input type="number" min="0" class="dinner-input" data-team="'+esc(t)+'" value="'+(currentWeek.dinnerCounts[t]||0)+'"></label>';
+        }).join("")+
+      '</div>'+
+      '<div class="dinner-total">총계 <b id="dinnerTotalNum">'+total+'</b>명 · <span style="color:var(--ink-dim)">'+esc(DINNER_DEADLINE)+'</span></div>'+
+      '<div class="save-row"><span class="save-status" id="dinnerStatus"></span><button type="button" class="btn sm" id="dinnerSaveBtn">식사인원 저장</button></div>'
+    );
+  }
+
+  function cueSheetSectionHtml(){
+    var rows = (currentWeek.cueSheet || []).map(function(row, i){
+      return (
+        '<tr data-idx="'+i+'">'+
+          '<td><input class="cue-f" data-k="time" value="'+esc(row.time)+'" placeholder="시간"></td>'+
+          '<td><input class="cue-f" data-k="duration" value="'+esc(row.duration)+'" placeholder="소요"></td>'+
+          '<td><input class="cue-f" data-k="owner" value="'+esc(row.owner)+'" placeholder="담당자"></td>'+
+          '<td><input class="cue-f" data-k="content" value="'+esc(row.content)+'" placeholder="내용"></td>'+
+          '<td><input class="cue-f" data-k="note" value="'+esc(row.note)+'" placeholder="설명"></td>'+
+          '<td><input class="cue-f" data-k="sound" value="'+esc(row.sound)+'" placeholder="음향"></td>'+
+          '<td><input class="cue-f" data-k="light" value="'+esc(row.light)+'" placeholder="조명"></td>'+
+          '<td><input class="cue-f" data-k="media" value="'+esc(row.media)+'" placeholder="미디어"></td>'+
+          '<td><button type="button" class="cue-del" data-idx="'+i+'">삭제</button></td>'+
+        '</tr>'
+      );
+    }).join("");
+    return (
+      '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">진행 큐시트</div>'+
+      '<div style="overflow-x:auto;">'+
+      '<table class="cue-table"><thead><tr><th>시간</th><th>소요</th><th>담당자</th><th>내용</th><th>설명</th><th>음향</th><th>조명</th><th>미디어</th><th></th></tr></thead>'+
+      '<tbody id="cueBody">'+rows+'</tbody></table>'+
+      '</div>'+
+      '<div class="cue-actions">'+
+        '<button type="button" class="btn ghost sm" id="cueAddBtn">+ 순서 추가</button>'+
+        '<button type="button" class="btn ghost sm" id="cuePresetBtn">기본 진행표 불러오기</button>'+
+      '</div>'+
+      '<div class="save-row"><span class="save-status" id="cueStatus"></span><button type="button" class="btn sm" id="cueSaveBtn">큐시트 저장</button></div>'
+    );
+  }
+
+  function verseSectionHtml(team){
+    if(team !== "미디어팀" && team !== "교역자") return "";
+    return (
+      '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">참고구절</div>'+
+      '<div style="font-size:12px;color:var(--ink-dim);margin-bottom:6px;">'+esc(VERSE_DEADLINE)+'</div>'+
+      '<textarea id="f-verses" rows="5" placeholder="대지별 참고구절을 적어주세요" style="width:100%;">'+esc(currentWeek.referenceVerses)+'</textarea>'+
+      '<div class="save-row"><span class="save-status" id="verseStatus"></span><button type="button" class="btn sm" id="verseSaveBtn">참고구절 저장</button></div>'
+    );
+  }
+
+  function attendanceSectionHtml(team){
+    if(team !== "안내팀") return "";
+    return (
+      '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">출석 인원</div>'+
+      '<div class="field-row"><label>이번 주 출석 인원<input type="number" min="0" id="f-attendance" value="'+(currentWeek.attendance==null?"":currentWeek.attendance)+'"></label></div>'+
+      '<div class="save-row"><span class="save-status" id="attendanceStatus"></span><button type="button" class="btn sm" id="attendanceSaveBtn">출석 저장</button></div>'
+    );
+  }
+
+  function wireTeamPanelEvents(el){
+    var pastorBtn = el.querySelector("#pastorSaveBtn");
+    if(pastorBtn) pastorBtn.addEventListener("click", function(){
+      var pastorInCharge = document.getElementById("f-pastorInCharge").value.trim().slice(0,50);
+      var preacher = document.getElementById("f-preacher").value.trim().slice(0,50);
+      var prayerBackup = document.getElementById("f-prayerBackup").value.trim().slice(0,50);
+      currentWeek.pastorInCharge = pastorInCharge; currentWeek.preacher = preacher; currentWeek.prayerBackup = prayerBackup;
+      patchWeek({ pastorInCharge:pastorInCharge, preacher:preacher, prayerBackup:prayerBackup }, "pastorStatus");
+    });
+
+    var tmBtn = el.querySelector("#teamMembersSaveBtn");
+    if(tmBtn) tmBtn.addEventListener("click", function(){
+      var team = tmBtn.getAttribute("data-team");
+      var val = document.getElementById("f-teamMembers").value.trim().slice(0,200);
+      if(team === "찬양팀"){
+        currentWeek.worshipLeader = val;
+        patchWeek({ worshipLeader: val }, "teamMembersStatus");
+      } else {
+        currentWeek.teamMembers[team] = val;
+        /* nested-object form (not a dotted key string) so set({merge:true})
+           merges only this team's key inside teamMembers, leaving sibling
+           teams' entries untouched */
+        var nested = {};
+        nested[team] = val;
+        patchWeek({ teamMembers: nested }, "teamMembersStatus");
+      }
+    });
+
+    var songAddBtn = el.querySelector("#songAddBtn");
+    if(songAddBtn) songAddBtn.addEventListener("click", function(){
+      currentWeek.songs = currentWeek.songs || [];
+      currentWeek.songs.push({ title:"", key:"", chords:"", youtube:"" });
+      renderTeamPanel();
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".song-del"), function(btn){
+      btn.addEventListener("click", function(){
+        currentWeek.songs.splice(parseInt(btn.getAttribute("data-idx"),10), 1);
+        renderTeamPanel();
+      });
+    });
+    var songsSaveBtn = el.querySelector("#songsSaveBtn");
+    if(songsSaveBtn) songsSaveBtn.addEventListener("click", function(){
+      var songs = [];
+      Array.prototype.forEach.call(el.querySelectorAll(".song-row"), function(row){
+        songs.push({
+          title: row.querySelector(".song-title").value.trim().slice(0,100),
+          key: row.querySelector(".song-key").value.trim().slice(0,20),
+          chords: row.querySelector(".song-chords").value.trim().slice(0,100),
+          youtube: row.querySelector(".song-youtube").value.trim().slice(0,300)
+        });
+      });
+      currentWeek.songs = songs;
+      patchWeek({ songs: songs }, "songsStatus");
+    });
+
+    var dinnerSaveBtn = el.querySelector("#dinnerSaveBtn");
+    if(dinnerSaveBtn) dinnerSaveBtn.addEventListener("click", function(){
+      var counts = {};
+      Array.prototype.forEach.call(el.querySelectorAll(".dinner-input"), function(input){
+        var t = input.getAttribute("data-team");
+        counts[t] = Math.max(0, Math.min(9999, parseInt(input.value,10) || 0));
+      });
+      currentWeek.dinnerCounts = counts;
+      patchWeek({ dinnerCounts: counts }, "dinnerStatus");
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".dinner-input"), function(input){
+      input.addEventListener("input", function(){
+        var total = 0;
+        Array.prototype.forEach.call(el.querySelectorAll(".dinner-input"), function(i2){ total += parseInt(i2.value,10) || 0; });
+        var totalEl = document.getElementById("dinnerTotalNum");
+        if(totalEl) totalEl.textContent = total;
+      });
+    });
+
+    var cueAddBtn = el.querySelector("#cueAddBtn");
+    if(cueAddBtn) cueAddBtn.addEventListener("click", function(){
+      currentWeek.cueSheet = currentWeek.cueSheet || [];
+      currentWeek.cueSheet.push({ time:"", duration:"", owner:"", content:"", note:"", sound:"", light:"", media:"" });
+      renderTeamPanel();
+    });
+    var cuePresetBtn = el.querySelector("#cuePresetBtn");
+    if(cuePresetBtn) cuePresetBtn.addEventListener("click", function(){
+      if(currentWeek.cueSheet && currentWeek.cueSheet.length && !confirm("현재 큐시트를 기본 진행표로 덮어쓸까요?")) return;
+      currentWeek.cueSheet = CUE_PRESET.map(function(r){ return Object.assign({}, r); });
+      renderTeamPanel();
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".cue-del"), function(btn){
+      btn.addEventListener("click", function(){
+        currentWeek.cueSheet.splice(parseInt(btn.getAttribute("data-idx"),10), 1);
+        renderTeamPanel();
+      });
+    });
+    var cueSaveBtn = el.querySelector("#cueSaveBtn");
+    if(cueSaveBtn) cueSaveBtn.addEventListener("click", function(){
+      var rows = [];
+      Array.prototype.forEach.call(el.querySelectorAll("#cueBody tr"), function(tr){
+        var row = {};
+        Array.prototype.forEach.call(tr.querySelectorAll(".cue-f"), function(input){
+          row[input.getAttribute("data-k")] = input.value.trim().slice(0,120);
+        });
+        rows.push(row);
+      });
+      currentWeek.cueSheet = rows;
+      patchWeek({ cueSheet: rows }, "cueStatus");
+    });
+
+    var verseSaveBtn = el.querySelector("#verseSaveBtn");
+    if(verseSaveBtn) verseSaveBtn.addEventListener("click", function(){
+      var text = document.getElementById("f-verses").value.trim();
+      if(text.length > MAX_TEXT_LEN){ setStatus("verseStatus", MAX_TEXT_LEN+"자 이내로 적어주세요.", true); return; }
+      currentWeek.referenceVerses = text;
+      patchWeek({ referenceVerses: text }, "verseStatus");
+    });
+
+    var attSaveBtn = el.querySelector("#attendanceSaveBtn");
+    if(attSaveBtn) attSaveBtn.addEventListener("click", function(){
+      var n = parseInt(document.getElementById("f-attendance").value, 10);
+      var val = isFinite(n) && n >= 0 ? Math.min(n, 99999) : null;
+      currentWeek.attendance = val;
+      patchWeek({ attendance: val }, "attendanceStatus").then(function(){ startRecentSyncRefresh(); });
+    });
+  }
+
+  function startRecentSyncRefresh(){
+    /* recent-weeks listener updates on its own via onSnapshot; nothing to do,
+       kept as a named hook in case a manual refresh is ever needed. */
+  }
+
+  function renderWeek(){
+    document.getElementById("weekTitle").textContent = fmtDateKo(currentDate);
+    document.getElementById("weekJumpInput").value = currentDate;
+    document.getElementById("specialCheckbox").checked = !!currentWeek.special;
+    document.getElementById("specialNoteInput").value = currentWeek.specialNote || "";
+    if(!TEAM_IDS.includes(activeTeam)) activeTeam = TEAM_IDS[0];
+    renderTeamTabs();
+    renderTeamPanel();
+  }
+
+  function renderTodayLabel(){
+    var d = new Date();
+    var wd = ["일","월","화","수","목","금","토"][d.getDay()];
+    document.getElementById("todayLabel").textContent = d.getFullYear()+"."+pad2(d.getMonth()+1)+"."+pad2(d.getDate())+" ("+wd+")";
+  }
+
+  /* ---- start ---- */
+  renderTodayLabel();
+  renderWeek();
+  startWeekSync();
+  startRecentSync();
+
+})();
+</script>
+</body>
+</html>
