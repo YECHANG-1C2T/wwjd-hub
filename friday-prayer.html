@@ -54,15 +54,24 @@
   .theme-toggle .opt.on{background:var(--ink);color:var(--paper);}
 
   .wordmark-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:4px;}
-  .wordmark{font-family:'Anton','Noto Sans KR',sans-serif;font-weight:400;font-size:clamp(32px,7vw,62px);letter-spacing:.01em;line-height:.9;margin:0;text-transform:uppercase;}
-  .wordmark .accent{color:var(--brand);}
-  .wordmark-sub{font-size:13px;color:var(--ink-dim);font-weight:700;padding-bottom:8px;}
-  .notice{background:var(--brand-soft);color:var(--brand);border-radius:6px;padding:10px 14px;font-size:12.5px;margin:18px 0;font-weight:600;}
-  .notice.warn{background:var(--danger-soft);color:var(--danger);}
+  .wordmark{font-family:'Anton','Noto Sans KR',sans-serif;font-weight:400;font-size:clamp(30px,6vw,52px);letter-spacing:.01em;line-height:.9;margin:0;text-transform:uppercase;color:var(--ink);}
+  .wordmark-sub{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-dim);font-weight:700;padding-bottom:8px;}
+  .wordmark-sub .dot{width:6px;height:6px;border-radius:50%;background:var(--brand);flex:none;}
+  .notice{background:var(--brand-soft);color:var(--ink);border-left:3px solid var(--brand);border-radius:4px;padding:10px 14px;font-size:12.5px;margin:18px 0;font-weight:600;}
+  .notice.warn{background:var(--danger-soft);color:var(--ink);border-left-color:var(--danger);}
+
+  /* week-at-a-glance strip */
+  .week-glance{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:28px;}
+  .glance-chip{flex:1;min-width:120px;background:var(--surface);padding:12px 16px;}
+  .glance-chip .k{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:4px;}
+  .glance-chip .v{font-size:14px;font-weight:700;color:var(--ink);}
+  .glance-chip.todo .v{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--ink-dim);}
+  .glance-chip.todo .v::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--brand);margin-right:6px;vertical-align:middle;}
 
   section{margin-bottom:40px;}
   .section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);}
-  .section-head .section-no{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--brand);font-weight:700;}
+  .section-head .section-no{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);font-weight:700;}
+  .section-head .section-no::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--brand);margin-right:6px;vertical-align:middle;}
   .section-head h2{font-size:20px;text-transform:uppercase;letter-spacing:.01em;}
   .section-head .sub{font-size:12px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;}
   .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px 24px;box-shadow:var(--shadow);}
@@ -96,23 +105,30 @@
   .week-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
   .week-nav button{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:5px;width:30px;height:30px;cursor:pointer;font-size:15px;}
   .week-nav button:hover{border-color:var(--brand);color:var(--brand);}
-  .issue-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--brand);font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+  .issue-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
   .week-nav .week-title{font-family:'Noto Sans KR',sans-serif;font-weight:900;font-size:18px;flex:none;}
   .week-nav input[type=date]{margin-left:auto;}
   .special-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;font-size:12.5px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;}
   .special-row input[type=text]{flex:1;min-width:160px;font-family:'Noto Sans KR',sans-serif;}
 
-  /* team tabs */
-  .tabs{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:18px;border-bottom:1px solid var(--line);}
-  .tab-btn{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;border:none;border-bottom:2px solid transparent;background:none;color:var(--ink-dim);cursor:pointer;margin-bottom:-1px;}
-  .tab-btn.active{color:var(--ink);border-bottom-color:var(--brand);}
-  .tab-btn:hover{color:var(--ink);}
+  /* team board: sidebar roster + detail panel */
+  .team-board{display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:start;}
+  .tabs{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px;position:sticky;top:16px;}
+  .tab-btn{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:13.5px;text-align:left;padding:10px 12px;border:none;border-radius:7px;background:none;color:var(--ink-dim);cursor:pointer;}
+  .tab-btn.active{color:var(--on-accent);background:var(--brand);}
+  .tab-btn:hover:not(.active){background:var(--surface-2);color:var(--ink);}
+  @media (max-width:760px){
+    .team-board{grid-template-columns:1fr;}
+    .tabs{flex-direction:row;overflow-x:auto;position:static;padding:6px;}
+    .tab-btn{flex:none;}
+  }
+  .detail-panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px 22px;}
   .team-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:14px;margin-bottom:18px;flex-wrap:wrap;border-bottom:1px solid var(--line);}
   .team-head h3{font-size:19px;text-transform:uppercase;}
   .team-head .leader{font-size:11px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:4px 10px;}
   .team-head .leader b{color:var(--ink);font-weight:700;}
   .manual-box{background:var(--surface-2);border:1px dashed var(--line);border-radius:6px;padding:14px 16px;margin-bottom:20px;}
-  .manual-box .m-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+  .manual-box .m-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
   .manual-box ul{margin:0;padding-left:16px;font-size:12.5px;color:var(--ink);font-family:'JetBrains Mono',monospace;}
   .manual-box ul li{margin-bottom:5px;}
   .manual-box .empty-inline{font-size:12px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;}
@@ -126,7 +142,7 @@
   .dinner-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px;}
   .dinner-grid label{display:flex;flex-direction:column;gap:5px;font-size:10.5px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase;}
   .dinner-total{font-size:12.5px;color:var(--ink-dim);margin-bottom:12px;font-family:'JetBrains Mono',monospace;}
-  .dinner-total b{color:var(--brand);font-size:17px;}
+  .dinner-total b{color:var(--ink);font-size:17px;}
 
   /* cue sheet table */
   .cue-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;}
@@ -142,8 +158,14 @@
 
   @media (max-width:640px){
     .song-row{grid-template-columns:1fr;}
-    .cue-table{display:block;overflow-x:auto;white-space:nowrap;}
     .wordmark-row{flex-direction:column;align-items:flex-start;gap:2px;}
+    .cue-table thead{display:none;}
+    .cue-table, .cue-table tbody, .cue-table tr, .cue-table td{display:block;width:100%;}
+    .cue-table tr{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:10px;}
+    .cue-table td{display:flex;align-items:center;gap:8px;border-bottom:none;padding:4px 0;}
+    .cue-table td::before{content:attr(data-label);flex:0 0 52px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);text-transform:uppercase;}
+    .cue-table td:last-child{justify-content:flex-end;}
+    .cue-table td:last-child::before{content:none;}
   }
   footer{text-align:center;font-size:11px;color:var(--ink-dim);margin-top:50px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;padding-top:24px;border-top:1px solid var(--line);}
 </style>
@@ -164,12 +186,14 @@
       </div>
     </div>
     <div class="wordmark-row">
-      <h1 class="wordmark">Dynamic<span class="accent">Prayday</span></h1>
-      <div class="wordmark-sub">청년금요기도회 대시보드</div>
+      <h1 class="wordmark">DYNAMIC PRAYDAY</h1>
+      <div class="wordmark-sub"><span class="dot"></span>청년금요기도회 대시보드</div>
     </div>
   </header>
-  <div class="notice">이름을 적어두시면 입력한 내용에 자동으로 붙어요. 팀별로 이번 주 배정·큐시트·참고구절·식사인원·출석을 각자 입력해주세요.</div>
+  <div class="notice">이름을 적어두시면 입력한 내용에 자동으로 붙어요. 이번 주 진행(큐시트·참고구절·식사인원)은 모두 함께 보고, 팀별 정보는 아래에서 따로 입력해주세요.</div>
   <div class="notice warn" id="syncErrorNotice" hidden></div>
+
+  <div class="week-glance" id="weekGlance"></div>
 
   <section id="overviewSection">
     <div class="section-head"><span class="section-no">01</span><h2>출석 흐름</h2><span class="sub">최근 주차 출석 인원 추이</span></div>
@@ -188,11 +212,11 @@
   </section>
 
   <section id="weekSection">
-    <div class="section-head"><span class="section-no">02</span><h2>주간 큐시트 · 현황</h2><span class="sub">주차를 옮겨가며 입력/열람할 수 있어요</span></div>
+    <div class="section-head"><span class="section-no">02</span><h2>이번 주 진행</h2><span class="sub">큐시트·참고구절·식사인원 — 모두가 함께 보는 내용</span></div>
     <div class="panel">
       <div class="week-nav">
         <button type="button" id="weekPrevBtn" aria-label="이전 주">‹</button>
-        <span class="issue-label">ISSUE —</span>
+        <span class="issue-label">주차 —</span>
         <span class="week-title" id="weekTitle">-</span>
         <button type="button" id="weekNextBtn" aria-label="다음 주">›</button>
         <input type="date" id="weekJumpInput">
@@ -204,8 +228,15 @@
         <span class="save-status" id="specialStatus"></span>
       </div>
 
-      <div class="tabs" id="teamTabs"></div>
-      <div id="teamPanel"></div>
+      <div id="weekSharedPanel"></div>
+    </div>
+  </section>
+
+  <section id="teamSection">
+    <div class="section-head"><span class="section-no">03</span><h2>팀별 정보</h2><span class="sub">팀을 선택해 매뉴얼과 배정 인원을 확인/입력하세요</span></div>
+    <div class="team-board">
+      <div class="tabs" id="teamTabs" role="tablist" aria-label="팀 선택"></div>
+      <div class="detail-panel" id="teamPanel" role="tabpanel"></div>
     </div>
   </section>
 
@@ -351,9 +382,14 @@
   }
 
   /* ---- state ---- */
+  function getStoredActiveTeam(){
+    try{ var v = localStorage.getItem("fpActiveTeam"); return TEAM_IDS.indexOf(v) >= 0 ? v : null; }catch(e){ return null; }
+  }
+  function setStoredActiveTeam(t){ try{ localStorage.setItem("fpActiveTeam", t); }catch(e){} }
+
   var currentDate = getUpcomingFriday();
   var currentWeek = defaultWeek(currentDate);
-  var activeTeam = TEAM_IDS[0];
+  var activeTeam = getStoredActiveTeam() || TEAM_IDS[0];
   var recentWeeks = []; /* for chart, desc by date */
   var pendingWrites = {};
   var unsubscribeWeek = null;
@@ -501,11 +537,13 @@
   function renderTeamTabs(){
     var el = document.getElementById("teamTabs");
     el.innerHTML = TEAM_IDS.map(function(t){
-      return '<button type="button" class="tab-btn'+(t===activeTeam?' active':'')+'" data-team="'+esc(t)+'">'+esc(t)+'</button>';
+      var active = t === activeTeam;
+      return '<button type="button" class="tab-btn'+(active?' active':'')+'" role="tab" aria-selected="'+(active?"true":"false")+'" data-team="'+esc(t)+'">'+esc(t)+'</button>';
     }).join("");
     Array.prototype.forEach.call(el.querySelectorAll(".tab-btn"), function(btn){
       btn.addEventListener("click", function(){
         activeTeam = btn.getAttribute("data-team");
+        setStoredActiveTeam(activeTeam);
         renderTeamTabs();
         renderTeamPanel();
       });
@@ -537,10 +575,35 @@
       bodyHtml = teamMembersFieldHtml(activeTeam, "이번 주 참여 인원 (쉼표로 구분)");
     }
 
-    bodyHtml += dinnerSectionHtml() + cueSheetSectionHtml() + verseSectionHtml(activeTeam) + attendanceSectionHtml(activeTeam);
+    bodyHtml += attendanceSectionHtml(activeTeam);
 
     el.innerHTML = headHtml + manualHtml(activeTeam) + bodyHtml;
     wireTeamPanelEvents(el);
+  }
+
+  /* ---- week glance (shared summary strip) ---- */
+  function renderWeekGlance(){
+    var el = document.getElementById("weekGlance");
+    if(!el) return;
+    var chips = [
+      { k:"담당 목사", v: currentWeek.pastorInCharge },
+      { k:"설교자", v: currentWeek.preacher },
+      { k:"찬양 인도자", v: currentWeek.worshipLeader },
+      { k:"기도 백업", v: currentWeek.prayerBackup }
+    ];
+    var attTodo = typeof currentWeek.attendance === "number" ? currentWeek.attendance + "명" : "입력 대기";
+    chips.push({ k:"출석", v: attTodo, todo: typeof currentWeek.attendance !== "number" });
+    el.innerHTML = chips.map(function(c){
+      return '<div class="glance-chip'+(c.todo?' todo':'')+'"><span class="k">'+esc(c.k)+'</span><span class="v">'+esc(c.v || "미정")+'</span></div>';
+    }).join("");
+  }
+
+  /* ---- week shared panel (전체가 함께 보는 큐시트 · 참고구절 · 식사인원) ---- */
+  function renderWeekShared(){
+    var el = document.getElementById("weekSharedPanel");
+    if(!el) return;
+    el.innerHTML = dinnerSectionHtml() + cueSheetSectionHtml() + referenceVerseSectionHtml();
+    wireWeekSharedEvents(el);
   }
 
   function pastorSectionHtml(){
@@ -603,14 +666,14 @@
     var rows = (currentWeek.cueSheet || []).map(function(row, i){
       return (
         '<tr data-idx="'+i+'">'+
-          '<td><input class="cue-f" data-k="time" value="'+esc(row.time)+'" placeholder="시간"></td>'+
-          '<td><input class="cue-f" data-k="duration" value="'+esc(row.duration)+'" placeholder="소요"></td>'+
-          '<td><input class="cue-f" data-k="owner" value="'+esc(row.owner)+'" placeholder="담당자"></td>'+
-          '<td><input class="cue-f" data-k="content" value="'+esc(row.content)+'" placeholder="내용"></td>'+
-          '<td><input class="cue-f" data-k="note" value="'+esc(row.note)+'" placeholder="설명"></td>'+
-          '<td><input class="cue-f" data-k="sound" value="'+esc(row.sound)+'" placeholder="음향"></td>'+
-          '<td><input class="cue-f" data-k="light" value="'+esc(row.light)+'" placeholder="조명"></td>'+
-          '<td><input class="cue-f" data-k="media" value="'+esc(row.media)+'" placeholder="미디어"></td>'+
+          '<td data-label="시간"><input class="cue-f" data-k="time" value="'+esc(row.time)+'" placeholder="시간"></td>'+
+          '<td data-label="소요"><input class="cue-f" data-k="duration" value="'+esc(row.duration)+'" placeholder="소요"></td>'+
+          '<td data-label="담당자"><input class="cue-f" data-k="owner" value="'+esc(row.owner)+'" placeholder="담당자"></td>'+
+          '<td data-label="내용"><input class="cue-f" data-k="content" value="'+esc(row.content)+'" placeholder="내용"></td>'+
+          '<td data-label="설명"><input class="cue-f" data-k="note" value="'+esc(row.note)+'" placeholder="설명"></td>'+
+          '<td data-label="음향"><input class="cue-f" data-k="sound" value="'+esc(row.sound)+'" placeholder="음향"></td>'+
+          '<td data-label="조명"><input class="cue-f" data-k="light" value="'+esc(row.light)+'" placeholder="조명"></td>'+
+          '<td data-label="미디어"><input class="cue-f" data-k="media" value="'+esc(row.media)+'" placeholder="미디어"></td>'+
           '<td><button type="button" class="cue-del" data-idx="'+i+'">삭제</button></td>'+
         '</tr>'
       );
@@ -629,8 +692,7 @@
     );
   }
 
-  function verseSectionHtml(team){
-    if(team !== "미디어팀" && team !== "교역자") return "";
+  function referenceVerseSectionHtml(){
     return (
       '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">참고구절</div>'+
       '<div style="font-size:12px;color:var(--ink-dim);margin-bottom:6px;">'+esc(VERSE_DEADLINE)+'</div>'+
@@ -656,6 +718,7 @@
       var prayerBackup = document.getElementById("f-prayerBackup").value.trim().slice(0,50);
       currentWeek.pastorInCharge = pastorInCharge; currentWeek.preacher = preacher; currentWeek.prayerBackup = prayerBackup;
       patchWeek({ pastorInCharge:pastorInCharge, preacher:preacher, prayerBackup:prayerBackup }, "pastorStatus");
+      renderWeekGlance();
     });
 
     var tmBtn = el.querySelector("#teamMembersSaveBtn");
@@ -665,6 +728,7 @@
       if(team === "찬양팀"){
         currentWeek.worshipLeader = val;
         patchWeek({ worshipLeader: val }, "teamMembersStatus");
+        renderWeekGlance();
       } else {
         currentWeek.teamMembers[team] = val;
         /* nested-object form (not a dotted key string) so set({merge:true})
@@ -703,6 +767,23 @@
       patchWeek({ songs: songs }, "songsStatus");
     });
 
+    var attSaveBtn = el.querySelector("#attendanceSaveBtn");
+    if(attSaveBtn) attSaveBtn.addEventListener("click", function(){
+      var n = parseInt(document.getElementById("f-attendance").value, 10);
+      var val = isFinite(n) && n >= 0 ? Math.min(n, 99999) : null;
+      currentWeek.attendance = val;
+      patchWeek({ attendance: val }, "attendanceStatus").then(function(){ startRecentSyncRefresh(); });
+      renderWeekGlance();
+    });
+  }
+
+  function startRecentSyncRefresh(){
+    /* recent-weeks listener updates on its own via onSnapshot; nothing to do,
+       kept as a named hook in case a manual refresh is ever needed. */
+  }
+
+  /* ---- shared panel events: 저녁식사 인원 · 큐시트 · 참고구절 (팀과 무관, 전체 공유) ---- */
+  function wireWeekSharedEvents(el){
     var dinnerSaveBtn = el.querySelector("#dinnerSaveBtn");
     if(dinnerSaveBtn) dinnerSaveBtn.addEventListener("click", function(){
       var counts = {};
@@ -726,18 +807,18 @@
     if(cueAddBtn) cueAddBtn.addEventListener("click", function(){
       currentWeek.cueSheet = currentWeek.cueSheet || [];
       currentWeek.cueSheet.push({ time:"", duration:"", owner:"", content:"", note:"", sound:"", light:"", media:"" });
-      renderTeamPanel();
+      renderWeekShared();
     });
     var cuePresetBtn = el.querySelector("#cuePresetBtn");
     if(cuePresetBtn) cuePresetBtn.addEventListener("click", function(){
       if(currentWeek.cueSheet && currentWeek.cueSheet.length && !confirm("현재 큐시트를 기본 진행표로 덮어쓸까요?")) return;
       currentWeek.cueSheet = CUE_PRESET.map(function(r){ return Object.assign({}, r); });
-      renderTeamPanel();
+      renderWeekShared();
     });
     Array.prototype.forEach.call(el.querySelectorAll(".cue-del"), function(btn){
       btn.addEventListener("click", function(){
         currentWeek.cueSheet.splice(parseInt(btn.getAttribute("data-idx"),10), 1);
-        renderTeamPanel();
+        renderWeekShared();
       });
     });
     var cueSaveBtn = el.querySelector("#cueSaveBtn");
@@ -761,19 +842,6 @@
       currentWeek.referenceVerses = text;
       patchWeek({ referenceVerses: text }, "verseStatus");
     });
-
-    var attSaveBtn = el.querySelector("#attendanceSaveBtn");
-    if(attSaveBtn) attSaveBtn.addEventListener("click", function(){
-      var n = parseInt(document.getElementById("f-attendance").value, 10);
-      var val = isFinite(n) && n >= 0 ? Math.min(n, 99999) : null;
-      currentWeek.attendance = val;
-      patchWeek({ attendance: val }, "attendanceStatus").then(function(){ startRecentSyncRefresh(); });
-    });
-  }
-
-  function startRecentSyncRefresh(){
-    /* recent-weeks listener updates on its own via onSnapshot; nothing to do,
-       kept as a named hook in case a manual refresh is ever needed. */
   }
 
   function renderWeek(){
@@ -782,6 +850,8 @@
     document.getElementById("specialCheckbox").checked = !!currentWeek.special;
     document.getElementById("specialNoteInput").value = currentWeek.specialNote || "";
     if(!TEAM_IDS.includes(activeTeam)) activeTeam = TEAM_IDS[0];
+    renderWeekGlance();
+    renderWeekShared();
     renderTeamTabs();
     renderTeamPanel();
   }
