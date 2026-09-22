@@ -113,7 +113,8 @@
   .rail{position:sticky;top:16px;display:flex;flex-direction:column;gap:16px;}
   .rail-block{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);}
   .rail-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:12px;}
-  .tabs{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px;}
+  .tabs{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;box-shadow:var(--shadow);}
+  .tabs .roster-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);padding:6px 10px 8px;}
   .tab-btn{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:13.5px;text-align:left;padding:10px 12px;border:none;border-radius:7px;background:none;color:var(--ink-dim);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;}
   .tab-btn .arrow{font-family:'JetBrains Mono',monospace;color:var(--brand);opacity:0;}
   .tab-btn.active{color:var(--paper);background:var(--ink);}
@@ -122,7 +123,8 @@
   @media (max-width:760px){
     .board{grid-template-columns:1fr;}
     .rail{position:static;}
-    .tabs{flex-direction:row;overflow-x:auto;padding:6px;}
+    .tabs{flex-direction:row;overflow-x:auto;padding:6px;flex-wrap:nowrap;}
+    .tabs .roster-label{display:none;}
     .tab-btn{flex:none;}
   }
   .detail-panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:26px 28px;}
@@ -546,9 +548,9 @@
   /* ---- team tabs ---- */
   function renderTeamTabs(){
     var el = document.getElementById("teamTabs");
-    el.innerHTML = TEAM_IDS.map(function(t){
+    el.innerHTML = '<div class="roster-label">팀 로스터</div>' + TEAM_IDS.map(function(t){
       var active = t === activeTeam;
-      return '<button type="button" class="tab-btn'+(active?' active':'')+'" role="tab" aria-selected="'+(active?"true":"false")+'" data-team="'+esc(t)+'">'+esc(t)+'</button>';
+      return '<button type="button" class="tab-btn'+(active?' active':'')+'" role="tab" aria-selected="'+(active?"true":"false")+'" data-team="'+esc(t)+'"><span>'+esc(t)+'</span><span class="arrow">'+(active?"→":"")+'</span></button>';
     }).join("");
     Array.prototype.forEach.call(el.querySelectorAll(".tab-btn"), function(btn){
       btn.addEventListener("click", function(){
