@@ -61,7 +61,12 @@
   .notice.warn{background:var(--danger-soft);color:var(--ink);border-left-color:var(--danger);}
 
   /* week-at-a-glance strip */
-  .week-glance{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:28px;}
+  .week-glance{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px;align-items:stretch;}
+  .hero-issue{background:var(--ink);color:var(--paper);border-radius:12px;padding:16px 22px;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:120px;flex:none;}
+  .hero-issue .issue-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);font-weight:700;}
+  .hero-issue .issue-date{font-family:'Anton',sans-serif;font-size:30px;line-height:1;}
+  .hero-issue .issue-wd{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;opacity:.7;}
+  .hero-crew{flex:1;min-width:260px;display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
   .glance-chip{flex:1;min-width:120px;background:var(--surface);padding:12px 16px;}
   .glance-chip .k{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:4px;}
   .glance-chip .v{font-size:14px;font-weight:700;color:var(--ink);}
@@ -114,8 +119,10 @@
   /* team board: sidebar roster + detail panel */
   .team-board{display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:start;}
   .tabs{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px;position:sticky;top:16px;}
-  .tab-btn{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:13.5px;text-align:left;padding:10px 12px;border:none;border-radius:7px;background:none;color:var(--ink-dim);cursor:pointer;}
-  .tab-btn.active{color:var(--on-accent);background:var(--brand);}
+  .tab-btn{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:13.5px;text-align:left;padding:10px 12px;border:none;border-radius:7px;background:none;color:var(--ink-dim);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;}
+  .tab-btn .arrow{font-family:'JetBrains Mono',monospace;color:var(--brand);opacity:0;}
+  .tab-btn.active{color:var(--paper);background:var(--ink);}
+  .tab-btn.active .arrow{opacity:1;}
   .tab-btn:hover:not(.active){background:var(--surface-2);color:var(--ink);}
   @media (max-width:760px){
     .team-board{grid-template-columns:1fr;}
@@ -144,13 +151,24 @@
   .dinner-total{font-size:12.5px;color:var(--ink-dim);margin-bottom:12px;font-family:'JetBrains Mono',monospace;}
   .dinner-total b{color:var(--ink);font-size:17px;}
 
-  /* cue sheet table */
-  .cue-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;}
-  .cue-table th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:7px 6px;border-bottom:1.5px solid var(--ink);white-space:nowrap;}
-  .cue-table td{padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:top;}
-  .cue-table input{width:100%;min-width:60px;padding:5px 6px;font-size:12px;font-family:'JetBrains Mono',monospace;}
-  .cue-table .cue-del{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--danger);background:none;border:none;cursor:pointer;padding:4px;text-transform:uppercase;}
+  /* cue sheet: card rows with colored owner tags */
+  .cue-list{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+  .cue-row{background:var(--surface);display:grid;grid-template-columns:60px 56px 116px 1fr auto;gap:10px;align-items:start;padding:11px 12px;}
+  .cue-row input{border:none;background:none;padding:4px 2px;border-radius:4px;}
+  .cue-row input:focus{outline:none;background:var(--surface-2);}
+  .cue-time-col input{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;width:100%;color:var(--ink);}
+  .cue-dur-col input{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);width:100%;}
+  .cue-owner-col input{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--tc,var(--ink-dim));border:1px solid var(--tc,var(--line))!important;border-radius:999px!important;padding:5px 10px!important;text-align:center;width:100%;}
+  .cue-content-col input.cue-main{font-size:13.5px;font-weight:700;width:100%;color:var(--ink);}
+  .cue-detail-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .cue-detail-row input{flex:1;min-width:64px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim);background:var(--surface-2)!important;border-radius:5px!important;padding:5px 8px!important;}
+  .cue-row .cue-del{align-self:start;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--danger);background:none;border:none;cursor:pointer;padding:4px;text-transform:uppercase;}
   .cue-actions{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  @media (max-width:640px){
+    .cue-row{grid-template-columns:1fr;gap:6px;}
+    .cue-owner-col input{width:fit-content;}
+    .cue-row .cue-del{justify-self:flex-end;}
+  }
 
   /* songs */
   .song-row{display:grid;grid-template-columns:1fr 70px 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;}
@@ -159,13 +177,6 @@
   @media (max-width:640px){
     .song-row{grid-template-columns:1fr;}
     .wordmark-row{flex-direction:column;align-items:flex-start;gap:2px;}
-    .cue-table thead{display:none;}
-    .cue-table, .cue-table tbody, .cue-table tr, .cue-table td{display:block;width:100%;}
-    .cue-table tr{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:10px;}
-    .cue-table td{display:flex;align-items:center;gap:8px;border-bottom:none;padding:4px 0;}
-    .cue-table td::before{content:attr(data-label);flex:0 0 52px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);text-transform:uppercase;}
-    .cue-table td:last-child{justify-content:flex-end;}
-    .cue-table td:last-child::before{content:none;}
   }
   footer{text-align:center;font-size:11px;color:var(--ink-dim);margin-top:50px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;padding-top:24px;border-top:1px solid var(--line);}
 </style>
@@ -195,24 +206,8 @@
 
   <div class="week-glance" id="weekGlance"></div>
 
-  <section id="overviewSection">
-    <div class="section-head"><span class="section-no">01</span><h2>출석 흐름</h2><span class="sub">최근 주차 출석 인원 추이</span></div>
-    <div class="panel">
-      <div class="overview-grid">
-        <div class="stat-tile"><div class="label">이번 주 출석</div><div class="value" id="statThisWeek">-</div></div>
-        <div class="stat-tile"><div class="label">최근 4주 평균</div><div class="value" id="statAvg4">-</div></div>
-        <div class="stat-tile"><div class="label">직전 대비</div><div class="value" id="statDelta">-</div></div>
-      </div>
-      <div class="chart-wrap" id="chartWrap">
-        <div class="empty" id="chartEmpty">아직 출석 데이터가 없어요. 아래 "출석" 탭에서 입력해주세요.</div>
-        <svg id="attendanceChart" viewBox="0 0 640 200" hidden></svg>
-        <div class="chart-tooltip" id="chartTooltip"></div>
-      </div>
-    </div>
-  </section>
-
   <section id="weekSection">
-    <div class="section-head"><span class="section-no">02</span><h2>이번 주 진행</h2><span class="sub">큐시트·참고구절·식사인원 — 모두가 함께 보는 내용</span></div>
+    <div class="section-head"><span class="section-no">01</span><h2>이번 주 진행</h2><span class="sub">큐시트·참고구절·식사인원 — 모두가 함께 보는 내용</span></div>
     <div class="panel">
       <div class="week-nav">
         <button type="button" id="weekPrevBtn" aria-label="이전 주">‹</button>
@@ -229,6 +224,22 @@
       </div>
 
       <div id="weekSharedPanel"></div>
+    </div>
+  </section>
+
+  <section id="overviewSection">
+    <div class="section-head"><span class="section-no">02</span><h2>출석 흐름</h2><span class="sub">최근 주차 출석 인원 추이</span></div>
+    <div class="panel">
+      <div class="overview-grid">
+        <div class="stat-tile"><div class="label">이번 주 출석</div><div class="value" id="statThisWeek">-</div></div>
+        <div class="stat-tile"><div class="label">최근 4주 평균</div><div class="value" id="statAvg4">-</div></div>
+        <div class="stat-tile"><div class="label">직전 대비</div><div class="value" id="statDelta">-</div></div>
+      </div>
+      <div class="chart-wrap" id="chartWrap">
+        <div class="empty" id="chartEmpty">아직 출석 데이터가 없어요. 아래 "출석" 탭에서 입력해주세요.</div>
+        <svg id="attendanceChart" viewBox="0 0 640 200" hidden></svg>
+        <div class="chart-tooltip" id="chartTooltip"></div>
+      </div>
     </div>
   </section>
 
@@ -585,6 +596,14 @@
   function renderWeekGlance(){
     var el = document.getElementById("weekGlance");
     if(!el) return;
+    var d = new Date(currentDate + "T00:00:00");
+    var wd = ["일요일","월요일","화요일","수요일","목요일","금요일","토요일"][d.getDay()];
+    var issueHtml =
+      '<div class="hero-issue">'+
+        '<span class="issue-tag">이번 주차</span>'+
+        '<span class="issue-date">'+pad2(d.getMonth()+1)+'.'+pad2(d.getDate())+'</span>'+
+        '<span class="issue-wd">'+esc(wd)+'</span>'+
+      '</div>';
     var chips = [
       { k:"담당 목사", v: currentWeek.pastorInCharge },
       { k:"설교자", v: currentWeek.preacher },
@@ -593,9 +612,10 @@
     ];
     var attTodo = typeof currentWeek.attendance === "number" ? currentWeek.attendance + "명" : "입력 대기";
     chips.push({ k:"출석", v: attTodo, todo: typeof currentWeek.attendance !== "number" });
-    el.innerHTML = chips.map(function(c){
+    var crewHtml = '<div class="hero-crew">' + chips.map(function(c){
       return '<div class="glance-chip'+(c.todo?' todo':'')+'"><span class="k">'+esc(c.k)+'</span><span class="v">'+esc(c.v || "미정")+'</span></div>';
-    }).join("");
+    }).join("") + '</div>';
+    el.innerHTML = issueHtml + crewHtml;
   }
 
   /* ---- week shared panel (전체가 함께 보는 큐시트 · 참고구절 · 식사인원) ---- */
@@ -608,9 +628,11 @@
 
   function pastorSectionHtml(){
     return (
+      '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:0 0 8px;">이번 주 리더십 한눈에</div>'+
       '<div class="field-row">'+
         '<label>담당 목사<input type="text" id="f-pastorInCharge" value="'+esc(currentWeek.pastorInCharge)+'"></label>'+
         '<label>설교자<input type="text" id="f-preacher" value="'+esc(currentWeek.preacher)+'"></label>'+
+        '<label>찬양 인도자<input type="text" id="f-worshipLeaderInPastor" value="'+esc(currentWeek.worshipLeader)+'"></label>'+
         '<label>기도백업<input type="text" id="f-prayerBackup" value="'+esc(currentWeek.prayerBackup)+'"></label>'+
       '</div>'+
       '<div class="save-row"><span class="save-status" id="pastorStatus"></span><button type="button" class="btn sm" id="pastorSaveBtn">저장</button></div>'
@@ -662,28 +684,35 @@
     );
   }
 
+  var OWNER_COLORS = {
+    "청금사역팀": "#7A8494", "찬양인도자": "#FF4E1F", "찬양팀": "#FF4E1F",
+    "설교자": "#8F7BFF", "기도백업": "#8F7BFF", "다같이": "#1F8A54"
+  };
+  function ownerColor(owner){ return OWNER_COLORS[(owner||"").trim()] || "#9A968C"; }
+
   function cueSheetSectionHtml(){
     var rows = (currentWeek.cueSheet || []).map(function(row, i){
       return (
-        '<tr data-idx="'+i+'">'+
-          '<td data-label="시간"><input class="cue-f" data-k="time" value="'+esc(row.time)+'" placeholder="시간"></td>'+
-          '<td data-label="소요"><input class="cue-f" data-k="duration" value="'+esc(row.duration)+'" placeholder="소요"></td>'+
-          '<td data-label="담당자"><input class="cue-f" data-k="owner" value="'+esc(row.owner)+'" placeholder="담당자"></td>'+
-          '<td data-label="내용"><input class="cue-f" data-k="content" value="'+esc(row.content)+'" placeholder="내용"></td>'+
-          '<td data-label="설명"><input class="cue-f" data-k="note" value="'+esc(row.note)+'" placeholder="설명"></td>'+
-          '<td data-label="음향"><input class="cue-f" data-k="sound" value="'+esc(row.sound)+'" placeholder="음향"></td>'+
-          '<td data-label="조명"><input class="cue-f" data-k="light" value="'+esc(row.light)+'" placeholder="조명"></td>'+
-          '<td data-label="미디어"><input class="cue-f" data-k="media" value="'+esc(row.media)+'" placeholder="미디어"></td>'+
-          '<td><button type="button" class="cue-del" data-idx="'+i+'">삭제</button></td>'+
-        '</tr>'
+        '<div class="cue-row" data-idx="'+i+'">'+
+          '<div class="cue-time-col"><input class="cue-f" data-k="time" value="'+esc(row.time)+'" placeholder="시간"></div>'+
+          '<div class="cue-dur-col"><input class="cue-f" data-k="duration" value="'+esc(row.duration)+'" placeholder="소요"></div>'+
+          '<div class="cue-owner-col"><input class="cue-f cue-owner-input" data-k="owner" value="'+esc(row.owner)+'" placeholder="담당자" style="--tc:'+ownerColor(row.owner)+'"></div>'+
+          '<div class="cue-content-col">'+
+            '<input class="cue-f cue-main" data-k="content" value="'+esc(row.content)+'" placeholder="내용 (예: 찬양, 메세지)">'+
+            '<div class="cue-detail-row">'+
+              '<input class="cue-f" data-k="note" value="'+esc(row.note)+'" placeholder="설명">'+
+              '<input class="cue-f" data-k="sound" value="'+esc(row.sound)+'" placeholder="음향">'+
+              '<input class="cue-f" data-k="light" value="'+esc(row.light)+'" placeholder="조명">'+
+              '<input class="cue-f" data-k="media" value="'+esc(row.media)+'" placeholder="미디어">'+
+            '</div>'+
+          '</div>'+
+          '<button type="button" class="cue-del" data-idx="'+i+'">삭제</button>'+
+        '</div>'
       );
     }).join("");
     return (
       '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">진행 큐시트</div>'+
-      '<div style="overflow-x:auto;">'+
-      '<table class="cue-table"><thead><tr><th>시간</th><th>소요</th><th>담당자</th><th>내용</th><th>설명</th><th>음향</th><th>조명</th><th>미디어</th><th></th></tr></thead>'+
-      '<tbody id="cueBody">'+rows+'</tbody></table>'+
-      '</div>'+
+      '<div class="cue-list" id="cueBody">'+rows+'</div>'+
       '<div class="cue-actions">'+
         '<button type="button" class="btn ghost sm" id="cueAddBtn">+ 순서 추가</button>'+
         '<button type="button" class="btn ghost sm" id="cuePresetBtn">기본 진행표 불러오기</button>'+
@@ -715,9 +744,11 @@
     if(pastorBtn) pastorBtn.addEventListener("click", function(){
       var pastorInCharge = document.getElementById("f-pastorInCharge").value.trim().slice(0,50);
       var preacher = document.getElementById("f-preacher").value.trim().slice(0,50);
+      var worshipLeader = document.getElementById("f-worshipLeaderInPastor").value.trim().slice(0,50);
       var prayerBackup = document.getElementById("f-prayerBackup").value.trim().slice(0,50);
-      currentWeek.pastorInCharge = pastorInCharge; currentWeek.preacher = preacher; currentWeek.prayerBackup = prayerBackup;
-      patchWeek({ pastorInCharge:pastorInCharge, preacher:preacher, prayerBackup:prayerBackup }, "pastorStatus");
+      currentWeek.pastorInCharge = pastorInCharge; currentWeek.preacher = preacher;
+      currentWeek.worshipLeader = worshipLeader; currentWeek.prayerBackup = prayerBackup;
+      patchWeek({ pastorInCharge:pastorInCharge, preacher:preacher, worshipLeader:worshipLeader, prayerBackup:prayerBackup }, "pastorStatus");
       renderWeekGlance();
     });
 
@@ -824,15 +855,18 @@
     var cueSaveBtn = el.querySelector("#cueSaveBtn");
     if(cueSaveBtn) cueSaveBtn.addEventListener("click", function(){
       var rows = [];
-      Array.prototype.forEach.call(el.querySelectorAll("#cueBody tr"), function(tr){
-        var row = {};
-        Array.prototype.forEach.call(tr.querySelectorAll(".cue-f"), function(input){
-          row[input.getAttribute("data-k")] = input.value.trim().slice(0,120);
+      Array.prototype.forEach.call(el.querySelectorAll("#cueBody .cue-row"), function(row){
+        var data = {};
+        Array.prototype.forEach.call(row.querySelectorAll(".cue-f"), function(input){
+          data[input.getAttribute("data-k")] = input.value.trim().slice(0,120);
         });
-        rows.push(row);
+        rows.push(data);
       });
       currentWeek.cueSheet = rows;
       patchWeek({ cueSheet: rows }, "cueStatus");
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".cue-owner-input"), function(inp){
+      inp.addEventListener("input", function(){ inp.style.setProperty("--tc", ownerColor(inp.value)); });
     });
 
     var verseSaveBtn = el.querySelector("#verseSaveBtn");
