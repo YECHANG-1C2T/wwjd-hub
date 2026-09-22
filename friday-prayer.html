@@ -53,6 +53,9 @@
   .notice.warn{background:var(--danger-soft);color:var(--ink);border-left-color:var(--danger);}
 
   /* week-at-a-glance strip */
+  .weekly-notice-box{background:var(--brand-soft);border-left:3px solid var(--brand);border-radius:6px;padding:14px 16px;margin-bottom:24px;}
+  .weekly-notice-box textarea{width:100%;background:var(--surface);}
+  .weekly-notice-box .empty-inline{font-size:13px;color:var(--ink-dim);}
   .week-glance{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px;align-items:stretch;}
   .hero-issue{background:var(--ink);color:var(--paper);border-radius:12px;padding:16px 22px;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:120px;flex:none;}
   .hero-issue .issue-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);font-weight:700;}
@@ -218,6 +221,8 @@
     <span class="save-status" id="specialStatus"></span>
   </div>
 
+  <div id="weeklyNoticePanel"></div>
+
   <div class="week-glance" id="weekGlance"></div>
 
   <section id="teamSection">
@@ -280,13 +285,14 @@
   var MAX_TEXT_LEN = 3000;
   var TEAM_IDS = ["교역자","찬양팀","미디어팀","안내팀","중보기도팀","청금사역팀"];
   var TEAM_INFO = {
-    "교역자": { leader: "", manual: ["8:20 위치 후 마이크 체크(음향부스)", "설교자 등단 전 기도 백업", "성경봉독시 소리내어 교독", "설교중간에는 교독하지 않음"] },
+    "교역자": { leader: "", manual: ["8:20 위치 후 마이크 체크(음향부스)", "설교자 등단 전 기도 백업", "성경봉독시 소리내어 교독", "설교중간에는 교독하지 않음", "당일악보전달(2부)", "식사주문(수요일 17:00까지)"] },
     "찬양팀": { leader: "안두현, 박영인", manual: ["주황 조명 설치", "음향체크", "물 준비"] },
     "미디어팀": { leader: "최원지", manual: ["카메라 설치", "SDI 체크", "카메라 이동(3대, 주일학교와 공유 장비)"] },
-    "안내팀": { leader: "배기원", manual: ["설교자 물체크", "현수막 설치", "당일악보전달(2부)", "식사주문(수요일 17:00까지)"] },
+    "안내팀": { leader: "배기원", manual: ["설교자 물체크", "현수막 설치"] },
     "중보기도팀": { leader: "남희선", manual: [] },
     "청금사역팀": { leader: "", manual: ["예배셋팅 (18:00)", "집회실 마무리 정리 (22:10)"] }
   };
+  var SERVING_TEAM_IDS = ["찬양팀","미디어팀","안내팀","중보기도팀"];
   var DINNER_DEADLINE = "식사주문은 수요일 17:00까지 부탁해요~";
   var VERSE_DEADLINE = "참고구절 컷오프는 금요일 오후 5시입니다.";
   var CUE_PRESET = [
@@ -333,11 +339,16 @@
     TEAM_IDS.forEach(function(t){ if(t !== "교역자") teamMembers[t] = ""; });
     var dinnerCounts = {};
     TEAM_IDS.forEach(function(t){ dinnerCounts[t] = 0; });
+    var servingCounts = {};
+    TEAM_IDS.forEach(function(t){ servingCounts[t] = 0; });
     return {
       date: date, special: false, specialNote: "",
       preacher: "", prayerBackup: "", pastorInCharge: "",
       worshipLeader: "", teamMembers: teamMembers,
-      songs: [], dinnerCounts: dinnerCounts,
+      worshipLineup: { vocal:"", session:"", sound:"" },
+      mediaRoles: { switcher:"", lighting:"", cameraMid:"", cameraHandy:"", broadcastCaption:"", venueCaption:"" },
+      songs: [], dinnerCounts: dinnerCounts, servingCounts: servingCounts,
+      weeklyNotice: "",
       cueSheet: [], referenceVerses: "", attendance: null
     };
   }
@@ -582,7 +593,9 @@
     if(activeTeam === "교역자"){
       bodyHtml = pastorSectionHtml();
     } else if(activeTeam === "찬양팀"){
-      bodyHtml = teamMembersFieldHtml("찬양팀", "인도자, 싱어, 세션 등") + songsSectionHtml();
+      bodyHtml = teamMembersFieldHtml("찬양팀", "인도자, 싱어, 세션 등") + worshipLineupSectionHtml() + songsSectionHtml();
+    } else if(activeTeam === "미디어팀"){
+      bodyHtml = teamMembersFieldHtml(activeTeam, "이번 주 참여 인원 (쉼표로 구분)") + mediaRolesSectionHtml();
     } else {
       bodyHtml = teamMembersFieldHtml(activeTeam, "이번 주 참여 인원 (쉼표로 구분)");
     }
@@ -638,6 +651,12 @@
     el.innerHTML = dinnerSectionHtml();
     wireDinnerEvents(el);
   }
+  function renderWeeklyNotice(){
+    var el = document.getElementById("weeklyNoticePanel");
+    if(!el) return;
+    el.innerHTML = weeklyNoticeSectionHtml();
+    wireWeeklyNoticeEvents(el);
+  }
 
   function pastorSectionHtml(){
     return (
@@ -663,6 +682,37 @@
     );
   }
 
+  function worshipLineupSectionHtml(){
+    var lu = currentWeek.worshipLineup || {};
+    return (
+      '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">라인업</div>'+
+      '<div class="field-row">'+
+        '<label>보컬<input type="text" id="f-luVocal" placeholder="인도자, 싱어 등" value="'+esc(lu.vocal)+'"></label>'+
+        '<label>세션<input type="text" id="f-luSession" placeholder="메인/세컨/드럼/베이스/일렉 등" value="'+esc(lu.session)+'"></label>'+
+        '<label>음향<input type="text" id="f-luSound" value="'+esc(lu.sound)+'"></label>'+
+      '</div>'+
+      '<div class="save-row"><span class="save-status" id="lineupStatus"></span><button type="button" class="btn sm" id="lineupSaveBtn">라인업 저장</button></div>'
+    );
+  }
+
+  function mediaRolesSectionHtml(){
+    var mr = currentWeek.mediaRoles || {};
+    return (
+      '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">세부 역할</div>'+
+      '<div class="field-row">'+
+        '<label>스위처<input type="text" id="f-mrSwitcher" value="'+esc(mr.switcher)+'"></label>'+
+        '<label>조명<input type="text" id="f-mrLighting" value="'+esc(mr.lighting)+'"></label>'+
+        '<label>카메라(좌/중간)<input type="text" id="f-mrCameraMid" value="'+esc(mr.cameraMid)+'"></label>'+
+      '</div>'+
+      '<div class="field-row">'+
+        '<label>카메라(핸디)<input type="text" id="f-mrCameraHandy" value="'+esc(mr.cameraHandy)+'"></label>'+
+        '<label>송출 자막<input type="text" id="f-mrBroadcastCaption" value="'+esc(mr.broadcastCaption)+'"></label>'+
+        '<label>현장 자막<input type="text" id="f-mrVenueCaption" value="'+esc(mr.venueCaption)+'"></label>'+
+      '</div>'+
+      '<div class="save-row"><span class="save-status" id="mediaRolesStatus"></span><button type="button" class="btn sm" id="mediaRolesSaveBtn">세부 역할 저장</button></div>'
+    );
+  }
+
   function songsSectionHtml(){
     var rows = (currentWeek.songs || []).map(function(s, i){
       return (
@@ -684,16 +734,26 @@
   }
 
   function dinnerSectionHtml(){
-    var total = TEAM_IDS.reduce(function(s,t){ return s + (parseInt(currentWeek.dinnerCounts[t],10) || 0); }, 0);
+    var dinnerTotal = SERVING_TEAM_IDS.reduce(function(s,t){ return s + (parseInt(currentWeek.dinnerCounts[t],10) || 0); }, 0);
+    var servingTotal = SERVING_TEAM_IDS.reduce(function(s,t){ return s + (parseInt((currentWeek.servingCounts||{})[t],10) || 0); }, 0);
     return (
       '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">저녁식사 인원</div>'+
       '<div class="dinner-grid">'+
-        TEAM_IDS.map(function(t){
+        SERVING_TEAM_IDS.map(function(t){
           return '<label>'+esc(t)+'<input type="number" min="0" class="dinner-input" data-team="'+esc(t)+'" value="'+(currentWeek.dinnerCounts[t]||0)+'"></label>';
         }).join("")+
       '</div>'+
-      '<div class="dinner-total">총계 <b id="dinnerTotalNum">'+total+'</b>명 · <span style="color:var(--ink-dim)">'+esc(DINNER_DEADLINE)+'</span></div>'+
-      '<div class="save-row"><span class="save-status" id="dinnerStatus"></span><button type="button" class="btn sm" id="dinnerSaveBtn">식사인원 저장</button></div>'
+      '<div class="dinner-total">총계 <b id="dinnerTotalNum">'+dinnerTotal+'</b>명 · <span style="color:var(--ink-dim)">'+esc(DINNER_DEADLINE)+'</span></div>'+
+      '<div class="save-row"><span class="save-status" id="dinnerStatus"></span><button type="button" class="btn sm" id="dinnerSaveBtn">식사인원 저장</button></div>'+
+
+      '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:20px 0 8px;">예배 섬김인원</div>'+
+      '<div class="dinner-grid">'+
+        SERVING_TEAM_IDS.map(function(t){
+          return '<label>'+esc(t)+'<input type="number" min="0" class="serving-input" data-team="'+esc(t)+'" value="'+((currentWeek.servingCounts||{})[t]||0)+'"></label>';
+        }).join("")+
+      '</div>'+
+      '<div class="dinner-total">총계 <b id="servingTotalNum">'+servingTotal+'</b>명 · <span style="color:var(--ink-dim)">식사인원과는 별도로, 실제 섬김으로 나오는 인원이에요.</span></div>'+
+      '<div class="save-row"><span class="save-status" id="servingStatus"></span><button type="button" class="btn sm" id="servingSaveBtn">섬김인원 저장</button></div>'
     );
   }
 
@@ -731,6 +791,16 @@
         '<button type="button" class="btn ghost sm" id="cuePresetBtn">기본 진행표 불러오기</button>'+
       '</div>'+
       '<div class="save-row"><span class="save-status" id="cueStatus"></span><button type="button" class="btn sm" id="cueSaveBtn">큐시트 저장</button></div>'
+    );
+  }
+
+  function weeklyNoticeSectionHtml(){
+    return (
+      '<div class="weekly-notice-box">'+
+        '<div class="divider-label" style="margin:0 0 8px;">이번 주 공지사항</div>'+
+        '<textarea id="f-weeklyNotice" rows="2" placeholder="예: 이번 주는 702호에서 예배드립니다! 예배 후 9:50에 5층에서 전체 모임이 있습니다">'+esc(currentWeek.weeklyNotice)+'</textarea>'+
+        '<div class="save-row"><span class="save-status" id="weeklyNoticeStatus"></span><button type="button" class="btn sm" id="weeklyNoticeSaveBtn">공지 저장</button></div>'+
+      '</div>'
     );
   }
 
@@ -782,6 +852,31 @@
         nested[team] = val;
         patchWeek({ teamMembers: nested }, "teamMembersStatus");
       }
+    });
+
+    var lineupBtn = el.querySelector("#lineupSaveBtn");
+    if(lineupBtn) lineupBtn.addEventListener("click", function(){
+      var lu = {
+        vocal: document.getElementById("f-luVocal").value.trim().slice(0,200),
+        session: document.getElementById("f-luSession").value.trim().slice(0,200),
+        sound: document.getElementById("f-luSound").value.trim().slice(0,100)
+      };
+      currentWeek.worshipLineup = lu;
+      patchWeek({ worshipLineup: lu }, "lineupStatus");
+    });
+
+    var mediaRolesBtn = el.querySelector("#mediaRolesSaveBtn");
+    if(mediaRolesBtn) mediaRolesBtn.addEventListener("click", function(){
+      var mr = {
+        switcher: document.getElementById("f-mrSwitcher").value.trim().slice(0,50),
+        lighting: document.getElementById("f-mrLighting").value.trim().slice(0,50),
+        cameraMid: document.getElementById("f-mrCameraMid").value.trim().slice(0,50),
+        cameraHandy: document.getElementById("f-mrCameraHandy").value.trim().slice(0,50),
+        broadcastCaption: document.getElementById("f-mrBroadcastCaption").value.trim().slice(0,50),
+        venueCaption: document.getElementById("f-mrVenueCaption").value.trim().slice(0,50)
+      };
+      currentWeek.mediaRoles = mr;
+      patchWeek({ mediaRoles: mr }, "mediaRolesStatus");
     });
 
     var songAddBtn = el.querySelector("#songAddBtn");
@@ -874,10 +969,19 @@
     });
   }
 
+  function wireWeeklyNoticeEvents(el){
+    var btn = el.querySelector("#weeklyNoticeSaveBtn");
+    if(btn) btn.addEventListener("click", function(){
+      var text = document.getElementById("f-weeklyNotice").value.trim().slice(0, 500);
+      currentWeek.weeklyNotice = text;
+      patchWeek({ weeklyNotice: text }, "weeklyNoticeStatus");
+    });
+  }
+
   function wireDinnerEvents(el){
     var dinnerSaveBtn = el.querySelector("#dinnerSaveBtn");
     if(dinnerSaveBtn) dinnerSaveBtn.addEventListener("click", function(){
-      var counts = {};
+      var counts = Object.assign({}, currentWeek.dinnerCounts);
       Array.prototype.forEach.call(el.querySelectorAll(".dinner-input"), function(input){
         var t = input.getAttribute("data-team");
         counts[t] = Math.max(0, Math.min(9999, parseInt(input.value,10) || 0));
@@ -893,6 +997,25 @@
         if(totalEl) totalEl.textContent = total;
       });
     });
+
+    var servingSaveBtn = el.querySelector("#servingSaveBtn");
+    if(servingSaveBtn) servingSaveBtn.addEventListener("click", function(){
+      var counts = Object.assign({}, currentWeek.servingCounts);
+      Array.prototype.forEach.call(el.querySelectorAll(".serving-input"), function(input){
+        var t = input.getAttribute("data-team");
+        counts[t] = Math.max(0, Math.min(9999, parseInt(input.value,10) || 0));
+      });
+      currentWeek.servingCounts = counts;
+      patchWeek({ servingCounts: counts }, "servingStatus");
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".serving-input"), function(input){
+      input.addEventListener("input", function(){
+        var total = 0;
+        Array.prototype.forEach.call(el.querySelectorAll(".serving-input"), function(i2){ total += parseInt(i2.value,10) || 0; });
+        var totalEl = document.getElementById("servingTotalNum");
+        if(totalEl) totalEl.textContent = total;
+      });
+    });
   }
 
   function renderWeek(){
@@ -901,6 +1024,7 @@
     document.getElementById("specialCheckbox").checked = !!currentWeek.special;
     document.getElementById("specialNoteInput").value = currentWeek.specialNote || "";
     if(!TEAM_IDS.includes(activeTeam)) activeTeam = TEAM_IDS[0];
+    renderWeeklyNotice();
     renderWeekGlance();
     renderCue();
     renderVerse();
