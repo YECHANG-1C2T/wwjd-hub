@@ -94,11 +94,11 @@
   textarea{resize:vertical;}
 
   /* overview / attendance chart */
-  .overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:16px;}
-  .stat-tile{background:var(--surface);padding:16px 18px;}
-  .stat-tile .label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px;}
-  .stat-tile .value{font-family:'Anton','Noto Sans KR',sans-serif;font-size:30px;color:var(--ink);}
-  .stat-tile .value small{font-family:'Noto Sans KR';font-size:13px;color:var(--ink-dim);font-weight:700;}
+  .overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+  .stat-tile{background:var(--surface);padding:10px 8px;}
+  .stat-tile .label{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stat-tile .value{font-family:'Anton','Noto Sans KR',sans-serif;font-size:19px;color:var(--ink);}
+  .stat-tile .value small{font-family:'Noto Sans KR';font-size:11px;color:var(--ink-dim);font-weight:700;}
   .chart-wrap{position:relative;}
   .chart-wrap svg{display:block;width:100%;height:auto;overflow:visible;}
   .bar{fill:var(--brand);}
@@ -116,17 +116,21 @@
   .special-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;font-size:12.5px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;}
   .special-row input[type=text]{flex:1;min-width:160px;font-family:'Noto Sans KR',sans-serif;}
 
-  /* team board: sidebar roster + detail panel */
-  .team-board{display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:start;}
-  .tabs{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px;position:sticky;top:16px;}
+  /* board: sidebar (attendance rail + roster) + detail panel */
+  .board{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start;}
+  .rail{position:sticky;top:16px;display:flex;flex-direction:column;gap:16px;}
+  .rail-block{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);}
+  .rail-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:12px;}
+  .tabs{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px;}
   .tab-btn{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:13.5px;text-align:left;padding:10px 12px;border:none;border-radius:7px;background:none;color:var(--ink-dim);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;}
   .tab-btn .arrow{font-family:'JetBrains Mono',monospace;color:var(--brand);opacity:0;}
   .tab-btn.active{color:var(--paper);background:var(--ink);}
   .tab-btn.active .arrow{opacity:1;}
   .tab-btn:hover:not(.active){background:var(--surface-2);color:var(--ink);}
   @media (max-width:760px){
-    .team-board{grid-template-columns:1fr;}
-    .tabs{flex-direction:row;overflow-x:auto;position:static;padding:6px;}
+    .board{grid-template-columns:1fr;}
+    .rail{position:static;}
+    .tabs{flex-direction:row;overflow-x:auto;padding:6px;}
     .tab-btn{flex:none;}
   }
   .detail-panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:26px 28px;}
@@ -203,54 +207,61 @@
       <div class="wordmark-sub"><span class="dot"></span>청년금요기도회 대시보드</div>
     </div>
   </header>
-  <div class="notice">이름을 적어두시면 입력한 내용에 자동으로 붙어요. 이번 주 진행(큐시트·참고구절·식사인원)은 모두 함께 보고, 팀별 정보는 아래에서 따로 입력해주세요.</div>
+  <div class="notice">이름을 적어두시면 입력한 내용에 자동으로 붙어요. 오늘의 큐시트와 참고구절을 먼저 확인하고, 팀별 정보는 아래에서 입력해주세요.</div>
   <div class="notice warn" id="syncErrorNotice" hidden></div>
+
+  <div class="week-nav">
+    <button type="button" id="weekPrevBtn" aria-label="이전 주">‹</button>
+    <span class="issue-label">주차 —</span>
+    <span class="week-title" id="weekTitle">-</span>
+    <button type="button" id="weekNextBtn" aria-label="다음 주">›</button>
+    <input type="date" id="weekJumpInput">
+  </div>
+  <div class="special-row">
+    <label><input type="checkbox" id="specialCheckbox"> 이번 주는 특별주간(정기 모임 없음)</label>
+    <input type="text" id="specialNoteInput" placeholder="사유 (예: 설연휴, 수련회)">
+    <button type="button" class="btn ghost sm" id="specialSaveBtn">저장</button>
+    <span class="save-status" id="specialStatus"></span>
+  </div>
+
+  <section id="cueSection">
+    <div class="section-head"><span class="section-no">01</span><h2>오늘의 큐시트</h2><span class="sub">진행순서 — 누구나 보고, 채워넣을 수 있어요</span></div>
+    <div id="cuePanel"></div>
+  </section>
+
+  <section id="verseSection">
+    <div class="section-head"><span class="section-no">02</span><h2>참고구절</h2><span class="sub">이번 주 설교 흐름 — 미리 알아두세요</span></div>
+    <div id="versePanel"></div>
+  </section>
 
   <div class="week-glance" id="weekGlance"></div>
 
-  <section id="weekSection">
-    <div class="section-head"><span class="section-no">01</span><h2>이번 주 진행</h2><span class="sub">큐시트·참고구절·식사인원 — 모두가 함께 보는 내용</span></div>
-    <div class="panel">
-      <div class="week-nav">
-        <button type="button" id="weekPrevBtn" aria-label="이전 주">‹</button>
-        <span class="issue-label">주차 —</span>
-        <span class="week-title" id="weekTitle">-</span>
-        <button type="button" id="weekNextBtn" aria-label="다음 주">›</button>
-        <input type="date" id="weekJumpInput">
-      </div>
-      <div class="special-row">
-        <label><input type="checkbox" id="specialCheckbox"> 이번 주는 특별주간(정기 모임 없음)</label>
-        <input type="text" id="specialNoteInput" placeholder="사유 (예: 설연휴, 수련회)">
-        <button type="button" class="btn ghost sm" id="specialSaveBtn">저장</button>
-        <span class="save-status" id="specialStatus"></span>
-      </div>
-
-      <div id="weekSharedPanel"></div>
-    </div>
-  </section>
-
-  <section id="overviewSection">
-    <div class="section-head"><span class="section-no">02</span><h2>출석 흐름</h2><span class="sub">최근 주차 출석 인원 추이</span></div>
-    <div class="panel">
-      <div class="overview-grid">
-        <div class="stat-tile"><div class="label">이번 주 출석</div><div class="value" id="statThisWeek">-</div></div>
-        <div class="stat-tile"><div class="label">최근 4주 평균</div><div class="value" id="statAvg4">-</div></div>
-        <div class="stat-tile"><div class="label">직전 대비</div><div class="value" id="statDelta">-</div></div>
-      </div>
-      <div class="chart-wrap" id="chartWrap">
-        <div class="empty" id="chartEmpty">아직 출석 데이터가 없어요. 아래 "출석" 탭에서 입력해주세요.</div>
-        <svg id="attendanceChart" viewBox="0 0 640 200" hidden></svg>
-        <div class="chart-tooltip" id="chartTooltip"></div>
-      </div>
-    </div>
-  </section>
-
   <section id="teamSection">
-    <div class="section-head"><span class="section-no">03</span><h2>팀별 정보</h2><span class="sub">팀을 선택해 매뉴얼과 배정 인원을 확인/입력하세요</span></div>
-    <div class="team-board">
-      <div class="tabs" id="teamTabs" role="tablist" aria-label="팀 선택"></div>
+    <div class="section-head"><span class="section-no">03</span><h2>출석 흐름 · 팀별 정보</h2><span class="sub">팀을 선택해 매뉴얼과 배정 인원을 확인/입력하세요</span></div>
+    <div class="board">
+      <aside class="rail">
+        <div class="rail-block">
+          <div class="rail-label">출석 흐름</div>
+          <div class="overview-grid">
+            <div class="stat-tile"><div class="label">이번 주</div><div class="value" id="statThisWeek">-</div></div>
+            <div class="stat-tile"><div class="label">4주 평균</div><div class="value" id="statAvg4">-</div></div>
+            <div class="stat-tile"><div class="label">직전 대비</div><div class="value" id="statDelta">-</div></div>
+          </div>
+          <div class="chart-wrap" id="chartWrap">
+            <div class="empty" id="chartEmpty">아직 출석 데이터가 없어요.</div>
+            <svg id="attendanceChart" viewBox="0 0 640 200" hidden></svg>
+            <div class="chart-tooltip" id="chartTooltip"></div>
+          </div>
+        </div>
+        <nav class="tabs" id="teamTabs" role="tablist" aria-label="팀 선택"></nav>
+      </aside>
       <div class="detail-panel" id="teamPanel" role="tabpanel"></div>
     </div>
+  </section>
+
+  <section id="dinnerSection">
+    <div class="section-head"><span class="section-no">04</span><h2>저녁식사 인원</h2><span class="sub">수요일 17:00까지 팀별로 입력해주세요</span></div>
+    <div id="dinnerPanel"></div>
   </section>
 
   <footer>DYNAMIC PRAYDAY — 교역자 · 찬양팀 · 미디어팀 · 안내팀 · 중보기도팀 · 청금사역팀</footer>
@@ -620,12 +631,24 @@
     el.innerHTML = issueHtml + crewHtml;
   }
 
-  /* ---- week shared panel (전체가 함께 보는 큐시트 · 참고구절 · 식사인원) ---- */
-  function renderWeekShared(){
-    var el = document.getElementById("weekSharedPanel");
+  /* ---- shared panels: 큐시트 · 참고구절 · 식사인원 (전체가 함께 보는 내용) ---- */
+  function renderCue(){
+    var el = document.getElementById("cuePanel");
     if(!el) return;
-    el.innerHTML = dinnerSectionHtml() + cueSheetSectionHtml() + referenceVerseSectionHtml();
-    wireWeekSharedEvents(el);
+    el.innerHTML = cueSheetSectionHtml();
+    wireCueEvents(el);
+  }
+  function renderVerse(){
+    var el = document.getElementById("versePanel");
+    if(!el) return;
+    el.innerHTML = referenceVerseSectionHtml();
+    wireVerseEvents(el);
+  }
+  function renderDinner(){
+    var el = document.getElementById("dinnerPanel");
+    if(!el) return;
+    el.innerHTML = dinnerSectionHtml();
+    wireDinnerEvents(el);
   }
 
   function pastorSectionHtml(){
@@ -815,43 +838,24 @@
        kept as a named hook in case a manual refresh is ever needed. */
   }
 
-  /* ---- shared panel events: 저녁식사 인원 · 큐시트 · 참고구절 (팀과 무관, 전체 공유) ---- */
-  function wireWeekSharedEvents(el){
-    var dinnerSaveBtn = el.querySelector("#dinnerSaveBtn");
-    if(dinnerSaveBtn) dinnerSaveBtn.addEventListener("click", function(){
-      var counts = {};
-      Array.prototype.forEach.call(el.querySelectorAll(".dinner-input"), function(input){
-        var t = input.getAttribute("data-team");
-        counts[t] = Math.max(0, Math.min(9999, parseInt(input.value,10) || 0));
-      });
-      currentWeek.dinnerCounts = counts;
-      patchWeek({ dinnerCounts: counts }, "dinnerStatus");
-    });
-    Array.prototype.forEach.call(el.querySelectorAll(".dinner-input"), function(input){
-      input.addEventListener("input", function(){
-        var total = 0;
-        Array.prototype.forEach.call(el.querySelectorAll(".dinner-input"), function(i2){ total += parseInt(i2.value,10) || 0; });
-        var totalEl = document.getElementById("dinnerTotalNum");
-        if(totalEl) totalEl.textContent = total;
-      });
-    });
-
+  /* ---- shared panel events: 큐시트 · 참고구절 · 식사인원 (팀과 무관, 전체 공유) ---- */
+  function wireCueEvents(el){
     var cueAddBtn = el.querySelector("#cueAddBtn");
     if(cueAddBtn) cueAddBtn.addEventListener("click", function(){
       currentWeek.cueSheet = currentWeek.cueSheet || [];
       currentWeek.cueSheet.push({ time:"", duration:"", owner:"", content:"", note:"", sound:"", light:"", media:"" });
-      renderWeekShared();
+      renderCue();
     });
     var cuePresetBtn = el.querySelector("#cuePresetBtn");
     if(cuePresetBtn) cuePresetBtn.addEventListener("click", function(){
       if(currentWeek.cueSheet && currentWeek.cueSheet.length && !confirm("현재 큐시트를 기본 진행표로 덮어쓸까요?")) return;
       currentWeek.cueSheet = CUE_PRESET.map(function(r){ return Object.assign({}, r); });
-      renderWeekShared();
+      renderCue();
     });
     Array.prototype.forEach.call(el.querySelectorAll(".cue-del"), function(btn){
       btn.addEventListener("click", function(){
         currentWeek.cueSheet.splice(parseInt(btn.getAttribute("data-idx"),10), 1);
-        renderWeekShared();
+        renderCue();
       });
     });
     var cueSaveBtn = el.querySelector("#cueSaveBtn");
@@ -870,13 +874,36 @@
     Array.prototype.forEach.call(el.querySelectorAll(".cue-owner-input"), function(inp){
       inp.addEventListener("input", function(){ inp.style.setProperty("--tc", ownerColor(inp.value)); });
     });
+  }
 
+  function wireVerseEvents(el){
     var verseSaveBtn = el.querySelector("#verseSaveBtn");
     if(verseSaveBtn) verseSaveBtn.addEventListener("click", function(){
       var text = document.getElementById("f-verses").value.trim();
       if(text.length > MAX_TEXT_LEN){ setStatus("verseStatus", MAX_TEXT_LEN+"자 이내로 적어주세요.", true); return; }
       currentWeek.referenceVerses = text;
       patchWeek({ referenceVerses: text }, "verseStatus");
+    });
+  }
+
+  function wireDinnerEvents(el){
+    var dinnerSaveBtn = el.querySelector("#dinnerSaveBtn");
+    if(dinnerSaveBtn) dinnerSaveBtn.addEventListener("click", function(){
+      var counts = {};
+      Array.prototype.forEach.call(el.querySelectorAll(".dinner-input"), function(input){
+        var t = input.getAttribute("data-team");
+        counts[t] = Math.max(0, Math.min(9999, parseInt(input.value,10) || 0));
+      });
+      currentWeek.dinnerCounts = counts;
+      patchWeek({ dinnerCounts: counts }, "dinnerStatus");
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".dinner-input"), function(input){
+      input.addEventListener("input", function(){
+        var total = 0;
+        Array.prototype.forEach.call(el.querySelectorAll(".dinner-input"), function(i2){ total += parseInt(i2.value,10) || 0; });
+        var totalEl = document.getElementById("dinnerTotalNum");
+        if(totalEl) totalEl.textContent = total;
+      });
     });
   }
 
@@ -887,7 +914,9 @@
     document.getElementById("specialNoteInput").value = currentWeek.specialNote || "";
     if(!TEAM_IDS.includes(activeTeam)) activeTeam = TEAM_IDS[0];
     renderWeekGlance();
-    renderWeekShared();
+    renderCue();
+    renderVerse();
+    renderDinner();
     renderTeamTabs();
     renderTeamPanel();
   }
