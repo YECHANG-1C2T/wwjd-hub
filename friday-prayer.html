@@ -19,14 +19,6 @@
     --danger:#C7402B; --danger-soft:#FBE4DF;
     --shadow: 0 1px 2px rgba(17,17,16,.05), 0 14px 32px -18px rgba(17,17,16,.18);
   }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#0A0A0A; --surface:#141413; --surface-2:#1C1C1A; --ink:#F4F2EA; --ink-dim:#8E8B82; --line:#2A2A27;
-      --brand:#FF5C2A; --brand-soft:#3A2011; --on-accent:#0A0A0A;
-      --danger:#FF6B52; --danger-soft:#3A1712;
-      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 14px 32px -18px rgba(0,0,0,.6);
-    }
-  }
   :root[data-theme="dark"]{
     --paper:#0A0A0A; --surface:#141413; --surface-2:#1C1C1A; --ink:#F4F2EA; --ink-dim:#8E8B82; --line:#2A2A27;
     --brand:#FF5C2A; --brand-soft:#3A2011; --on-accent:#0A0A0A;
@@ -362,8 +354,7 @@
   function setStoredTheme(t){ try{ if(t) localStorage.setItem("fpTheme", t); else localStorage.removeItem("fpTheme"); }catch(e){} }
   function effectiveTheme(){
     var stored = getStoredTheme();
-    if(stored === "light" || stored === "dark") return stored;
-    return (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    return stored === "dark" ? "dark" : "light";
   }
   function updateThemeToggleUI(){
     var eff = effectiveTheme();
@@ -381,11 +372,6 @@
   var themeDarkBtn = document.getElementById("themeDarkBtn");
   if(themeLightBtn) themeLightBtn.addEventListener("click", function(){ setStoredTheme("light"); applyTheme("light"); });
   if(themeDarkBtn) themeDarkBtn.addEventListener("click", function(){ setStoredTheme("dark"); applyTheme("dark"); });
-  if(window.matchMedia){
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(){
-      if(!getStoredTheme()) updateThemeToggleUI();
-    });
-  }
   applyTheme(getStoredTheme());
 
   function showSyncError(err){
