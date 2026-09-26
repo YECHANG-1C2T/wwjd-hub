@@ -161,6 +161,24 @@
   .dinner-total{font-size:12.5px;color:var(--ink-dim);margin-bottom:12px;font-family:'JetBrains Mono',monospace;}
   .dinner-total b{color:var(--ink);font-size:17px;}
 
+  /* annual roster: real table, spreadsheet-like */
+  .roster-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .roster-toolbar select{font-family:'JetBrains Mono',monospace;font-weight:700;}
+  .roster-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;}
+  table.roster-table{border-collapse:collapse;width:100%;min-width:760px;font-size:12.5px;}
+  table.roster-table th{background:var(--surface-2);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  table.roster-table td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  table.roster-table tr:last-child td{border-bottom:none;}
+  table.roster-table tr.special-row-tr{background:var(--surface-2);}
+  table.roster-table tr.today-row{background:var(--brand-soft);}
+  table.roster-table input{width:100%;min-width:64px;border:1px solid transparent;background:none;padding:5px 6px;font-size:12.5px;}
+  table.roster-table input:focus{background:var(--surface-2);border-color:var(--line);box-shadow:0 0 0 2px var(--brand);}
+  table.roster-table .roster-no{font-family:'JetBrains Mono',monospace;color:var(--ink-dim);text-align:center;width:34px;}
+  table.roster-table .roster-att{font-family:'JetBrains Mono',monospace;font-weight:700;text-align:center;color:var(--ink);width:56px;}
+  table.roster-table .roster-att.empty{color:var(--ink-dim);font-weight:400;}
+  table.roster-table .roster-del{color:var(--danger);background:none;border:none;cursor:pointer;padding:8px;min-width:24px;min-height:24px;}
+  @media (max-width:760px){ table.roster-table{font-size:11.5px;} }
+
   /* cue sheet: card rows with colored owner tags */
   .cue-list{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:4px;}
   .cue-row{background:var(--surface);display:grid;grid-template-columns:60px 56px 116px 1fr auto;gap:10px;align-items:start;padding:11px 12px;}
@@ -276,6 +294,11 @@
     <div id="dinnerPanel"></div>
   </section>
 
+  <section id="rosterSection">
+    <div class="section-head"><span class="section-no">05</span><h2>연간 로스터</h2><span class="sub">설교자·찬양인도자·기도백업 사전 배정과 지난 출석을 한눈에</span></div>
+    <div id="rosterPanel"></div>
+  </section>
+
   <footer>DYNAMIC PRAYDAY — 교역자 · 찬양팀 · 미디어팀 · 안내팀 · 중보기도팀 · 청금사역팀</footer>
 </div>
 
@@ -337,6 +360,50 @@
     });
   }
 
+  /* 팀 매뉴얼도 예전엔 코드에 박혀 있어서 항목 하나 고치려면 코드를 고쳐야
+     했다. cueTemplate과 같은 패턴으로 Firestore에 옮겨 팀이 직접 수정 가능. */
+  var teamManuals = {};
+  TEAM_IDS.forEach(function(t){ teamManuals[t] = (TEAM_INFO[t].manual || []).slice(); });
+  var TEAM_MANUALS_DOC = db.collection("friday_prayer_settings").doc("teamManuals");
+  function startTeamManualsSync(){
+    TEAM_MANUALS_DOC.onSnapshot(function(snap){
+      var data = snap.exists ? snap.data() : null;
+      if(data && data.manuals){
+        TEAM_IDS.forEach(function(t){ if(Array.isArray(data.manuals[t])) teamManuals[t] = data.manuals[t].slice(); });
+        if(!manualEditMode && !isFocusInside("teamPanel")) renderTeamPanel();
+      } else {
+        TEAM_MANUALS_DOC.set({ manuals: teamManuals }).catch(function(){});
+      }
+    }, function(err){
+      console.error("team manuals sync error", err);
+    });
+  }
+
+  /* ---- 연간 로스터: 설교자·찬양인도자·기도백업 사전 배정 + 지난 주 실제 출석 ----
+     friday_prayer_roster/{연도} 문서에 한 해 전체 행을 저장한다. 새 주 문서가
+     생성될 때 이 로스터에서 담당자를 미리 채워주고(cueTemplate과 같은 원리),
+     로스터 화면 자체는 각 주차 문서의 실제 출석까지 함께 보여주는 조회 뷰다 —
+     출석 데이터를 이중으로 저장하지 않기 위해 로스터 문서엔 출석을 쓰지 않고
+     매번 해당 연도 주차 문서들을 조회해서 붙인다. */
+  var rosterCache = {}; /* year(string) -> rows[] */
+  var rosterUnsub = {};
+  function ROSTER_DOC(year){ return db.collection("friday_prayer_roster").doc(String(year)); }
+  function startRosterSync(year){
+    year = String(year);
+    if(rosterUnsub[year]) return; /* 이미 구독 중 */
+    rosterUnsub[year] = ROSTER_DOC(year).onSnapshot(function(snap){
+      if(rosterEditMode && String(currentRosterYear) === year) return; /* 편집 중엔 로컬 미저장 행이 덮어써지지 않게 */
+      rosterCache[year] = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
+      if(String(currentRosterYear) === year) renderRoster();
+    }, function(err){ console.error("roster sync error", err); });
+  }
+  function rosterEntryFor(dateStr){
+    var year = dateStr.slice(0,4);
+    var rows = rosterCache[year] || [];
+    for(var i=0;i<rows.length;i++){ if(rows[i].date === dateStr) return rows[i]; }
+    return null;
+  }
+
   function pad2(n){ return String(n).padStart(2,"0"); }
   function toISODateLocal(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
   function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -374,10 +441,13 @@
     TEAM_IDS.forEach(function(t){ servingCounts[t] = 0; });
     var checklistState = {};
     TEAM_IDS.forEach(function(t){ checklistState[t] = []; });
+    /* 연간 로스터에 이 날짜의 사전 배정이 있으면 미리 채워준다 — 목사님이
+       몇 달 전에 한 번에 정해둔 순번표를 매주 다시 입력할 필요가 없게. */
+    var planned = rosterEntryFor(date) || {};
     return {
-      date: date, special: false, specialNote: "",
-      preacher: "", prayerBackup: "", pastorInCharge: "",
-      worshipLeader: "", teamMembers: teamMembers,
+      date: date, special: !!planned.special, specialNote: planned.note || "",
+      preacher: planned.preacher || "", prayerBackup: planned.prayerBackup || "", pastorInCharge: "",
+      worshipLeader: planned.worshipLeader || "", teamMembers: teamMembers,
       worshipLineup: { vocal:"", session:"", sound:"" },
       mediaRoles: { switcher:"", lighting:"", cameraMid:"", cameraHandy:"", broadcastCaption:"", venueCaption:"" },
       songs: [], dinnerCounts: dinnerCounts, servingCounts: servingCounts,
@@ -679,6 +749,7 @@
         var dirtyHere = TEAM_PANEL_GROUPS.some(function(g){ return dirtyGroups[g]; });
         if(dirtyHere && !confirm("저장하지 않은 내용이 있어요. 그래도 다른 팀으로 이동할까요?")) return;
         clearDirty(TEAM_PANEL_GROUPS);
+        manualEditMode = false;
         activeTeam = newTeam;
         setStoredActiveTeam(activeTeam);
         renderTeamTabs();
@@ -687,16 +758,33 @@
     });
   }
 
+  var manualEditMode = false; /* 팀 전환 시 renderTeamPanel에서 false로 리셋 */
   function manualHtml(team){
-    var info = TEAM_INFO[team];
+    var items = teamManuals[team] || [];
+    if(manualEditMode){
+      return (
+        '<div class="manual-box">'+
+          '<div class="m-label">팀 매뉴얼 수정 <span style="font-weight:400;text-transform:none;">— 한 줄에 항목 하나씩</span></div>'+
+          '<textarea id="manualEditArea" rows="'+Math.max(3, items.length+1)+'" style="width:100%;">'+esc(items.join("\n"))+'</textarea>'+
+          '<div class="save-row"><span class="save-status" role="status" aria-live="polite" id="manualEditStatus"></span>'+
+          '<button type="button" class="btn ghost sm" id="manualCancelBtn">취소</button>'+
+          '<button type="button" class="btn sm" id="manualSaveBtn">매뉴얼 저장</button></div>'+
+        '</div>'
+      );
+    }
     var checks = (currentWeek.checklistState && currentWeek.checklistState[team]) || [];
-    var items = info.manual.length
-      ? '<ul class="check-list">'+info.manual.map(function(m, i){
+    var body = items.length
+      ? '<ul class="check-list">'+items.map(function(m, i){
           var checked = !!checks[i];
           return '<li><label><input type="checkbox" class="manual-check" data-team="'+esc(team)+'" data-idx="'+i+'"'+(checked?' checked':'')+'> <span'+(checked?' style="text-decoration:line-through;opacity:.6;"':'')+'>'+esc(m)+'</span></label></li>';
         }).join("")+'</ul>'
       : '<div class="empty-inline">이 팀은 별도 준비물이 없어요.</div>';
-    return '<div class="manual-box"><div class="m-label">팀 매뉴얼</div>'+items+'</div>';
+    return (
+      '<div class="manual-box">'+
+        '<div class="m-label" style="display:flex;justify-content:space-between;align-items:center;">팀 매뉴얼 <button type="button" class="btn ghost sm" id="manualEditBtn" style="text-transform:none;letter-spacing:0;">항목 수정</button></div>'+
+        body+
+      '</div>'
+    );
   }
 
   function renderTeamPanel(){
@@ -960,6 +1048,25 @@
   }
 
   function wireTeamPanelEvents(el){
+    var manualEditBtn = el.querySelector("#manualEditBtn");
+    if(manualEditBtn) manualEditBtn.addEventListener("click", function(){ manualEditMode = true; renderTeamPanel(); });
+    var manualCancelBtn = el.querySelector("#manualCancelBtn");
+    if(manualCancelBtn) manualCancelBtn.addEventListener("click", function(){ manualEditMode = false; renderTeamPanel(); });
+    var manualSaveBtn = el.querySelector("#manualSaveBtn");
+    if(manualSaveBtn) manualSaveBtn.addEventListener("click", function(){
+      var lines = document.getElementById("manualEditArea").value.split("\n").map(function(s){ return s.trim().slice(0,120); }).filter(function(s){ return s; });
+      teamManuals[activeTeam] = lines;
+      var nested = {};
+      nested[activeTeam] = lines;
+      setStatus("manualEditStatus", "저장 중...", false);
+      TEAM_MANUALS_DOC.set({ manuals: nested }, { merge:true }).then(function(){
+        manualEditMode = false;
+        renderTeamPanel();
+      }).catch(function(err){
+        setStatus("manualEditStatus", "저장 실패: "+(err && err.message || ""), true);
+      });
+    });
+
     /* 체크박스는 클릭 즉시 저장한다 — 별도 "저장" 버튼을 두면 체크했다는
        사실 자체를 잊어버리기 쉬워서, 이 항목만 예외적으로 자동저장한다.
        다른 팀 체크 상태를 건드리지 않도록 teamMembers와 같은 중첩 병합. */
@@ -1219,6 +1326,198 @@
     });
   }
 
+  /* ---- 연간 로스터 화면 ---- */
+  var currentRosterYear = getUpcomingFriday().slice(0,4);
+  var rosterAttendance = {}; /* year -> { "YYYY-MM-DD": count } */
+  var rosterAttUnsub = {};
+  var rosterEditMode = false;
+  var PRAYER_BACKUP_DOC = db.collection("friday_prayer_settings").doc("prayerBackupRotation");
+  var prayerBackupRotation = { names: [], checklist: [] };
+  function startPrayerBackupSync(){
+    PRAYER_BACKUP_DOC.onSnapshot(function(snap){
+      if(snap.exists){
+        prayerBackupRotation = { names: snap.data().names || [], checklist: snap.data().checklist || [] };
+        if(!rosterEditMode) renderRoster();
+      } else {
+        PRAYER_BACKUP_DOC.set(prayerBackupRotation).catch(function(){});
+      }
+    }, function(err){ console.error("prayer backup sync error", err); });
+  }
+  function startRosterAttendanceSync(year){
+    year = String(year);
+    if(rosterAttUnsub[year]) return;
+    rosterAttUnsub[year] = WEEKS_COL.where("date", ">=", year+"-01-01").where("date", "<=", year+"-12-31")
+      .onSnapshot(function(snap){
+        var map = {};
+        snap.forEach(function(doc){
+          var d = doc.data();
+          if(typeof d.attendance === "number") map[d.date] = d.attendance;
+        });
+        rosterAttendance[year] = map;
+        if(!rosterEditMode && String(currentRosterYear) === year) renderRoster();
+      }, function(err){ console.error("roster attendance sync error", err); });
+  }
+  function ensureRosterYearLoaded(year){
+    startRosterSync(year);
+    startRosterAttendanceSync(year);
+  }
+
+  function rosterTableHtml(){
+    var year = currentRosterYear;
+    var rows = (rosterCache[year] || []).slice().sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+    var attMap = rosterAttendance[year] || {};
+    var todayISO = toISODateLocal(new Date());
+    var body = rows.map(function(r, i){
+      var att = attMap[r.date];
+      var attHtml = (typeof att === "number") ? att+"명" : "-";
+      var trClass = (r.date === todayISO) ? "today-row" : (r.special ? "special-row-tr" : "");
+      if(rosterEditMode){
+        return (
+          '<tr data-idx="'+i+'"'+(trClass?' class="'+trClass+'"':'')+'>'+
+            '<td class="roster-no">'+(i+1)+'</td>'+
+            '<td><input class="roster-f" data-k="date" value="'+esc(r.date)+'" placeholder="YYYY-MM-DD"></td>'+
+            '<td><input class="roster-f" data-k="preacher" value="'+esc(r.preacher)+'" placeholder="설교자"></td>'+
+            '<td><input class="roster-f" data-k="worshipLeader" value="'+esc(r.worshipLeader)+'" placeholder="찬양인도자"></td>'+
+            '<td><input class="roster-f" data-k="prayerBackup" value="'+esc(r.prayerBackup)+'" placeholder="기도백업"></td>'+
+            '<td class="roster-att'+(typeof att!=="number"?" empty":"")+'">'+attHtml+'</td>'+
+            '<td><input class="roster-f" data-k="note" value="'+esc(r.note||"")+'" placeholder="비고 (수련회 등)"></td>'+
+            '<td><button type="button" class="roster-del" data-idx="'+i+'" aria-label="이 행 삭제">삭제</button></td>'+
+          '</tr>'
+        );
+      }
+      return (
+        '<tr'+(trClass?' class="'+trClass+'"':'')+'>'+
+          '<td class="roster-no">'+(i+1)+'</td>'+
+          '<td>'+esc(fmtDateKo(r.date))+'</td>'+
+          '<td>'+esc(r.preacher||(r.note?"—":""))+'</td>'+
+          '<td>'+esc(r.worshipLeader)+'</td>'+
+          '<td>'+esc(r.prayerBackup)+'</td>'+
+          '<td class="roster-att'+(typeof att!=="number"?" empty":"")+'">'+attHtml+'</td>'+
+          '<td style="color:var(--ink-dim);">'+esc(r.note||"")+'</td>'+
+        '</tr>'
+      );
+    }).join("");
+    var head = rosterEditMode
+      ? '<tr><th>#</th><th>날짜</th><th>설교자</th><th>찬양인도자</th><th>기도백업</th><th>출석</th><th>비고</th><th></th></tr>'
+      : '<tr><th>#</th><th>날짜</th><th>설교자</th><th>찬양인도자</th><th>기도백업</th><th>출석</th><th>비고</th></tr>';
+    return '<table class="roster-table"><thead>'+head+'</thead><tbody id="rosterBody">'+(body||'<tr><td colspan="8" style="text-align:center;color:var(--ink-dim);padding:20px;">'+year+'년 로스터가 아직 없어요.</td></tr>')+'</tbody></table>';
+  }
+
+  function prayerBackupSectionHtml(){
+    if(rosterEditMode){
+      return (
+        '<div class="manual-box">'+
+          '<div class="m-label">기도백업 순번</div>'+
+          '<textarea id="pbNamesArea" rows="3" style="width:100%;margin-bottom:10px;" placeholder="한 줄에 한 명씩, 순서대로">'+esc(prayerBackupRotation.names.join("\n"))+'</textarea>'+
+          '<div class="m-label">확인사항 (기도백업 담당자 체크리스트)</div>'+
+          '<textarea id="pbChecklistArea" rows="4" style="width:100%;" placeholder="한 줄에 항목 하나씩">'+esc(prayerBackupRotation.checklist.join("\n"))+'</textarea>'+
+        '</div>'
+      );
+    }
+    return (
+      '<div class="manual-box">'+
+        '<div class="m-label">기도백업 순번</div>'+
+        (prayerBackupRotation.names.length ? '<div style="font-size:12.5px;">'+prayerBackupRotation.names.map(esc).join(' → ')+'</div>' : '<div class="empty-inline">등록된 순번이 없어요.</div>')+
+        '<div class="m-label" style="margin-top:14px;">확인사항</div>'+
+        (prayerBackupRotation.checklist.length ? '<ul>'+prayerBackupRotation.checklist.map(function(c){ return '<li>'+esc(c)+'</li>'; }).join("")+'</ul>' : '<div class="empty-inline">등록된 확인사항이 없어요.</div>')+
+      '</div>'
+    );
+  }
+
+  function renderRoster(){
+    var el = document.getElementById("rosterPanel");
+    if(!el) return;
+    ensureRosterYearLoaded(currentRosterYear);
+    var thisYear = parseInt(getUpcomingFriday().slice(0,4), 10);
+    var yearOptions = [];
+    for(var y = thisYear - 2; y <= thisYear + 1; y++){ yearOptions.push(y); }
+    if(yearOptions.indexOf(parseInt(currentRosterYear,10)) === -1) yearOptions.push(parseInt(currentRosterYear,10));
+    yearOptions.sort();
+    el.innerHTML =
+      '<div class="roster-toolbar">'+
+        '<select id="rosterYearSelect">'+yearOptions.map(function(y){ return '<option value="'+y+'"'+(String(y)===String(currentRosterYear)?' selected':'')+'>'+y+'년</option>'; }).join("")+'</select>'+
+        (rosterEditMode
+          ? '<button type="button" class="btn ghost sm" id="rosterAddRowBtn">+ 주차 추가</button><span style="flex:1;"></span><button type="button" class="btn ghost sm" id="rosterCancelBtn">취소</button><button type="button" class="btn sm" id="rosterSaveBtn">로스터 저장</button>'
+          : '<span style="flex:1;"></span><button type="button" class="btn ghost sm" id="rosterEditBtn">전체 수정</button>')+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--ink-dim);margin-bottom:10px;">"출석" 칸은 그 주 문서에 실제 기록된 값을 그대로 보여줘요 — 여기서 고쳐도 저장되지 않아요. 날짜·담당자는 앞으로 있을 주를 미리 정해두면 그 주가 됐을 때 자동으로 채워져요.</div>'+
+      '<div class="roster-table-wrap">'+rosterTableHtml()+'</div>'+
+      '<div class="save-row"><span class="save-status" role="status" aria-live="polite" id="rosterStatus"></span></div>'+
+      prayerBackupSectionHtml()+
+      (rosterEditMode ? '<div class="save-row"><span class="save-status" role="status" aria-live="polite" id="pbStatus"></span><button type="button" class="btn sm" id="pbSaveBtn">기도백업 순번 저장</button></div>' : '');
+    wireRosterEvents(el);
+  }
+
+  function readRosterRowsFromDom(el){
+    var rows = [];
+    Array.prototype.forEach.call(el.querySelectorAll("#rosterBody tr[data-idx]"), function(tr){
+      var data = { special:false };
+      Array.prototype.forEach.call(tr.querySelectorAll(".roster-f"), function(input){
+        data[input.getAttribute("data-k")] = input.value.trim().slice(0,200);
+      });
+      if(!data.preacher && data.note) data.special = true;
+      rows.push(data);
+    });
+    return rows;
+  }
+
+  function wireRosterEvents(el){
+    var yearSelect = el.querySelector("#rosterYearSelect");
+    if(yearSelect) yearSelect.addEventListener("change", function(){
+      currentRosterYear = yearSelect.value;
+      rosterEditMode = false;
+      renderRoster();
+    });
+    var editBtn = el.querySelector("#rosterEditBtn");
+    if(editBtn) editBtn.addEventListener("click", function(){ rosterEditMode = true; renderRoster(); });
+    var cancelBtn = el.querySelector("#rosterCancelBtn");
+    if(cancelBtn) cancelBtn.addEventListener("click", function(){ rosterEditMode = false; renderRoster(); });
+    var addRowBtn = el.querySelector("#rosterAddRowBtn");
+    if(addRowBtn) addRowBtn.addEventListener("click", function(){
+      var rows = readRosterRowsFromDom(el);
+      rows.push({ date:"", preacher:"", worshipLeader:"", prayerBackup:"", note:"", special:false });
+      rosterCache[currentRosterYear] = rows;
+      renderRoster();
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".roster-del"), function(btn){
+      btn.addEventListener("click", function(){
+        var idx = parseInt(btn.getAttribute("data-idx"),10);
+        var rows = readRosterRowsFromDom(el);
+        var row = rows[idx] || {};
+        var hasContent = row.preacher || row.worshipLeader || row.prayerBackup || row.note;
+        if(hasContent && !confirm("'"+(row.date||"이 행")+"' 항목을 삭제할까요?")) return;
+        rows.splice(idx,1);
+        rosterCache[currentRosterYear] = rows;
+        renderRoster();
+      });
+    });
+    var saveBtn = el.querySelector("#rosterSaveBtn");
+    if(saveBtn) saveBtn.addEventListener("click", function(){
+      var rows = readRosterRowsFromDom(el).filter(function(r){ return r.date; });
+      setStatus("rosterStatus", "저장 중...", false);
+      ROSTER_DOC(currentRosterYear).set({ rows: rows, updatedAt: new Date().toISOString(), updatedBy: currentAuthorName() }).then(function(){
+        rosterCache[currentRosterYear] = rows;
+        rosterEditMode = false;
+        setStatus("rosterStatus", "저장됐어요 · "+currentAuthorName(), false);
+        renderRoster();
+      }).catch(function(err){
+        setStatus("rosterStatus", "저장 실패: "+(err && err.message || ""), true);
+      });
+    });
+    var pbSaveBtn = el.querySelector("#pbSaveBtn");
+    if(pbSaveBtn) pbSaveBtn.addEventListener("click", function(){
+      var names = document.getElementById("pbNamesArea").value.split("\n").map(function(s){return s.trim().slice(0,50);}).filter(function(s){return s;});
+      var checklist = document.getElementById("pbChecklistArea").value.split("\n").map(function(s){return s.trim().slice(0,200);}).filter(function(s){return s;});
+      prayerBackupRotation = { names:names, checklist:checklist };
+      setStatus("pbStatus", "저장 중...", false);
+      PRAYER_BACKUP_DOC.set(prayerBackupRotation).then(function(){
+        setStatus("pbStatus", "저장됐어요.", false);
+      }).catch(function(err){
+        setStatus("pbStatus", "저장 실패: "+(err && err.message || ""), true);
+      });
+    });
+  }
+
   /* 다른 사람이 저장할 때마다 오는 실시간 업데이트가, 지금 이 화면에서
      타이핑 중인 입력칸까지 통째로 새로 그려버려 커서 위치와 아직 저장 안 한
      내용을 날려버리는 문제가 있었다. 지금 포커스가 그 패널 안에 있으면
@@ -1276,9 +1575,12 @@
   /* ---- start ---- */
   renderTodayLabel();
   startCueTemplateSync();
+  startTeamManualsSync();
+  startPrayerBackupSync();
   renderWeek();
   startWeekSync();
   startRecentSync();
+  renderRoster();
 
 })();
 </script>
