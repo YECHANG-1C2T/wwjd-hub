@@ -225,8 +225,18 @@
 
   <div class="week-glance" id="weekGlance"></div>
 
+  <section id="cueSection">
+    <div class="section-head"><span class="section-no">01</span><h2>오늘의 큐시트</h2><span class="sub">진행순서 — 누구나 보고, 채워넣을 수 있어요</span></div>
+    <div id="cuePanel"></div>
+  </section>
+
+  <section id="verseSection">
+    <div class="section-head"><span class="section-no">02</span><h2>참고구절</h2><span class="sub">이번 주 설교 흐름 — 미리 알아두세요</span></div>
+    <div id="versePanel"></div>
+  </section>
+
   <section id="teamSection">
-    <div class="section-head"><span class="section-no">01</span><h2>출석 흐름 · 팀별 정보</h2><span class="sub">팀을 선택해 매뉴얼과 배정 인원을 확인/입력하세요</span></div>
+    <div class="section-head"><span class="section-no">03</span><h2>출석 흐름 · 팀별 정보</h2><span class="sub">팀을 선택해 매뉴얼과 배정 인원을 확인/입력하세요</span></div>
     <div class="board">
       <aside class="rail">
         <div class="rail-block">
@@ -246,16 +256,6 @@
       </aside>
       <div class="detail-panel" id="teamPanel" role="tabpanel"></div>
     </div>
-  </section>
-
-  <section id="cueSection">
-    <div class="section-head"><span class="section-no">02</span><h2>오늘의 큐시트</h2><span class="sub">진행순서 — 누구나 보고, 채워넣을 수 있어요</span></div>
-    <div id="cuePanel"></div>
-  </section>
-
-  <section id="verseSection">
-    <div class="section-head"><span class="section-no">03</span><h2>참고구절</h2><span class="sub">이번 주 설교 흐름 — 미리 알아두세요</span></div>
-    <div id="versePanel"></div>
   </section>
 
   <section id="dinnerSection">
@@ -296,14 +296,14 @@
   var DINNER_DEADLINE = "식사주문은 수요일 17:00까지 부탁해요~";
   var VERSE_DEADLINE = "참고구절 컷오프는 금요일 오후 5시입니다.";
   var CUE_PRESET = [
-    { time:"18:00", duration:"60min", owner:"청금사역팀", content:"예배셋팅", note:"", sound:"", light:"", media:"" },
+    { time:"18:00", duration:"60min", owner:"청금사역팀", content:"예배셋팅", note:"", sound:"", light:"세션 영역 둥근 조명 1개", media:"" },
     { time:"19:00", duration:"45min", owner:"찬양인도자", content:"찬양연습", note:"", sound:"", light:"", media:"" },
-    { time:"19:45", duration:"5min", owner:"", content:"결단찬양", note:"설교자 결단찬양", sound:"", light:"강대상 핀라이트", media:"유튜브 송출 시작" },
-    { time:"20:00", duration:"20min", owner:"찬양팀", content:"찬양", note:"", sound:"", light:"", media:"" },
+    { time:"19:45", duration:"5min", owner:"찬양인도자", content:"결단찬양", note:"설교자 결단찬양", sound:"", light:"강대상 핀라이트", media:"유튜브 송출 시작" },
+    { time:"20:00", duration:"20min", owner:"찬양팀", content:"찬양", note:"찬양인도자 기도콜 이후 목사님 등단 - 기도마무리", sound:"MIC 1ea ON", light:"", media:"" },
     { time:"20:20", duration:"35min", owner:"설교자", content:"메세지", note:"본문 / 제목", sound:"", light:"", media:"" },
-    { time:"20:55", duration:"25min", owner:"기도백업", content:"결단 및 기도", note:"", sound:"MIC", light:"", media:"" },
-    { time:"21:20", duration:"50min", owner:"다같이", content:"개인기도", note:"", sound:"", light:"건반 페이드아웃", media:"" },
-    { time:"22:10", duration:"30min", owner:"청금사역팀", content:"마무리", note:"집회실 마무리 정리", sound:"", light:"", media:"" }
+    { time:"20:55", duration:"25min", owner:"기도백업", content:"결단 및 기도", note:"", sound:"찬양팀 MIC ON", light:"기도회 조명 ON · 개인 기도 조명 ON", media:"" },
+    { time:"21:20", duration:"50min", owner:"다같이", content:"개인기도", note:"", sound:"건반 페이드 OUT · 개인 기도회 BGM ON", light:"55분 은은하게 ON · 8번 조명", media:"" },
+    { time:"22:10", duration:"30min", owner:"청금사역팀", content:"마무리", note:"집회실 마무리 정리", sound:"음향 OFF", light:"", media:"" }
   ];
 
   function pad2(n){ return String(n).padStart(2,"0"); }
