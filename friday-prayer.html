@@ -179,29 +179,44 @@
   table.roster-table .roster-del{color:var(--danger);background:none;border:none;cursor:pointer;padding:8px;min-width:24px;min-height:24px;}
   @media (max-width:760px){ table.roster-table{font-size:11.5px;} }
 
-  /* cue sheet: card rows with colored owner tags */
-  .cue-list{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:4px;}
-  .cue-row{background:var(--surface);display:grid;grid-template-columns:60px 56px 116px 1fr auto;gap:10px;align-items:start;padding:11px 12px;}
-  .cue-row-head{background:var(--surface-2);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);padding:6px 12px;border-radius:8px 8px 0 0;}
-  .cue-row input{border:none;background:none;padding:4px 2px;border-radius:4px;}
-  .cue-row input:focus{outline:none;background:var(--surface-2);box-shadow:0 0 0 2px var(--brand);}
-  .cue-time-col input{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;width:100%;color:var(--ink);}
-  .cue-dur-col input{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);width:100%;}
-  .cue-owner-col input{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--ink);background:var(--tc-soft,transparent)!important;border:1.5px solid var(--tc,var(--line))!important;border-radius:999px!important;padding:5px 10px!important;text-align:center;width:100%;}
-  .cue-content-col input.cue-main{font-size:14px;font-weight:700;width:100%;color:var(--ink);}
+  /* cue sheet: real table, spreadsheet-like (도식화) */
+  .cue-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;margin-bottom:4px;}
+  table.cue-table{border-collapse:collapse;width:100%;min-width:680px;background:var(--surface);}
+  table.cue-table thead th{background:var(--surface-2);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  table.cue-table td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.cue-table tr.cue-row:last-child td{border-bottom:none;}
+  table.cue-table tr.cue-row:nth-child(even){background:var(--surface-2);}
+  table.cue-table input{border:none;background:none;padding:4px 2px;border-radius:4px;width:100%;}
+  table.cue-table input:focus{outline:none;background:var(--surface);box-shadow:0 0 0 2px var(--brand);}
+  .cue-no-col{width:26px;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--ink-dim);font-size:11px;padding-top:12px!important;}
+  .cue-time-col{width:64px;}
+  .cue-time-col input{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--ink);}
+  .cue-dur-col{width:58px;}
+  .cue-dur-col input{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);}
+  .cue-owner-col{width:126px;}
+  .cue-owner-col input{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:var(--ink);background:var(--tc-soft,transparent)!important;border:1.5px solid var(--tc,var(--line))!important;border-radius:999px!important;padding:5px 10px!important;text-align:center;}
+  .cue-content-col{min-width:280px;}
+  .cue-content-col input.cue-main{font-size:14px;font-weight:700;color:var(--ink);}
   .cue-detail-row{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;}
   .cue-f-wrap{display:flex;align-items:center;gap:5px;flex:1;min-width:100px;}
   .cue-f-tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-dim);flex:none;}
   .cue-detail-row input{flex:1;min-width:52px;font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;color:var(--ink);background:none!important;border:none!important;padding:2px 0!important;}
-  .cue-detail-row input:focus{background:var(--surface-2)!important;border-radius:4px!important;padding:2px 6px!important;box-shadow:0 0 0 2px var(--brand);}
+  .cue-detail-row input:focus{background:var(--surface)!important;border-radius:4px!important;padding:2px 6px!important;box-shadow:0 0 0 2px var(--brand);}
   .cue-detail-row input::placeholder{color:var(--ink-dim);opacity:.55;font-weight:400;}
-  .cue-row .cue-del{align-self:start;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--danger);background:none;border:none;cursor:pointer;padding:8px;min-width:24px;min-height:24px;text-transform:uppercase;}
+  .cue-del-col{width:44px;text-align:center;}
+  .cue-del{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--danger);background:none;border:none;cursor:pointer;padding:8px;min-width:24px;min-height:24px;text-transform:uppercase;}
   .cue-actions{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
   @media (max-width:640px){
-    .cue-row-head{display:none;}
-    .cue-row{grid-template-columns:1fr;gap:6px;}
-    .cue-owner-col input{width:fit-content;}
-    .cue-row .cue-del{justify-self:flex-end;}
+    table.cue-table thead{display:none;}
+    table.cue-table, table.cue-table tbody{display:block;width:100%;}
+    table.cue-table tr.cue-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:10px;border-bottom:1px solid var(--line);}
+    table.cue-table td{display:block;padding:0;border:none;}
+    .cue-no-col{order:0;width:auto;padding-top:0!important;}
+    .cue-time-col{order:1;width:auto;}
+    .cue-dur-col{order:2;width:auto;}
+    .cue-owner-col{order:3;width:auto;margin-left:auto;}
+    .cue-content-col{order:5;width:100%;min-width:0;}
+    .cue-del-col{order:4;width:auto;}
   }
 
   /* songs */
@@ -986,11 +1001,12 @@
   function cueSheetSectionHtml(){
     var rows = (currentWeek.cueSheet || []).map(function(row, i){
       return (
-        '<div class="cue-row" data-idx="'+i+'">'+
-          '<div class="cue-time-col"><label class="sr-only" for="cue-time-'+i+'">시간</label><input id="cue-time-'+i+'" class="cue-f" data-k="time" value="'+esc(row.time)+'" placeholder="시간"></div>'+
-          '<div class="cue-dur-col"><label class="sr-only" for="cue-dur-'+i+'">소요시간</label><input id="cue-dur-'+i+'" class="cue-f" data-k="duration" value="'+esc(row.duration)+'" placeholder="소요"></div>'+
-          '<div class="cue-owner-col"><label class="sr-only" for="cue-owner-'+i+'">담당자</label><input id="cue-owner-'+i+'" class="cue-f cue-owner-input" data-k="owner" value="'+esc(row.owner)+'" placeholder="담당자" style="--tc:'+ownerColor(row.owner)+';--tc-soft:'+ownerColorSoft(row.owner)+'"></div>'+
-          '<div class="cue-content-col">'+
+        '<tr class="cue-row" data-idx="'+i+'">'+
+          '<td class="cue-no-col">'+(i+1)+'</td>'+
+          '<td class="cue-time-col"><label class="sr-only" for="cue-time-'+i+'">시간</label><input id="cue-time-'+i+'" class="cue-f" data-k="time" value="'+esc(row.time)+'" placeholder="시간"></td>'+
+          '<td class="cue-dur-col"><label class="sr-only" for="cue-dur-'+i+'">소요시간</label><input id="cue-dur-'+i+'" class="cue-f" data-k="duration" value="'+esc(row.duration)+'" placeholder="소요"></td>'+
+          '<td class="cue-owner-col"><label class="sr-only" for="cue-owner-'+i+'">담당자</label><input id="cue-owner-'+i+'" class="cue-f cue-owner-input" data-k="owner" value="'+esc(row.owner)+'" placeholder="담당자" style="--tc:'+ownerColor(row.owner)+';--tc-soft:'+ownerColorSoft(row.owner)+'"></td>'+
+          '<td class="cue-content-col">'+
             '<label class="sr-only" for="cue-content-'+i+'">내용</label><input id="cue-content-'+i+'" class="cue-f cue-main" data-k="content" value="'+esc(row.content)+'" placeholder="내용 (예: 찬양, 메시지)">'+
             '<div class="cue-detail-row">'+
               '<label class="cue-f-wrap"><span class="cue-f-tag">설명</span><input class="cue-f" data-k="note" value="'+esc(row.note)+'" placeholder="예: 본문/제목"></label>'+
@@ -998,15 +1014,15 @@
               '<label class="cue-f-wrap"><span class="cue-f-tag">조명</span><input class="cue-f" data-k="light" value="'+esc(row.light)+'" placeholder="예: 핀라이트"></label>'+
               '<label class="cue-f-wrap"><span class="cue-f-tag">미디어</span><input class="cue-f" data-k="media" value="'+esc(row.media)+'" placeholder="예: 자막 송출"></label>'+
             '</div>'+
-          '</div>'+
-          '<button type="button" class="cue-del" data-idx="'+i+'" aria-label="이 순서 삭제">삭제</button>'+
-        '</div>'
+          '</td>'+
+          '<td class="cue-del-col"><button type="button" class="cue-del" data-idx="'+i+'" aria-label="이 순서 삭제">삭제</button></td>'+
+        '</tr>'
       );
     }).join("");
     return (
       '<div class="divider-label" style="font-size:12px;font-weight:700;color:var(--ink-dim);margin:16px 0 8px;">진행 큐시트</div>'+
-      '<div class="cue-row cue-row-head" aria-hidden="true"><div>시간</div><div>소요</div><div>담당자</div><div>내용 · 설명 · 음향 · 조명 · 미디어</div><div></div></div>'+
-      '<div class="cue-list" id="cueBody">'+rows+'</div>'+
+      '<div class="cue-table-wrap"><table class="cue-table"><thead><tr><th>#</th><th>시간</th><th>소요</th><th>담당자</th><th>내용 · 설명 · 음향 · 조명 · 미디어</th><th></th></tr></thead>'+
+      '<tbody id="cueBody">'+rows+'</tbody></table></div>'+
       '<div class="cue-actions">'+
         '<button type="button" class="btn ghost sm" id="cueAddBtn">+ 순서 추가</button>'+
         '<button type="button" class="btn ghost sm" id="cuePresetBtn">이번 주만: 기본 진행표 불러오기</button>'+
