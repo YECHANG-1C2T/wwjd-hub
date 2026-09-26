@@ -306,6 +306,24 @@
     { time:"22:10", duration:"30min", owner:"청금사역팀", content:"마무리", note:"집회실 마무리 정리", sound:"음향 OFF", light:"", media:"" }
   ];
 
+  /* 기본 진행표(cueTemplate)는 Firestore에 저장되어 팀이 직접 고쳐 쓸 수 있다.
+     새 주가 만들어질 때 빈 배열 대신 이 템플릿으로 시작하므로 매주 같은 내용을
+     다시 입력할 필요가 없다. CUE_PRESET은 문서가 아직 없을 때만 쓰는 최초 시드값. */
+  var cueTemplate = CUE_PRESET.map(function(r){ return Object.assign({}, r); });
+  var CUE_TEMPLATE_DOC = db.collection("friday_prayer_settings").doc("cueTemplate");
+  function startCueTemplateSync(){
+    CUE_TEMPLATE_DOC.onSnapshot(function(snap){
+      var data = snap.exists ? snap.data() : null;
+      if(data && Array.isArray(data.rows) && data.rows.length){
+        cueTemplate = data.rows.map(function(r){ return Object.assign({}, r); });
+      } else {
+        CUE_TEMPLATE_DOC.set({ rows: cueTemplate }).catch(function(){});
+      }
+    }, function(err){
+      console.error("cue template sync error", err);
+    });
+  }
+
   function pad2(n){ return String(n).padStart(2,"0"); }
   function toISODateLocal(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
   function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -349,7 +367,8 @@
       mediaRoles: { switcher:"", lighting:"", cameraMid:"", cameraHandy:"", broadcastCaption:"", venueCaption:"" },
       songs: [], dinnerCounts: dinnerCounts, servingCounts: servingCounts,
       weeklyNotice: "",
-      cueSheet: [], referenceVerses: "", attendance: null
+      cueSheet: cueTemplate.map(function(r){ return Object.assign({}, r); }),
+      referenceVerses: "", attendance: null
     };
   }
 
@@ -789,7 +808,9 @@
       '<div class="cue-actions">'+
         '<button type="button" class="btn ghost sm" id="cueAddBtn">+ 순서 추가</button>'+
         '<button type="button" class="btn ghost sm" id="cuePresetBtn">기본 진행표 불러오기</button>'+
+        '<button type="button" class="btn ghost sm" id="cueSetTemplateBtn">이 내용을 기본값으로 저장</button>'+
       '</div>'+
+      '<div style="font-size:11px;color:var(--ink-dim);margin:2px 0 8px;">"큐시트 저장"은 이번 주만, "기본값으로 저장"은 다음 주부터 모든 새 주에 자동으로 적용돼요.</div>'+
       '<div class="save-row"><span class="save-status" id="cueStatus"></span><button type="button" class="btn sm" id="cueSaveBtn">큐시트 저장</button></div>'
     );
   }
@@ -922,6 +943,18 @@
   }
 
   /* ---- shared panel events: 큐시트 · 참고구절 · 식사인원 (팀과 무관, 전체 공유) ---- */
+  function readCueRowsFromDom(el){
+    var rows = [];
+    Array.prototype.forEach.call(el.querySelectorAll("#cueBody .cue-row"), function(row){
+      var data = {};
+      Array.prototype.forEach.call(row.querySelectorAll(".cue-f"), function(input){
+        data[input.getAttribute("data-k")] = input.value.trim().slice(0,120);
+      });
+      rows.push(data);
+    });
+    return rows;
+  }
+
   function wireCueEvents(el){
     var cueAddBtn = el.querySelector("#cueAddBtn");
     if(cueAddBtn) cueAddBtn.addEventListener("click", function(){
@@ -932,7 +965,7 @@
     var cuePresetBtn = el.querySelector("#cuePresetBtn");
     if(cuePresetBtn) cuePresetBtn.addEventListener("click", function(){
       if(currentWeek.cueSheet && currentWeek.cueSheet.length && !confirm("현재 큐시트를 기본 진행표로 덮어쓸까요?")) return;
-      currentWeek.cueSheet = CUE_PRESET.map(function(r){ return Object.assign({}, r); });
+      currentWeek.cueSheet = cueTemplate.map(function(r){ return Object.assign({}, r); });
       renderCue();
     });
     Array.prototype.forEach.call(el.querySelectorAll(".cue-del"), function(btn){
@@ -943,16 +976,26 @@
     });
     var cueSaveBtn = el.querySelector("#cueSaveBtn");
     if(cueSaveBtn) cueSaveBtn.addEventListener("click", function(){
-      var rows = [];
-      Array.prototype.forEach.call(el.querySelectorAll("#cueBody .cue-row"), function(row){
-        var data = {};
-        Array.prototype.forEach.call(row.querySelectorAll(".cue-f"), function(input){
-          data[input.getAttribute("data-k")] = input.value.trim().slice(0,120);
-        });
-        rows.push(data);
-      });
+      var rows = readCueRowsFromDom(el);
       currentWeek.cueSheet = rows;
       patchWeek({ cueSheet: rows }, "cueStatus");
+    });
+    var cueSetTemplateBtn = el.querySelector("#cueSetTemplateBtn");
+    if(cueSetTemplateBtn) cueSetTemplateBtn.addEventListener("click", function(){
+      var rows = readCueRowsFromDom(el);
+      if(!rows.length){ alert("저장할 진행 순서가 없어요."); return; }
+      if(!confirm("이번 주 큐시트를 앞으로 모든 새 주의 기본 진행표로 저장할까요?\n(지난 주들은 영향받지 않아요)")) return;
+      cueTemplate = rows.map(function(r){ return Object.assign({}, r); });
+      currentWeek.cueSheet = rows;
+      setStatus("cueStatus", "기본값 저장 중...", false);
+      Promise.all([
+        CUE_TEMPLATE_DOC.set({ rows: cueTemplate }),
+        patchWeek({ cueSheet: rows })
+      ]).then(function(){
+        setStatus("cueStatus", "기본 진행표로 저장됐어요. 다음 주부터 자동 적용돼요.", false);
+      }).catch(function(err){
+        setStatus("cueStatus", "저장 실패: " + (err && err.message || ""), true);
+      });
     });
     Array.prototype.forEach.call(el.querySelectorAll(".cue-owner-input"), function(inp){
       inp.addEventListener("input", function(){ inp.style.setProperty("--tc", ownerColor(inp.value)); });
@@ -1041,6 +1084,7 @@
 
   /* ---- start ---- */
   renderTodayLabel();
+  startCueTemplateSync();
   renderWeek();
   startWeekSync();
   startRecentSync();
