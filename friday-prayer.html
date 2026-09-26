@@ -214,7 +214,7 @@
     <button type="button" id="weekNextBtn" aria-label="다음 주">›</button>
     <input type="date" id="weekJumpInput">
   </div>
-  <div class="special-row">
+  <div class="special-row" id="specialRow">
     <label><input type="checkbox" id="specialCheckbox"> 이번 주는 특별주간(정기 모임 없음)</label>
     <input type="text" id="specialNoteInput" placeholder="사유 (예: 설연휴, 수련회)">
     <button type="button" class="btn ghost sm" id="specialSaveBtn">저장</button>
@@ -436,6 +436,7 @@
   var pendingWrites = {};
   var unsubscribeWeek = null;
   var unsubscribeRecent = null;
+  var hasUnsavedInput = false; /* 저장 버튼을 안 누르고 탭을 닫으려 할 때 경고용 (beforeunload) */
 
   /* ---- week doc sync ---- */
   function startWeekSync(){
@@ -476,6 +477,7 @@
     fields.updatedAt = new Date().toISOString();
     return WEEKS_COL.doc(thisDate).set(fields, { merge:true }).then(function(){
       if(statusElId) setStatus(statusElId, "저장됐어요.", false);
+      hasUnsavedInput = false;
       return { ok:true };
     }).catch(function(err){
       if(statusElId) setStatus(statusElId, "저장 실패: " + (err && err.message || ""), true);
@@ -555,15 +557,26 @@
 
   /* ---- week nav ---- */
   function goToWeek(dateStr){
+    /* beforeunload와 달리 주차 전환은 탭을 닫는 게 아니라서 브라우저가 막아주지
+       않는다 — 저장 안 한 큐시트를 손봐놓고 "다음 주" 화살표를 눌러 그대로
+       날리는 사고가 실제로 제일 흔한 경로라 여기서도 같은 안전장치가 필요하다. */
+    if(hasUnsavedInput && !confirm("저장하지 않은 내용이 있어요. 그래도 다른 주로 이동할까요?")) return false;
+    hasUnsavedInput = false;
     currentDate = dateStr;
+    /* 새 주 문서가 도착하기 전까지 이전 주 데이터가 잠깐 보이던 문제 방지 —
+       전환 즉시 빈 상태(템플릿 큐시트 포함)로 리셋해 두면, 실제 스냅샷이
+       도착하는 대로 renderWeek()가 다시 정확한 값으로 채워준다. */
+    currentWeek = defaultWeek(dateStr);
     document.getElementById("weekJumpInput").value = dateStr;
-    startWeekSync();
     renderWeek();
+    startWeekSync();
+    return true;
   }
   document.getElementById("weekPrevBtn").addEventListener("click", function(){ goToWeek(addDays(currentDate, -7)); });
   document.getElementById("weekNextBtn").addEventListener("click", function(){ goToWeek(addDays(currentDate, 7)); });
   document.getElementById("weekJumpInput").addEventListener("change", function(){
-    if(this.value) goToWeek(this.value);
+    var picked = this.value;
+    if(picked && !goToWeek(picked)) this.value = currentDate; /* 이동을 취소했으면 날짜 선택기 표시도 원상복구 */
   });
 
   /* ---- special week ---- */
@@ -970,7 +983,11 @@
     });
     Array.prototype.forEach.call(el.querySelectorAll(".cue-del"), function(btn){
       btn.addEventListener("click", function(){
-        currentWeek.cueSheet.splice(parseInt(btn.getAttribute("data-idx"),10), 1);
+        var idx = parseInt(btn.getAttribute("data-idx"),10);
+        var row = currentWeek.cueSheet[idx] || {};
+        var hasContent = Object.keys(row).some(function(k){ return (row[k]||"").trim(); });
+        if(hasContent && !confirm("이 순서를 삭제할까요? 되돌릴 수 없어요.")) return;
+        currentWeek.cueSheet.splice(idx, 1);
         renderCue();
       });
     });
@@ -1061,19 +1078,35 @@
     });
   }
 
+  /* 다른 사람이 저장할 때마다 오는 실시간 업데이트가, 지금 이 화면에서
+     타이핑 중인 입력칸까지 통째로 새로 그려버려 커서 위치와 아직 저장 안 한
+     내용을 날려버리는 문제가 있었다. 지금 포커스가 그 패널 안에 있으면
+     리렌더를 건너뛰고, 포커스를 벗어나거나(blur) 저장한 뒤 다음 스냅샷에서
+     자연히 최신값으로 갱신되게 한다 — 다른 패널은 평소처럼 실시간 반영. */
+  function isFocusInside(elId){
+    var el = document.getElementById(elId);
+    var active = document.activeElement;
+    /* Node.contains()는 자기 자신도 포함으로 친다 — specialNoteInput처럼
+       엘리먼트 자체가 입력칸인 경우와, 패널처럼 자식 입력칸을 감싸는
+       컨테이너인 경우를 모두 같은 방식으로 처리하기 위함. */
+    return !!(el && active && el.contains(active));
+  }
+
   function renderWeek(){
     document.getElementById("weekTitle").textContent = fmtDateKo(currentDate);
     document.getElementById("weekJumpInput").value = currentDate;
-    document.getElementById("specialCheckbox").checked = !!currentWeek.special;
-    document.getElementById("specialNoteInput").value = currentWeek.specialNote || "";
+    if(!isFocusInside("specialRow")){
+      document.getElementById("specialCheckbox").checked = !!currentWeek.special;
+      document.getElementById("specialNoteInput").value = currentWeek.specialNote || "";
+    }
     if(!TEAM_IDS.includes(activeTeam)) activeTeam = TEAM_IDS[0];
-    renderWeeklyNotice();
+    if(!isFocusInside("weeklyNoticePanel")) renderWeeklyNotice();
     renderWeekGlance();
-    renderCue();
-    renderVerse();
-    renderDinner();
+    if(!isFocusInside("cuePanel")) renderCue();
+    if(!isFocusInside("versePanel")) renderVerse();
+    if(!isFocusInside("dinnerPanel")) renderDinner();
     renderTeamTabs();
-    renderTeamPanel();
+    if(!isFocusInside("teamPanel")) renderTeamPanel();
   }
 
   function renderTodayLabel(){
@@ -1081,6 +1114,22 @@
     var wd = ["일","월","화","수","목","금","토"][d.getDay()];
     document.getElementById("todayLabel").textContent = d.getFullYear()+"."+pad2(d.getMonth()+1)+"."+pad2(d.getDate())+" ("+wd+")";
   }
+
+  /* ---- 저장 안 하고 탭을 닫으려 할 때 경고 ----
+     정밀하게 "이 필드가 아직 저장 안 됨"까지는 안 따지고, 마지막 저장 성공
+     이후 어딘가에 입력이 있었으면 경고하는 수준의 안전망. 큐시트처럼 여러
+     칸을 채우고 한 번에 저장하는 화면에서, 저장을 깜빡하고 탭을 닫아 내용을
+     통째로 날리는 사고를 막기 위함. */
+  var UNSAVED_WARNING_EXCLUDE_IDS = { myNameInput:true, weekJumpInput:true };
+  document.getElementById("app").addEventListener("input", function(e){
+    if(e.target && UNSAVED_WARNING_EXCLUDE_IDS[e.target.id]) return; /* 이름/주차 이동은 별도로 즉시 저장되는 값이라 경고 대상이 아님 */
+    hasUnsavedInput = true;
+  });
+  window.addEventListener("beforeunload", function(e){
+    if(!hasUnsavedInput) return;
+    e.preventDefault();
+    e.returnValue = "";
+  });
 
   /* ---- start ---- */
   renderTodayLabel();
