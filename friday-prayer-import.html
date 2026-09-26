@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>청금 과거 데이터 가져오기 (1회용)</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+  body{font-family:-apple-system,'Noto Sans KR',sans-serif;max-width:900px;margin:0 auto;padding:24px 16px 80px;color:#111;background:#FAFAF7;}
+  h1{font-size:20px;} h2{font-size:16px;margin-top:36px;border-top:2px solid #111;padding-top:16px;}
+  .warn{background:#FBE4DF;border-left:3px solid #C7402B;padding:10px 14px;border-radius:4px;font-size:13px;margin:12px 0;}
+  .note{background:#FFE7DA;border-left:3px solid #FF4E1F;padding:10px 14px;border-radius:4px;font-size:13px;margin:12px 0;}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;margin:12px 0;}
+  th,td{border:1px solid #E4E1D6;padding:6px 8px;text-align:left;}
+  th{background:#F2F0E9;font-size:11px;}
+  tr.special td{background:#F2F0E9;color:#726F68;}
+  input{width:100%;box-sizing:border-box;padding:4px 6px;border:1px solid #E4E1D6;border-radius:4px;font-size:12.5px;}
+  button{font-weight:700;padding:10px 18px;border-radius:6px;border:1.5px solid #FF4E1F;background:#FF4E1F;color:#111;cursor:pointer;font-size:13px;margin:10px 4px 10px 0;}
+  button:disabled{opacity:.5;cursor:default;}
+  #log{white-space:pre-wrap;font-family:monospace;font-size:12px;background:#111;color:#0f0;padding:12px;border-radius:6px;max-height:300px;overflow:auto;margin-top:12px;}
+  .att-col{width:80px;}
+</style>
+</head>
+<body>
+<h1>청금 과거 데이터 가져오기 (1회성 도구)</h1>
+<div class="warn">이 페이지는 <b>한 번만 쓰고 지워도 되는 관리용 도구</b>입니다. friday-prayer.html에서는 링크되어 있지 않아요. 실행 후 삭제하셔도 됩니다.</div>
+
+<h2>1. 2026년 로스터 + 과거 주차 백필</h2>
+<p style="font-size:13px;">구글시트 원본에서 그대로 가져온 데이터입니다 (설교자·찬양인도자·기도백업·비고 전체 52주). 대시보드가 실제로 열린 2026-09-15 이전 주(9/11까지)는 그 주 문서도 함께 만들어서, 연간 로스터 화면에서 실제 출석까지 바로 보이게 합니다. 9/18 이후는 이미 대시보드로 직접 입력됐을 수 있어 문서를 새로 만들지 않고 로스터 표에만 반영합니다.</p>
+<div id="roster2026Table"></div>
+<button id="import2026Btn">2026년 로스터 + 과거 주차 가져오기 실행</button>
+
+<h2>2. 기도백업 순번 + 확인사항</h2>
+<div id="pbTable"></div>
+<button id="importPbBtn">기도백업 순번 가져오기 실행</button>
+
+<h2>3. 2025년 출석 인원 (확인 필요)</h2>
+<div class="warn">
+  2025년은 원본 구글시트에 날짜만 있고 출석 숫자가 비어 있었습니다. 보내주신 비교 인포그래픽 이미지가 유일한 출처인데, 꺾은선 그래프 라벨을 주차별로 정확히 다시 읽어내는 건 잘못 옮겨 적을 위험이 있어 <b>숫자를 미리 채워넣지 않았습니다</b>. 아래 표에 직접 입력하시거나, 기억나는 주만 채우고 나머지는 비워두시면 비운 주는 건너뜁니다.
+  <br><br>
+  참고로 이미지에 나온 <b>2025년 상반기 요약</b>: 총 출석 3,792명 · 평균 199.6명 · 최고 314명 · 최저 110명. 월별 평균 — 1월 201.2 · 2월 157.8 · 3월 198.8 · 4월 217.7 · 5월 235.7명.
+</div>
+<div id="att2025Table"></div>
+<button id="import2025Btn">입력한 2025년 출석만 가져오기 실행</button>
+
+<h2>로그</h2>
+<div id="log">(대기 중)</div>
+
+<script>
+(function(){
+  "use strict";
+  var firebaseConfig = {
+    apiKey: "AIzaSyAI5ZHYd_Mi7JogsgZAYsBERsbPMD5m544",
+    authDomain: "wwjd-hub.firebaseapp.com",
+    projectId: "wwjd-hub",
+    storageBucket: "wwjd-hub.firebasestorage.app",
+    messagingSenderId: "518785715153",
+    appId: "1:518785715153:web:2fd76cfe4a1aabd6bd2ef0"
+  };
+  firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
+  var WEEKS_COL = db.collection("friday_prayer");
+  var BACKFILL_CUTOFF = "2026-09-15"; /* 대시보드 실제 오픈일 — 이 이전 주만 주차 문서를 새로 만든다 */
+
+  function log(msg){
+    var el = document.getElementById("log");
+    el.textContent = (el.textContent === "(대기 중)" ? "" : el.textContent) + msg + "\n";
+    el.scrollTop = el.scrollHeight;
+  }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  var ROSTER_2026 = [{"date":"2026-01-02","preacher":"박세흠","worshipLeader":"임예창","prayerBackup":"정지훈","attendance":187,"note":""},{"date":"2026-01-09","preacher":"박기범","worshipLeader":"임예창","prayerBackup":"김영환","attendance":331,"note":"리더십 컨퍼런스"},{"date":"2026-01-16","preacher":"송지우","worshipLeader":"김지수","prayerBackup":"지원일","attendance":216,"note":""},{"date":"2026-01-23","preacher":"정지훈","worshipLeader":"이세윤","prayerBackup":"송지우","attendance":216,"note":"중고등부 수련회"},{"date":"2026-01-30","preacher":"박세흠","worshipLeader":"김지수","prayerBackup":"박찬우","attendance":262,"note":""},{"date":"2026-02-06","preacher":"임예창","worshipLeader":"김지수","prayerBackup":"박세흠","attendance":223,"note":""},{"date":"2026-02-13","preacher":"박찬우","worshipLeader":"이세윤","prayerBackup":"정지훈","attendance":246,"note":"설연휴"},{"date":"2026-02-20","preacher":"박기범","worshipLeader":"2청년부 찬양팀","prayerBackup":"송지우","attendance":178,"note":"1청년부 수련회"},{"date":"2026-02-27","preacher":"지원일","worshipLeader":"이세윤","prayerBackup":"김영환","attendance":253,"note":""},{"date":"2026-03-06","preacher":"김영환","worshipLeader":"1청년부 찬양팀","prayerBackup":"지원일","attendance":177,"note":"2청 수련회"},{"date":"2026-03-13","preacher":"송지우","worshipLeader":"김지수","prayerBackup":"정지훈","attendance":306,"note":""},{"date":"2026-03-20","preacher":"정지훈","worshipLeader":"임예창","prayerBackup":"박세흠","attendance":258,"note":"3,4청 수련회"},{"date":"2026-03-27","preacher":"박기범","worshipLeader":"이세윤","prayerBackup":"지원일","attendance":262,"note":""},{"date":"2026-04-03","preacher":"","worshipLeader":"","prayerBackup":"","attendance":null,"note":"고난주간 특별부흥회","special":true},{"date":"2026-04-10","preacher":"김영환","worshipLeader":"임예창","prayerBackup":"박찬우","attendance":275,"note":""},{"date":"2026-04-17","preacher":"박찬우","worshipLeader":"이세윤","prayerBackup":"송지우","attendance":265,"note":""},{"date":"2026-04-24","preacher":"정지훈","worshipLeader":"김지수","prayerBackup":"박찬우","attendance":267,"note":""},{"date":"2026-05-01","preacher":"송지우","worshipLeader":"이세윤","prayerBackup":"박세흠","attendance":244,"note":""},{"date":"2026-05-08","preacher":"지원일","worshipLeader":"임예창","prayerBackup":"정지훈","attendance":247,"note":""},{"date":"2026-05-15","preacher":"박세흠","worshipLeader":"김지수","prayerBackup":"김영환","attendance":271,"note":"(5.17 성년식)"},{"date":"2026-05-22","preacher":"정지훈","worshipLeader":"이세윤","prayerBackup":"지원일","attendance":248,"note":""},{"date":"2026-05-29","preacher":"지원일","worshipLeader":"임예창","prayerBackup":"송지우","attendance":231,"note":""},{"date":"2026-06-05","preacher":"김영환","worshipLeader":"이세윤","prayerBackup":"박찬우","attendance":269,"note":""},{"date":"2026-06-12","preacher":"임예창","worshipLeader":"김지수","prayerBackup":"박세흠","attendance":263,"note":""},{"date":"2026-06-19","preacher":"박기범","worshipLeader":"김지수","prayerBackup":"정지훈","attendance":248,"note":""},{"date":"2026-06-26","preacher":"박찬우","worshipLeader":"이세윤","prayerBackup":"김영환","attendance":179,"note":""},{"date":"2026-07-03","preacher":"송지우","worshipLeader":"임예창","prayerBackup":"지원일","attendance":213,"note":"702호/1-1,1-3 수련회"},{"date":"2026-07-10","preacher":"정지훈","worshipLeader":"김지수","prayerBackup":"송지우","attendance":248,"note":"702호/1-2,1-4 수련회"},{"date":"2026-07-17","preacher":"임예창","worshipLeader":"이세윤","prayerBackup":"박찬우","attendance":197,"note":"702호"},{"date":"2026-07-24","preacher":"지원일","worshipLeader":"임예창","prayerBackup":"박세흠","attendance":138,"note":""},{"date":"2026-07-31","preacher":"정지훈","worshipLeader":"김지수","prayerBackup":"정지훈","attendance":164,"note":""},{"date":"2026-08-07","preacher":"박찬우","worshipLeader":"이세윤","prayerBackup":"김영환","attendance":203,"note":""},{"date":"2026-08-14","preacher":"정상혁","worshipLeader":"4청 찬양팀","prayerBackup":"지원일","attendance":262,"note":"4청과 함께하는"},{"date":"2026-08-21","preacher":"박기범","worshipLeader":"3청 찬양팀","prayerBackup":"송지우","attendance":306,"note":"3청과 함께하는"},{"date":"2026-08-28","preacher":"박세흠","worshipLeader":"임예창","prayerBackup":"박찬우","attendance":175,"note":""},{"date":"2026-09-04","preacher":"박기범","worshipLeader":"임예창","prayerBackup":"박세흠","attendance":410,"note":""},{"date":"2026-09-11","preacher":"송지우","worshipLeader":"김지수","prayerBackup":"정지훈","attendance":257,"note":""},{"date":"2026-09-18","preacher":"임예창","worshipLeader":"이세윤","prayerBackup":"김영환","attendance":265,"note":""},{"date":"2026-09-25","preacher":"","worshipLeader":"","prayerBackup":"","attendance":null,"note":"추석 당일","special":true},{"date":"2026-10-02","preacher":"김영환","worshipLeader":"김지수","prayerBackup":"지원일","attendance":null,"note":""},{"date":"2026-10-09","preacher":"","worshipLeader":"","prayerBackup":"","attendance":null,"note":"특새","special":true},{"date":"2026-10-16","preacher":"지원일","worshipLeader":"임예창","prayerBackup":"송지우","attendance":null,"note":""},{"date":"2026-10-23","preacher":"박세흠","worshipLeader":"이세윤","prayerBackup":"박찬우","attendance":null,"note":""},{"date":"2026-10-30","preacher":"김영환","worshipLeader":"김지수","prayerBackup":"박세흠","attendance":null,"note":""},{"date":"2026-11-06","preacher":"정상혁","worshipLeader":"이세윤","prayerBackup":"정지훈","attendance":null,"note":""},{"date":"2026-11-13","preacher":"박찬우","worshipLeader":"김지수","prayerBackup":"김영환","attendance":null,"note":""},{"date":"2026-11-20","preacher":"송지우","worshipLeader":"이세윤","prayerBackup":"지원일","attendance":null,"note":""},{"date":"2026-11-27","preacher":"박세흠","worshipLeader":"임예창","prayerBackup":"송지우","attendance":null,"note":""},{"date":"2026-12-04","preacher":"임예창","worshipLeader":"이세윤","prayerBackup":"박찬우","attendance":null,"note":""},{"date":"2026-12-11","preacher":"박찬우","worshipLeader":"김지수","prayerBackup":"박세흠","attendance":null,"note":""},{"date":"2026-12-18","preacher":"지원일","worshipLeader":"임예창","prayerBackup":"정지훈","attendance":null,"note":""},{"date":"2026-12-25","preacher":"","worshipLeader":"","prayerBackup":"","attendance":null,"note":"성탄절","special":true}];
+
+  var PRAYER_BACKUP = {
+    names: ["정지훈","김영환","지원일","송지우","박찬우","박세흠"],
+    checklist: ["1) 8:20 위치 후 마이크 체크(음향부스)","2) 설교자 등단 전 기도 백업","3) 성경봉독시 소리내어 교독","4) 설교중간에는 교독하지 않습니다"]
+  };
+
+  function fridays2025(){
+    function pad2(n){ return String(n).padStart(2,"0"); }
+    function iso(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+    var out = [], d = new Date(2025,0,3), end = new Date(2025,11,26);
+    while(d <= end){ out.push(iso(d)); d.setDate(d.getDate()+7); }
+    return out;
+  }
+
+  /* ---- render preview tables ---- */
+  document.getElementById("roster2026Table").innerHTML =
+    "<table><tr><th>#</th><th>날짜</th><th>설교자</th><th>찬양인도자</th><th>기도백업</th><th>출석</th><th>비고</th><th>주차문서 생성</th></tr>" +
+    ROSTER_2026.map(function(r,i){
+      var willBackfill = !r.special && r.date < BACKFILL_CUTOFF && typeof r.attendance === "number";
+      return "<tr"+(r.special?' class="special"':'')+"><td>"+(i+1)+"</td><td>"+esc(r.date)+"</td><td>"+esc(r.preacher)+"</td><td>"+esc(r.worshipLeader)+"</td><td>"+esc(r.prayerBackup)+"</td><td>"+(r.attendance==null?"-":r.attendance)+"</td><td>"+esc(r.note)+"</td><td>"+(willBackfill?"✅":"—")+"</td></tr>";
+    }).join("") + "</table>";
+
+  document.getElementById("pbTable").innerHTML =
+    "<p style='font-size:13px;'><b>순번:</b> " + PRAYER_BACKUP.names.map(esc).join(" → ") + "</p>" +
+    "<ul style='font-size:13px;'>" + PRAYER_BACKUP.checklist.map(function(c){ return "<li>"+esc(c)+"</li>"; }).join("") + "</ul>";
+
+  var fridays = fridays2025();
+  document.getElementById("att2025Table").innerHTML =
+    "<table><tr><th>#</th><th>날짜</th><th class='att-col'>출석 인원</th></tr>" +
+    fridays.map(function(d,i){
+      return "<tr><td>"+(i+1)+"</td><td>"+esc(d)+"</td><td><input type='number' min='0' class='att2025-input' data-date='"+esc(d)+"' placeholder='비우면 건너뜀'></td></tr>";
+    }).join("") + "</table>";
+
+  /* ---- import actions ---- */
+  document.getElementById("import2026Btn").addEventListener("click", function(){
+    if(!confirm("2026년 로스터 "+ROSTER_2026.length+"행 + 과거 주차 문서를 가져올까요?")) return;
+    this.disabled = true;
+    log("=== 2026년 가져오기 시작 ===");
+    var rosterRows = ROSTER_2026.map(function(r){
+      return { date:r.date, preacher:r.preacher, worshipLeader:r.worshipLeader, prayerBackup:r.prayerBackup, note:r.note, special: !!r.special };
+    });
+    db.collection("friday_prayer_settings").doc("cueTemplate").get().then(function(tplSnap){
+      var cueSheet = (tplSnap.exists && Array.isArray(tplSnap.data().rows)) ? tplSnap.data().rows : [];
+      return db.collection("friday_prayer_roster").doc("2026").set({ rows: rosterRows, updatedAt: new Date().toISOString(), updatedBy: "가져오기 도구" })
+        .then(function(){
+          log("✅ friday_prayer_roster/2026 저장 완료 ("+rosterRows.length+"행)");
+          var backfillTargets = ROSTER_2026.filter(function(r){ return !r.special && r.date < BACKFILL_CUTOFF && typeof r.attendance === "number"; });
+          log("과거 주차 문서 "+backfillTargets.length+"개 백필 중...");
+          var chain = Promise.resolve();
+          backfillTargets.forEach(function(r){
+            chain = chain.then(function(){
+              return WEEKS_COL.doc(r.date).set({
+                date: r.date, preacher: r.preacher, worshipLeader: r.worshipLeader, prayerBackup: r.prayerBackup,
+                attendance: r.attendance, specialNote: r.note || "", cueSheet: cueSheet
+              }, { merge:true }).then(function(){ log("  "+r.date+" 완료"); }).catch(function(err){ log("  ⚠ "+r.date+" 실패: "+err.message); });
+            });
+          });
+          return chain;
+        });
+    }).then(function(){
+      log("=== 2026년 가져오기 끝 ===");
+    }).catch(function(err){ log("❌ 오류: "+err.message); });
+  });
+
+  document.getElementById("importPbBtn").addEventListener("click", function(){
+    this.disabled = true;
+    db.collection("friday_prayer_settings").doc("prayerBackupRotation").set(PRAYER_BACKUP)
+      .then(function(){ log("✅ 기도백업 순번 저장 완료"); })
+      .catch(function(err){ log("❌ 오류: "+err.message); });
+  });
+
+  document.getElementById("import2025Btn").addEventListener("click", function(){
+    var inputs = Array.prototype.slice.call(document.querySelectorAll(".att2025-input")).filter(function(i){ return i.value.trim() !== ""; });
+    if(!inputs.length){ alert("입력한 출석 인원이 없어요."); return; }
+    if(!confirm(inputs.length+"개 주차의 2025년 출석을 저장할까요?")) return;
+    this.disabled = true;
+    log("=== 2025년 출석 저장 시작 ("+inputs.length+"건) ===");
+    var chain = Promise.resolve();
+    inputs.forEach(function(inp){
+      var date = inp.getAttribute("data-date");
+      var val = Math.max(0, parseInt(inp.value,10) || 0);
+      chain = chain.then(function(){
+        return WEEKS_COL.doc(date).set({ date:date, attendance: val }, { merge:true })
+          .then(function(){ log("  "+date+" = "+val+"명 저장"); })
+          .catch(function(err){ log("  ⚠ "+date+" 실패: "+err.message); });
+      });
+    });
+    chain.then(function(){ log("=== 2025년 출석 저장 끝 ==="); });
+  });
+})();
+</script>
+</body>
+</html>
