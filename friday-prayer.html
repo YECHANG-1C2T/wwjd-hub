@@ -550,6 +550,7 @@
   var activeTeam = getStoredActiveTeam() || null;
   var recentWeeks = []; /* for chart, desc by date */
   var pendingWrites = {};
+  var healedDates = {}; /* 빈 큐시트 자동 복구를 이 세션에서 날짜당 한 번만 시도 */
   var unsubscribeWeek = null;
   var unsubscribeRecent = null;
   /* 저장 안 된 입력을 지키는 안전망 — "섹션 단위"로 추적한다. 예전엔
@@ -593,7 +594,22 @@
     unsubscribeWeek = WEEKS_COL.doc(thisDate).onSnapshot(function(snap){
       if(thisDate !== currentDate) return; /* stale listener from a since-changed week */
       if(snap.exists){
-        if(!pendingWrites[thisDate]) currentWeek = Object.assign(defaultWeek(thisDate), snap.data());
+        if(!pendingWrites[thisDate]){
+          currentWeek = Object.assign(defaultWeek(thisDate), snap.data());
+          /* 큐시트 기본값 템플릿 기능이 생기기 전에는 새 주 문서가 빈 배열로
+             영구 저장됐다 — 그렇게 이미 저장돼버린 옛 문서들이 "큐시트를
+             처음부터 다시 넣어야 하는" 상태로 남아있었다. 특별주간이 아닌데
+             큐시트가 비어있으면 기본 진행표로 채워서 다시 저장해 스스로
+             복구한다(한 번만 — healedDates로 재귀 저장 방지).
+             cueTemplate 자체가 아직 로딩 전이면 아무 의미 없으니 건드리지 않음. */
+          if(!currentWeek.special && (!currentWeek.cueSheet || !currentWeek.cueSheet.length) && cueTemplate.length && !healedDates[thisDate]){
+            healedDates[thisDate] = true;
+            currentWeek.cueSheet = cueTemplate.map(function(r){ return Object.assign({}, r); });
+            WEEKS_COL.doc(thisDate).set({ cueSheet: currentWeek.cueSheet, updatedAt: new Date().toISOString(), updatedBy: "자동 복구" }, { merge:true })
+              .then(function(){ console.log("복구 완료:", thisDate); })
+              .catch(function(err){ console.error("cue auto-heal failed", thisDate, err); });
+          }
+        }
       } else if(!pendingWrites[thisDate]){
         /* 문서를 여기서 바로 만들지 않는다 — cueTemplate이 아직 Firestore에서
            로딩 중일 때 이 시점에 문서를 만들면 옛 기본값이 영구 저장될 수
