@@ -475,6 +475,7 @@ function updateHeroClock() {
     document.getElementById('hero-date').innerText = dateStr;
     document.getElementById('global-header-clock').innerText = timeStr;
 
+    if (typeof syncTodoViewToToday === 'function' && window.todoLastToday) syncTodoViewToToday();
     if (typeof renderTodoViewDateLabel === 'function') renderTodoViewDateLabel();
 }
 setInterval(updateHeroClock, 1000);
@@ -1203,6 +1204,21 @@ function getEffectiveTodoDate(t) {
 
 /* 화살표로 넘겨보는 기준 날짜. 새로고침하면 다시 오늘로 돌아온다(굳이 저장할 필요 없는 화면 상태). */
 window.todoViewDate = getLocalDateStr();
+window.todoLastToday = window.todoViewDate;
+
+/* 화면을 켜 둔 채(또는 앱이 백그라운드에 있다가) 자정을 넘기면 '오늘'이 어제 날짜에
+   고정되어 "어제의 걸음"으로 남던 문제를 막는다. 오늘 칸을 보고 있었다면 새 오늘로
+   자동으로 넘어가고, 일부러 다른 날짜를 보던 중이면 그 날짜는 건드리지 않는다. */
+function syncTodoViewToToday() {
+    const todayStr = getLocalDateStr();
+    if (window.todoLastToday === todayStr) return;
+    const wasFollowingToday = window.todoViewDate === window.todoLastToday;
+    window.todoLastToday = todayStr;
+    if (wasFollowingToday) window.todoViewDate = todayStr;
+    if (typeof renderTodos === 'function') renderTodos();
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) syncTodoViewToToday(); });
+window.addEventListener('focus', syncTodoViewToToday);
 
 function shiftTodoViewDate(delta) {
     const d = new Date(window.todoViewDate + 'T00:00:00');
